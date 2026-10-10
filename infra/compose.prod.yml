@@ -1,0 +1,161 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: ofp
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ofp
+    volumes:
+      - ../data/pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ofp -d ofp"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - ../data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+
+  migrate:
+    profiles: ["tools"]
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    environment:
+      DATABASE_URL: postgres://ofp:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/ofp
+      ALLOW_SCHEMA_PUSH: ${ALLOW_SCHEMA_PUSH:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      - sh
+      - -ec
+      - |
+        test "$${ALLOW_SCHEMA_PUSH}" = "true" || {
+          echo "Refusing production schema push. Review the generated schema change and explicitly authorize it." >&2
+          exit 1
+        }
+        pnpm --filter @ofp/db migrate
+        pnpm --filter @ofp/db schema:parity
+    restart: "no"
+
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    environment:
+      NODE_ENV: production
+      API_PORT: 3001
+      DATABASE_URL: postgres://ofp:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/ofp
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:?Set a unique JWT_SECRET of at least 32 characters}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-12h}
+      CORS_ORIGIN: ${CORS_ORIGIN:?Set the exact HTTPS web origin}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:?Set the exact HTTPS web origin}
+      TRUST_PROXY: "true"
+      OFP_ALLOW_PUBLIC_REGISTRATION: ${OFP_ALLOW_PUBLIC_REGISTRATION:-false}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      OFP_UPLOAD_DIR: /uploads
+      OFP_UPLOAD_MAX_BYTES: ${OFP_UPLOAD_MAX_BYTES:-26214400}
+      OFP_HEALTH_PROBE_TIMEOUT_MS: ${OFP_HEALTH_PROBE_TIMEOUT_MS:-2000}
+      OFP_MAINTENANCE_FILE: /var/lib/openfieldpro-ops/state/maintenance.json
+    volumes:
+      - ../data/uploads:/uploads
+      - operations_state:/var/lib/openfieldpro-ops/state:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:3001/api/health/ready"]
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:?Set the public HTTPS origin; the client appends /api}
+    environment:
+      OFP_SPONSOR_ENABLED: ${OFP_SPONSOR_ENABLED:-false}
+      OFP_SPONSOR_NAME: ${OFP_SPONSOR_NAME:-}
+      OFP_SPONSOR_MESSAGE: ${OFP_SPONSOR_MESSAGE:-}
+      OFP_SPONSOR_URL: ${OFP_SPONSOR_URL:-}
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:3000/"]
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ..
+      dockerfile: apps/worker/Dockerfile
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://ofp:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/ofp
+      REDIS_URL: redis://redis:6379
+      NTFY_URL: ${NTFY_URL:-}
+      OFP_MAINTENANCE_FILE: /var/lib/openfieldpro-ops/state/maintenance.json
+      WORKER_STATUS_PORT: 3020
+    expose:
+      - "3020"
+    volumes:
+      - operations_state:/var/lib/openfieldpro-ops/state:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    environment:
+      OFP_SITE_ADDRESS: ${OFP_SITE_ADDRESS:?Set the production domain, for example openfieldpro.example.com}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - ../landing:/srv/landing:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  operations_state:
+    name: ${OFP_OPERATIONS_STATE_VOLUME:-openfieldpro_operations_state}
+  caddy_data:
+  caddy_config:
+
+networks:
+  default:
+    name: ${OFP_INTERNAL_NETWORK:-openfieldpro_internal}

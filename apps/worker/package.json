@@ -1,0 +1,20 @@
+{
+  "name": "@ofp/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node --experimental-strip-types src/index.ts",
+    "test": "node --import tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@ofp/db": "workspace:*",
+    "@ofp/plugin-sdk": "workspace:*",
+    "@ofp/shared": "workspace:*",
+    "drizzle-orm": "^0.45.2"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0"
+  }
+}
