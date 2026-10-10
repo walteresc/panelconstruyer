@@ -1,0 +1,33 @@
+# Infra local de desarrollo para Reparati (Postgres+PostGIS y Redis).
+# Puertos remapeados para no chocar con otras apps de la máquina:
+#   Postgres 5440, Redis 6390. Sin MinIO ni Caddy (no se necesitan en dev).
+#   docker compose -f infra/compose.dev.yml -p reparati-ofp up -d
+name: reparati-ofp
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: reparati-ofp-postgres
+    environment:
+      POSTGRES_USER: ofp
+      POSTGRES_PASSWORD: ofp
+      POSTGRES_DB: ofp
+    ports: ["127.0.0.1:5440:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ofp"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: reparati-ofp-redis
+    ports: ["127.0.0.1:6390:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
