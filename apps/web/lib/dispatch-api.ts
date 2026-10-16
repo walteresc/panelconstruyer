@@ -30,11 +30,11 @@ export function formatDispatchApiError(status: number, statusText: string, body:
     if (!message) return `${status}: ${body}`;
 
     if (status === 409 && parsed.conflict?.startsAt && parsed.conflict?.endsAt) {
-      const start = new Date(parsed.conflict.startsAt).toLocaleTimeString([], {
+      const start = new Date(parsed.conflict.startsAt).toLocaleTimeString("es-PE", {
         hour: "numeric",
         minute: "2-digit",
       });
-      const end = new Date(parsed.conflict.endsAt).toLocaleTimeString([], {
+      const end = new Date(parsed.conflict.endsAt).toLocaleTimeString("es-PE", {
         hour: "numeric",
         minute: "2-digit",
       });

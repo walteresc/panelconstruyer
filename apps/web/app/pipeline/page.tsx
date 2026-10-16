@@ -12,11 +12,11 @@ import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/empty-state";
 
 const COLUMNS = [
-  { status: "lead", label: "Lead", color: "border-t-purple" },
-  { status: "scheduled", label: "Scheduled", color: "border-t-blue" },
-  { status: "in_progress", label: "In Progress", color: "border-t-yellow" },
+  { status: "lead", label: "Solicitud", color: "border-t-purple" },
+  { status: "scheduled", label: "Programado", color: "border-t-blue" },
+  { status: "in_progress", label: "En curso", color: "border-t-yellow" },
   { status: "completed", label: "Completed", color: "border-t-green" },
-  { status: "canceled", label: "Canceled", color: "border-t-red" },
+  { status: "canceled", label: "Cancelado", color: "border-t-red" },
 ] as const;
 
 export default function PipelinePage() {
@@ -99,12 +99,12 @@ export default function PipelinePage() {
   return (
     <div>
       <PageHeader
-        title="Pipeline"
-        description={`${jobs.length} job${jobs.length !== 1 ? "s" : ""} across 5 stages`}
+        title="Embudo"
+        description={`${jobs.length} trabajo${jobs.length !== 1 ? "s" : ""} en 5 etapas`}
         actions={
           <Link href="/schedule">
             <button className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md bg-accent text-white hover:bg-accent/90 transition-colors cursor-pointer border-none">
-              ⊕ New Job
+              ⊕ Nuevo trabajo
             </button>
           </Link>
         }
@@ -112,15 +112,15 @@ export default function PipelinePage() {
 
       {error && (
         <Card className="mb-6 border-red/30 bg-red/5">
-          <p className="text-red text-sm">API unreachable ({error}).</p>
+          <p className="text-red text-sm">No se puede conectar con la API ({error}).</p>
         </Card>
       )}
 
       {jobs.length === 0 && !error ? (
         <Card>
           <EmptyState
-            title="No jobs yet"
-            description="Your pipeline will show here once you create jobs."
+            title="Aún no hay trabajos"
+            description="Tu embudo aparecerá aquí cuando crees trabajos."
           />
         </Card>
       ) : (
@@ -129,7 +129,7 @@ export default function PipelinePage() {
           <div className="mb-4">
             <Input
               type="search"
-              placeholder="Search by job title or customer..."
+              placeholder="Buscar por título del trabajo o cliente..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="max-w-xs"
@@ -186,7 +186,7 @@ export default function PipelinePage() {
                                 </span>
                                 {j.scheduledAt && (
                                   <span className="text-[9px] text-fg-dim">
-                                    {new Date(j.scheduledAt).toLocaleDateString(undefined, {
+                                    {new Date(j.scheduledAt).toLocaleDateString("es-PE", {
                                       month: "short",
                                       day: "numeric",
                                     })}

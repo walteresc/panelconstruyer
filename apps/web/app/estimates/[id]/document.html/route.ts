@@ -14,7 +14,7 @@ export async function GET(
   ]);
 
   if (!estimate) {
-    return Response.json({ error: "estimate not found" }, { status: 404 });
+    return Response.json({ error: "cotización no encontrada" }, { status: 404 });
   }
 
   const job = jobs.find((row) => row.id === estimate.jobId) ?? null;

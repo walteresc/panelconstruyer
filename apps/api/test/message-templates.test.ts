@@ -98,5 +98,5 @@ test("portal link templates may use an optional expiry section", () => {
   assert.deepEqual(validation.unknown, []);
   assert.ok(validation.missingRequired.length === 0);
   const withExpiry = renderMessageTemplate(template, messageTemplateSampleVariables("portal_link", "ACME"));
-  assert.match(withExpiry, /This link expires Sep 10, 2026/);
+  assert.match(withExpiry, /Este enlace vence el 10 de septiembre de 2026/);
 });

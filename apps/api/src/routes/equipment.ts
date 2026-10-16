@@ -46,7 +46,7 @@ export async function equipmentRoutes(app: FastifyInstance) {
       .select()
       .from(equipment)
       .where(and(eq(equipment.orgId, orgId), eq(equipment.id, id)));
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
     return row;
   });
 
@@ -86,7 +86,7 @@ export async function equipmentRoutes(app: FastifyInstance) {
       })
       .where(and(eq(equipment.orgId, orgId), eq(equipment.id, id)))
       .returning();
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
     return row;
   });
 
@@ -97,7 +97,7 @@ export async function equipmentRoutes(app: FastifyInstance) {
       .delete(equipment)
       .where(and(eq(equipment.orgId, orgId), eq(equipment.id, id)))
       .returning();
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
     return reply.code(204).send();
   });
 }

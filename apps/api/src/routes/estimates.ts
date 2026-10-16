@@ -65,7 +65,7 @@ async function createDepositInvoiceTx(
   await tx.insert(invoiceLineItems).values({
     orgId: input.orgId,
     invoiceId: row.id,
-    description: `Deposit for ${input.estimateNumberValue}`,
+    description: `Adelanto de ${input.estimateNumberValue}`,
     quantity: 1,
     unitPrice: deposit,
     unitCost: 0,
@@ -101,11 +101,11 @@ export function nextEstimateLifecycle(
 ): "approved" {
   if (status === "approved") {
     if (selectedOptionId === requestedOptionId) return "approved";
-    throw new Error("estimate was already approved with a different option");
+    throw new Error("la cotización ya fue aprobada con otra opción");
   }
-  if (status === "declined") throw new Error("declined estimates cannot be approved");
-  if (status === "expired") throw new Error("expired estimates cannot be approved");
-  if (status === "draft") throw new Error("estimate must be sent before approval");
+  if (status === "declined") throw new Error("una cotización rechazada no se puede aprobar");
+  if (status === "expired") throw new Error("una cotización vencida no se puede aprobar");
+  if (status === "draft") throw new Error("la cotización debe enviarse antes de aprobarse");
   return "approved";
 }
 
@@ -119,9 +119,9 @@ export function assertEstimateApprovalAllowed(
   now = new Date(),
 ) {
   if (input.status === "expired" || (input.expiresAt && input.expiresAt.getTime() < now.getTime())) {
-    throw new Error("estimate expired");
+    throw new Error("la cotización venció");
   }
-  if (input.signatureRequired && !input.signatureName?.trim()) throw new Error("customer signature is required");
+  if (input.signatureRequired && !input.signatureName?.trim()) throw new Error("se requiere la firma del cliente");
 }
 
 async function detail(orgId: string, id: string) {
@@ -226,7 +226,7 @@ export async function estimateRoutes(app: FastifyInstance) {
     const orgId = await resolveOrgId(req);
     const { id } = req.params as { id: string };
     const row = await detail(orgId, id);
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
     return row;
   });
 
@@ -268,7 +268,7 @@ export async function estimateRoutes(app: FastifyInstance) {
       }
       return estimate;
     });
-    if (!result) return reply.code(404).send({ error: "job not found" });
+    if (!result) return reply.code(404).send({ error: "trabajo no encontrado" });
     return reply.code(201).send(await detail(orgId, result.id));
   });
 
@@ -277,7 +277,7 @@ export async function estimateRoutes(app: FastifyInstance) {
     const { id, optionId } = req.params as { id: string; optionId: string };
     const parsed = optionBody.safeParse(req.body);
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() });
-    if (!(await editableOption(orgId, id, optionId))) return reply.code(409).send({ error: "option is not editable" });
+    if (!(await editableOption(orgId, id, optionId))) return reply.code(409).send({ error: "la opción no se puede editar" });
     const [option] = await db.update(estimateOptions).set({
       ...(parsed.data.label !== undefined ? { label: parsed.data.label } : {}),
       updatedAt: new Date(),
@@ -297,7 +297,7 @@ export async function estimateRoutes(app: FastifyInstance) {
     const { id, optionId } = req.params as { id: string; optionId: string };
     const parsed = lineBody.safeParse(req.body);
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() });
-    if (!(await editableOption(orgId, id, optionId))) return reply.code(409).send({ error: "option is not editable" });
+    if (!(await editableOption(orgId, id, optionId))) return reply.code(409).send({ error: "la opción no se puede editar" });
     const [line] = await db.insert(estimateOptionLineItems).values({ orgId, optionId, ...parsed.data }).returning();
     const total = await recomputeOption(orgId, id, optionId);
     return reply.code(201).send({ lineItem: line, total });
@@ -308,10 +308,10 @@ export async function estimateRoutes(app: FastifyInstance) {
     const { id, optionId, lineId } = req.params as { id: string; optionId: string; lineId: string };
     const parsed = linePatchBody.safeParse(req.body);
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() });
-    if (!(await editableOption(orgId, id, optionId))) return reply.code(409).send({ error: "option is not editable" });
+    if (!(await editableOption(orgId, id, optionId))) return reply.code(409).send({ error: "la opción no se puede editar" });
     const [line] = await db.update(estimateOptionLineItems).set({ ...parsed.data, updatedAt: new Date() })
       .where(and(eq(estimateOptionLineItems.orgId, orgId), eq(estimateOptionLineItems.optionId, optionId), eq(estimateOptionLineItems.id, lineId))).returning();
-    if (!line) return reply.code(404).send({ error: "line item not found" });
+    if (!line) return reply.code(404).send({ error: "concepto no encontrado" });
     const total = await recomputeOption(orgId, id, optionId);
     return { lineItem: line, total };
   });
@@ -319,10 +319,10 @@ export async function estimateRoutes(app: FastifyInstance) {
   app.delete("/:id/options/:optionId/lines/:lineId", async (req, reply) => {
     const orgId = await resolveOrgId(req);
     const { id, optionId, lineId } = req.params as { id: string; optionId: string; lineId: string };
-    if (!(await editableOption(orgId, id, optionId))) return reply.code(409).send({ error: "option is not editable" });
+    if (!(await editableOption(orgId, id, optionId))) return reply.code(409).send({ error: "la opción no se puede editar" });
     const [line] = await db.delete(estimateOptionLineItems)
       .where(and(eq(estimateOptionLineItems.orgId, orgId), eq(estimateOptionLineItems.optionId, optionId), eq(estimateOptionLineItems.id, lineId))).returning();
-    if (!line) return reply.code(404).send({ error: "line item not found" });
+    if (!line) return reply.code(404).send({ error: "concepto no encontrado" });
     return { ok: true, total: await recomputeOption(orgId, id, optionId) };
   });
 
@@ -331,7 +331,7 @@ export async function estimateRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     const [estimate] = await db.update(estimates).set({ status: "sent", sentAt: new Date(), updatedAt: new Date() })
       .where(and(eq(estimates.orgId, orgId), eq(estimates.id, id), eq(estimates.status, "draft"))).returning();
-    if (!estimate) return reply.code(409).send({ error: "only draft estimates can be marked sent" });
+    if (!estimate) return reply.code(409).send({ error: "solo las cotizaciones en borrador se pueden marcar como enviadas" });
     return estimate;
   });
 
@@ -399,14 +399,14 @@ export async function estimateRoutes(app: FastifyInstance) {
       }).where(and(eq(estimates.orgId, orgId), eq(estimates.id, id))).returning();
       return { kind: "approved" as const, estimate: finalEstimate, deposit };
     });
-    if (result.kind === "missing") return reply.code(404).send({ error: "not found" });
-    if (result.kind === "option") return reply.code(404).send({ error: "option not found" });
+    if (result.kind === "missing") return reply.code(404).send({ error: "no encontrado" });
+    if (result.kind === "option") return reply.code(404).send({ error: "opción no encontrada" });
     if (result.kind === "invalid") return reply.code(409).send({ error: result.error });
     if (result.deposit.invoiceId) {
       safeEmitActivity(
         orgId,
         "estimate.deposit_created",
-        `Created ${(result.deposit.deposit / 100).toFixed(2)} deposit invoice for ${result.estimate.number}`,
+        `Factura de adelanto de S/ ${(result.deposit.deposit / 100).toFixed(2)} creada para ${result.estimate.number}`,
         { jobId: result.estimate.jobId },
       );
     }
@@ -418,7 +418,7 @@ export async function estimateRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     const [estimate] = await db.update(estimates).set({ status: "declined", declinedAt: new Date(), updatedAt: new Date() })
       .where(and(eq(estimates.orgId, orgId), eq(estimates.id, id), inArray(estimates.status, ["draft", "sent"]))).returning();
-    if (!estimate) return reply.code(409).send({ error: "estimate cannot be declined" });
+    if (!estimate) return reply.code(409).send({ error: "la cotización no se puede rechazar" });
     return estimate;
   });
 
@@ -448,8 +448,8 @@ export async function estimateRoutes(app: FastifyInstance) {
       await tx.update(estimates).set({ copiedToJobAt: new Date(), updatedAt: new Date() }).where(and(eq(estimates.orgId, orgId), eq(estimates.id, id)));
       return { kind: "copied" as const, total, alreadyCopied: false };
     });
-    if (result.kind === "missing") return reply.code(404).send({ error: "not found" });
-    if (result.kind === "invalid") return reply.code(409).send({ error: "approve one option before copying work to the job" });
+    if (result.kind === "missing") return reply.code(404).send({ error: "no encontrado" });
+    if (result.kind === "invalid") return reply.code(409).send({ error: "aprueba una opción antes de copiar el trabajo" });
     return { ok: true, total: result.total, alreadyCopied: result.alreadyCopied };
   });
 
@@ -460,9 +460,9 @@ export async function estimateRoutes(app: FastifyInstance) {
     const body = z.object({ customerName: z.string().trim().max(160).optional() }).safeParse(req.body ?? {});
     if (!body.success) return reply.code(400).send({ error: body.error.flatten() });
     const [option] = await db.select().from(estimateOptions).where(and(eq(estimateOptions.orgId, orgId), eq(estimateOptions.estimateId, id))).orderBy(asc(estimateOptions.position)).limit(1);
-    if (!option) return reply.code(404).send({ error: "option not found" });
+    if (!option) return reply.code(404).send({ error: "opción no encontrada" });
     const [estimate] = await db.select().from(estimates).where(and(eq(estimates.orgId, orgId), eq(estimates.id, id)));
-    if (!estimate) return reply.code(404).send({ error: "not found" });
+    if (!estimate) return reply.code(404).send({ error: "no encontrado" });
     const [org] = await db.select({ businessSettings: orgs.businessSettings }).from(orgs).where(eq(orgs.id, orgId));
     const settings = mergeBusinessSettings(org?.businessSettings);
     try {
@@ -502,12 +502,12 @@ export async function estimateRoutes(app: FastifyInstance) {
       }).where(and(eq(estimates.orgId, orgId), eq(estimates.id, id))).returning();
       return { kind: "approved" as const, estimate: finalEstimate, deposit };
     });
-    if (result.kind === "missing") return reply.code(409).send({ error: "estimate cannot be accepted" });
+    if (result.kind === "missing") return reply.code(409).send({ error: "la cotización no se puede aceptar" });
     if (result.deposit.invoiceId) {
       safeEmitActivity(
         orgId,
         "estimate.deposit_created",
-        `Created ${(result.deposit.deposit / 100).toFixed(2)} deposit invoice for ${result.estimate.number}`,
+        `Factura de adelanto de S/ ${(result.deposit.deposit / 100).toFixed(2)} creada para ${result.estimate.number}`,
         { jobId: result.estimate.jobId },
       );
     }

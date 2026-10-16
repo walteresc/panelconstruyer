@@ -22,7 +22,7 @@ interface InvoiceRow {
 type BusyAction = { jobId: string; action: "start" | "complete" | "invoice" } | null;
 
 function customerName(job: JobDTO, customers: Map<string, CustomerDTO>) {
-  return customers.get(job.customerId)?.name ?? "Customer unavailable";
+  return customers.get(job.customerId)?.name ?? "Cliente no disponible";
 }
 
 export default function CloseoutPage() {
@@ -98,7 +98,7 @@ export default function CloseoutPage() {
 
   async function createInvoice(job: JobDTO) {
     if (job.total <= 0) {
-      setError("Add billable line items before creating an invoice.");
+      setError("Agrega conceptos facturables antes de crear una factura.");
       return;
     }
     setError(null);
@@ -116,7 +116,7 @@ export default function CloseoutPage() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Job closeout" description="Move completed field work into billing without losing the handoff." />
+        <PageHeader title="Cierre de trabajos" description="Pasa el trabajo terminado a facturación sin perder el seguimiento." />
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           {Array.from({ length: 5 }).map((_, index) => <Skeleton key={index} className="h-24 rounded-xl" />)}
         </div>
@@ -131,12 +131,12 @@ export default function CloseoutPage() {
   return (
     <div data-testid="closeout-board">
       <PageHeader
-        title="Job closeout"
-        description="Start work, complete the visit, resolve missing pricing, and create the invoice from one operations queue."
+        title="Cierre de trabajos"
+        description="Inicia el trabajo, termina la visita, completa los precios pendientes y crea la factura desde una sola cola de operaciones."
         actions={
           <div className="flex gap-2">
-            <Link href="/jobs/new"><Button variant="secondary" size="sm">New job</Button></Link>
-            <Link href="/invoices"><Button size="sm">Invoices</Button></Link>
+            <Link href="/jobs/new"><Button variant="secondary" size="sm">Nuevo trabajo</Button></Link>
+            <Link href="/invoices"><Button size="sm">Facturas</Button></Link>
           </div>
         }
       />
@@ -149,11 +149,11 @@ export default function CloseoutPage() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         {[
-          ["Awaiting start", scheduled.length, "text-blue"],
-          ["In progress", inProgress.length, "text-yellow"],
-          ["Ready to invoice", readyToInvoice.length, "text-green"],
-          ["Needs pricing", needsPricing.length, needsPricing.length ? "text-red" : "text-green"],
-          ["Invoiced", recentlyInvoiced.length, "text-fg"],
+          ["Por iniciar", scheduled.length, "text-blue"],
+          ["En curso", inProgress.length, "text-yellow"],
+          ["Listos para facturar", readyToInvoice.length, "text-green"],
+          ["Falta precio", needsPricing.length, needsPricing.length ? "text-red" : "text-green"],
+          ["Facturados", recentlyInvoiced.length, "text-fg"],
         ].map(([label, value, tone]) => (
           <Card key={String(label)}>
             <CardContent className="p-4">
@@ -165,22 +165,22 @@ export default function CloseoutPage() {
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
-        <QueueCard title="Awaiting start" description="Scheduled jobs ready for the technician to begin." empty="No scheduled jobs are waiting to start.">
+        <QueueCard title="Por iniciar" description="Trabajos programados listos para que el especialista comience." empty="No hay trabajos programados por iniciar.">
           {scheduled.map((job) => (
             <JobCard key={job.id} job={job} customer={customerName(job, customerMap)}>
               <Button
                 size="sm"
                 onClick={() => updateStatus(job, "in_progress")}
                 disabled={busy?.jobId === job.id}
-                aria-label={`Start ${job.title}`}
+                aria-label={`Iniciar ${job.title}`}
               >
-                {busy?.jobId === job.id ? "Starting…" : "Start job"}
+                {busy?.jobId === job.id ? "Iniciando…" : "Iniciar trabajo"}
               </Button>
             </JobCard>
           ))}
         </QueueCard>
 
-        <QueueCard title="In progress" description="Active field work that still needs a completion decision." empty="No jobs are currently in progress.">
+        <QueueCard title="En curso" description="Trabajos en curso que aún deben cerrarse." empty="No hay trabajos en curso.">
           {inProgress.map((job) => (
             <JobCard key={job.id} job={job} customer={customerName(job, customerMap)}>
               <Button
@@ -189,31 +189,31 @@ export default function CloseoutPage() {
                 disabled={busy?.jobId === job.id}
                 aria-label={`Complete ${job.title}`}
               >
-                {busy?.jobId === job.id ? "Completing…" : "Mark complete"}
+                {busy?.jobId === job.id ? "Completando…" : "Marcar como terminado"}
               </Button>
             </JobCard>
           ))}
         </QueueCard>
 
-        <QueueCard title="Ready to invoice" description="Completed jobs with billable pricing and no active invoice." empty="No completed jobs are ready for invoicing.">
+        <QueueCard title="Listos para facturar" description="Trabajos terminados con precio y sin factura activa." empty="No hay trabajos terminados listos para facturar.">
           {readyToInvoice.map((job) => (
             <JobCard key={job.id} job={job} customer={customerName(job, customerMap)}>
               <Button
                 size="sm"
                 onClick={() => createInvoice(job)}
                 disabled={busy?.jobId === job.id}
-                aria-label={`Create invoice for ${job.title}`}
+                aria-label={`Crear factura para ${job.title}`}
               >
-                {busy?.jobId === job.id ? "Creating…" : "Create invoice"}
+                {busy?.jobId === job.id ? "Creando…" : "Crear factura"}
               </Button>
             </JobCard>
           ))}
         </QueueCard>
 
-        <QueueCard title="Needs pricing" description="Completed jobs that cannot be invoiced because their total is still zero." empty="No completed jobs are missing pricing.">
+        <QueueCard title="Falta precio" description="Trabajos terminados que no se pueden facturar porque su total sigue en cero." empty="No hay trabajos terminados sin precio.">
           {needsPricing.map((job) => (
             <JobCard key={job.id} job={job} customer={customerName(job, customerMap)} tone="warning">
-              <Link href={`/jobs/${job.id}`}><Button variant="secondary" size="sm">Add line items</Button></Link>
+              <Link href={`/jobs/${job.id}`}><Button variant="secondary" size="sm">Agregar conceptos</Button></Link>
             </JobCard>
           ))}
         </QueueCard>
@@ -221,12 +221,12 @@ export default function CloseoutPage() {
 
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Recently invoiced</CardTitle>
-          <p className="text-xs text-fg-muted">The latest work orders that have crossed into accounts receivable.</p>
+          <CardTitle>Facturados recientemente</CardTitle>
+          <p className="text-xs text-fg-muted">Las últimas órdenes de trabajo que pasaron a cuentas por cobrar.</p>
         </CardHeader>
         <CardContent>
           {recentlyInvoiced.length === 0 ? (
-            <p className="py-6 text-center text-sm text-fg-muted">No active invoices have been created yet.</p>
+            <p className="py-6 text-center text-sm text-fg-muted">Aún no se han creado facturas activas.</p>
           ) : (
             <div className="grid gap-3 md:grid-cols-2">
               {recentlyInvoiced.map((job) => {

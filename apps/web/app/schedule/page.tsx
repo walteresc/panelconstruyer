@@ -22,7 +22,7 @@ interface Appointment {
 
 type ViewMode = "day" | "week" | "month";
 
-const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAY_NAMES = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
 function dateKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -74,7 +74,7 @@ export default function SchedulePage() {
       if (appointmentResult.status === "rejected") {
         setAppointments([]);
         setJobs([]);
-        setError("Schedule could not be loaded. Check the connection and try again.");
+        setError("No se pudo cargar la agenda. Revisa la conexión e inténtalo de nuevo.");
       } else {
         setAppointments(appointmentResult.value);
         if (jobResult.status === "fulfilled") {
@@ -189,7 +189,7 @@ export default function SchedulePage() {
       return next;
     });
   };
-  const dateLabel = focusDate.toLocaleDateString(undefined, {
+  const dateLabel = focusDate.toLocaleDateString("es-PE", {
     ...(view === "month" ? { month: "long" as const, year: "numeric" as const } : { weekday: "long" as const, month: "long" as const, day: "numeric" as const }),
   });
 
@@ -226,12 +226,12 @@ export default function SchedulePage() {
   return (
     <div>
       <PageHeader
-        title="Schedule"
+        title="Agenda"
         description={`${appointments.length} appointment${appointments.length !== 1 ? "s" : ""}${search.trim() ? ` · ${filtered.length} match` : ""}`}
         actions={
           <div className="flex gap-2">
-            <Link href="/jobs/new"><Button variant="secondary" size="sm">New job</Button></Link>
-            <Link href="/dispatch"><Button size="sm">Open dispatch</Button></Link>
+            <Link href="/jobs/new"><Button variant="secondary" size="sm">Nuevo trabajo</Button></Link>
+            <Link href="/dispatch"><Button size="sm">Abrir despacho</Button></Link>
           </div>
         }
       />
@@ -241,17 +241,17 @@ export default function SchedulePage() {
         <Card className="mb-6 border-red/30 bg-red/5" role="alert">
           <p className="text-sm font-semibold text-red">{error}</p>
           <Button className="mt-3" variant="secondary" size="sm" onClick={() => setReloadVersion((value) => value + 1)}>
-            Retry schedule
+            Reintentar agenda
           </Button>
         </Card>
       )}
 
       {jobDataWarning && !error && (
         <Card className="mb-6 border-yellow/30 bg-yellow/5" role="status">
-          <p className="text-sm font-semibold text-yellow">Job details are temporarily unavailable.</p>
-          <p className="mt-1 text-xs text-fg-muted">Visit times are still shown. Retry to restore job titles.</p>
+          <p className="text-sm font-semibold text-yellow">Los detalles de los trabajos no están disponibles por ahora.</p>
+          <p className="mt-1 text-xs text-fg-muted">Se muestran los horarios de las visitas. Reintenta para recuperar los títulos.</p>
           <Button className="mt-3" variant="secondary" size="sm" onClick={() => setReloadVersion((value) => value + 1)}>
-            Retry job details
+            Reintentar detalles
           </Button>
         </Card>
       )}
@@ -260,12 +260,12 @@ export default function SchedulePage() {
       {appointments.length === 0 && !error ? (
         <Card>
           <EmptyState
-            title="No visits scheduled"
-            description="Create a job with a visit time, or open dispatch to review unassigned work."
+            title="No hay visitas programadas"
+            description="Crea un trabajo con horario de visita o abre el despacho para revisar el trabajo sin asignar."
             actions={
               <>
-                <Link href="/jobs/new"><Button variant="secondary" size="sm">New job</Button></Link>
-                <Link href="/dispatch"><Button size="sm">Open dispatch</Button></Link>
+                <Link href="/jobs/new"><Button variant="secondary" size="sm">Nuevo trabajo</Button></Link>
+                <Link href="/dispatch"><Button size="sm">Abrir despacho</Button></Link>
               </>
             }
           />
@@ -274,7 +274,7 @@ export default function SchedulePage() {
         <>
           {/* ── View toggle + search ── */}
           <div className="mb-4 flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center">
-            <div className="flex w-fit overflow-hidden rounded-lg border border-border" role="tablist" aria-label="Schedule view">
+            <div className="flex w-fit overflow-hidden rounded-lg border border-border" role="tablist" aria-label="Vista de agenda">
               <button
                 type="button"
                 role="tab"
@@ -286,7 +286,7 @@ export default function SchedulePage() {
                     : "bg-surface-300 text-fg-muted hover:text-fg"
                 }`}
               >
-                Day
+                Día
               </button>
               <button
                 type="button"
@@ -299,7 +299,7 @@ export default function SchedulePage() {
                     : "bg-surface-300 text-fg-muted hover:text-fg"
                 }`}
               >
-                Week
+                Semana
               </button>
               <button
                 type="button"
@@ -312,21 +312,21 @@ export default function SchedulePage() {
                     : "bg-surface-300 text-fg-muted hover:text-fg"
                 }`}
               >
-                Month
+                Mes
               </button>
             </div>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <Button variant="secondary" size="sm" onClick={() => moveDate(-1)} aria-label={`Previous ${view}`}>← Previous</Button>
-              <Button variant="secondary" size="sm" onClick={() => setFocusDate(new Date())}>Today</Button>
-              <Button variant="secondary" size="sm" onClick={() => moveDate(1)} aria-label={`Next ${view}`}>Next →</Button>
+              <Button variant="secondary" size="sm" onClick={() => moveDate(-1)} aria-label="Anterior">← Anterior</Button>
+              <Button variant="secondary" size="sm" onClick={() => setFocusDate(new Date())}>Hoy</Button>
+              <Button variant="secondary" size="sm" onClick={() => moveDate(1)} aria-label="Siguiente">Siguiente →</Button>
               <p className="min-w-0 text-sm font-semibold text-fg" aria-live="polite">{dateLabel}</p>
             </div>
             <Input
               type="search"
-              aria-label="Search schedule"
+              aria-label="Buscar en la agenda"
               name="schedule-search"
               autoComplete="off"
-              placeholder="Search by job title or technician…"
+              placeholder="Buscar por título del trabajo o especialista…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full min-w-0 lg:ml-auto lg:max-w-xs"
@@ -340,11 +340,11 @@ export default function SchedulePage() {
                 <Card>
                   <div className="text-center py-10">
                     <p className="text-sm text-fg-muted">
-                      {search.trim() ? "No visits match your search on this day" : "No visits scheduled on this day"}
+                      {search.trim() ? "Ninguna visita coincide con la búsqueda en este día" : "No hay visitas programadas este día"}
                     </p>
                     {search.trim() && (
                       <button onClick={() => setSearch("")} className="text-xs text-fg-link hover:text-fg mt-1 cursor-pointer bg-transparent border-none">
-                        Clear search
+                        Limpiar búsqueda
                       </button>
                     )}
                   </div>
@@ -415,12 +415,12 @@ export default function SchedulePage() {
                         {col.label} {col.date.getDate()}
                       </span>
                       {col.isToday && (
-                        <span className="text-[10px] opacity-90 font-medium">Today</span>
+                        <span className="text-[10px] opacity-90 font-medium">Hoy</span>
                       )}
                     </div>
                     <div className="rounded-b-lg bg-surface-200">
                       {col.appts.length === 0 ? (
-                        <p className="text-xs text-fg-dim text-center py-4 px-3">No appointments</p>
+                        <p className="text-xs text-fg-dim text-center py-4 px-3">Sin visitas</p>
                       ) : (
                         col.appts.map((a) => (
                           <AppointmentRow key={a.id} appt={a} jobTitle={jobMap.get(a.jobId)?.title ?? a.jobId.slice(0, 8)} compact />
@@ -439,12 +439,12 @@ export default function SchedulePage() {
               {filtered.length === 0 ? (
                 <Card>
                   <div className="text-center py-10">
-                    <p className="text-sm text-fg-muted">No appointments match your search</p>
+                    <p className="text-sm text-fg-muted">Ninguna visita coincide con la búsqueda</p>
                     <button
                       onClick={() => setSearch("")}
                       className="text-xs text-fg-link hover:text-fg mt-1 cursor-pointer bg-transparent border-none"
                     >
-                      Clear search
+                      Limpiar búsqueda
                     </button>
                   </div>
                 </Card>
@@ -554,7 +554,7 @@ export default function SchedulePage() {
                   if (!todayCell || todayCell.appts.length === 0) return null;
                   return (
                     <div className="mt-4">
-                      <h4 className="text-xs font-semibold text-fg-muted mb-2">Today&rsquo;s Appointments</h4>
+                      <h4 className="text-xs font-semibold text-fg-muted mb-2">Visitas de hoy</h4>
                       <div className="flex flex-col gap-2">
                         {todayCell.appts.map((a) => (
                           <AppointmentRow key={a.id} appt={a} jobTitle={jobMap.get(a.jobId)?.title ?? a.jobId.slice(0, 8)} compact />
@@ -586,7 +586,7 @@ function AppointmentRow({
 }) {
   const start = new Date(appt.startsAt);
   const end = new Date(appt.endsAt);
-  const timeStr = `${start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}–${end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  const timeStr = `${start.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}–${end.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}`;
 
   return (
     <Link
@@ -606,7 +606,7 @@ function AppointmentRow({
         </p>
         {appt.technicianId && (
           <p className="text-xs text-fg-dim mt-0.5">
-            Tech: {appt.technicianId.slice(0, 8)}
+            Especialista: {appt.technicianId.slice(0, 8)}
           </p>
         )}
       </div>
@@ -616,7 +616,7 @@ function AppointmentRow({
 }
 
 function formatTimeShort(iso: string): string {
-  return new Date(iso).toLocaleTimeString([], {
+  return new Date(iso).toLocaleTimeString("es-PE", {
     hour: "2-digit",
     minute: "2-digit",
   });

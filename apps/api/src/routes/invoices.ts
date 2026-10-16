@@ -92,7 +92,7 @@ export async function invoiceRoutes(app: FastifyInstance) {
     const orgId = await resolveOrgId(req);
     const { id } = req.params as { id: string };
     const [inv] = await db.select().from(invoices).where(and(eq(invoices.orgId, orgId), eq(invoices.id, id)));
-    if (!inv) return reply.code(404).send({ error: "not found" });
+    if (!inv) return reply.code(404).send({ error: "no encontrado" });
     // Invoice-owned snapshot lines: the customer document never drifts with later job edits.
     const items = await db
       .select()
@@ -164,10 +164,10 @@ export async function invoiceRoutes(app: FastifyInstance) {
       return { kind: "created" as const, row, job };
     });
 
-    if (result.kind === "not-found") return reply.code(404).send({ error: "job not found" });
+    if (result.kind === "not-found") return reply.code(404).send({ error: "trabajo no encontrado" });
     if (result.kind === "blocked") return reply.code(result.blocked.statusCode).send(result.blocked.body);
 
-    safeEmitActivity(orgId, "invoice.created", `Created invoice ${result.row.number}`, { jobId: result.job.id });
+    safeEmitActivity(orgId, "invoice.created", `Factura ${result.row.number} creada`, { jobId: result.job.id });
     void safeEmitEvent(orgId, "invoice.created", {
       id: result.row.id,
       number: result.row.number,
@@ -187,7 +187,7 @@ export async function invoiceRoutes(app: FastifyInstance) {
       .select()
       .from(invoices)
       .where(and(eq(invoices.orgId, orgId), eq(invoices.id, id)));
-    if (!existing) return reply.code(404).send({ error: "not found" });
+    if (!existing) return reply.code(404).send({ error: "no encontrado" });
 
     let status;
     try {
@@ -200,7 +200,7 @@ export async function invoiceRoutes(app: FastifyInstance) {
       .update(invoices)
       .set({ status, updatedAt: new Date() })
       .where(and(eq(invoices.orgId, orgId), eq(invoices.id, id)));
-    safeEmitActivity(orgId, "invoice.status_changed", `Invoice ${existing.number} marked ${status}`, {
+    safeEmitActivity(orgId, "invoice.status_changed", `Factura ${existing.number} marcada como ${status}`, {
       jobId: existing.jobId,
     });
     void safeEmitEvent(orgId, "invoice.status_changed", {
@@ -220,7 +220,7 @@ export async function invoiceRoutes(app: FastifyInstance) {
     const parsed = lineBody.safeParse(req.body);
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() });
     if (!(await editableInvoice(orgId, id))) {
-      return reply.code(409).send({ error: "invoice lines can only be edited while the invoice is a draft" });
+      return reply.code(409).send({ error: "los conceptos solo se pueden editar mientras la factura es un borrador" });
     }
     const result = await db.transaction(async (tx) => {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`invoice-payment:${id}`}))`);
@@ -241,7 +241,7 @@ export async function invoiceRoutes(app: FastifyInstance) {
     const parsed = linePatchBody.safeParse(req.body);
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() });
     if (!(await editableInvoice(orgId, id))) {
-      return reply.code(409).send({ error: "invoice lines can only be edited while the invoice is a draft" });
+      return reply.code(409).send({ error: "los conceptos solo se pueden editar mientras la factura es un borrador" });
     }
     const result = await db.transaction(async (tx) => {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`invoice-payment:${id}`}))`);
@@ -254,7 +254,7 @@ export async function invoiceRoutes(app: FastifyInstance) {
       const total = await recomputeInvoiceTotalTx(tx, orgId, id);
       return { line, total };
     });
-    if (!result) return reply.code(404).send({ error: "line item not found" });
+    if (!result) return reply.code(404).send({ error: "concepto no encontrado" });
     return { lineItem: result.line, total: result.total };
   });
 
@@ -262,7 +262,7 @@ export async function invoiceRoutes(app: FastifyInstance) {
     const orgId = await resolveOrgId(req);
     const { id, lineId } = req.params as { id: string; lineId: string };
     if (!(await editableInvoice(orgId, id))) {
-      return reply.code(409).send({ error: "invoice lines can only be edited while the invoice is a draft" });
+      return reply.code(409).send({ error: "los conceptos solo se pueden editar mientras la factura es un borrador" });
     }
     const result = await db.transaction(async (tx) => {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`invoice-payment:${id}`}))`);
@@ -274,7 +274,7 @@ export async function invoiceRoutes(app: FastifyInstance) {
       const total = await recomputeInvoiceTotalTx(tx, orgId, id);
       return { total };
     });
-    if (!result) return reply.code(404).send({ error: "line item not found" });
+    if (!result) return reply.code(404).send({ error: "concepto no encontrado" });
     return { ok: true, total: result.total };
   });
 
@@ -309,13 +309,13 @@ export async function invoiceRoutes(app: FastifyInstance) {
       return { kind: "paid" as const, inv, applied };
     });
 
-    if (result.kind === "not-found") return reply.code(404).send({ error: "not found" });
+    if (result.kind === "not-found") return reply.code(404).send({ error: "no encontrado" });
     if (result.kind === "invalid") return reply.code(400).send({ error: result.error });
 
     safeEmitActivity(
       orgId,
       "payment.received",
-      `Received ${parsed.data.method} payment of $${(parsed.data.amount / 100).toFixed(2)} on ${result.inv.number}`,
+      `Pago (${parsed.data.method}) de S/ ${(parsed.data.amount / 100).toFixed(2)} recibido en ${result.inv.number}`,
       { jobId: result.inv.jobId },
     );
     void safeEmitEvent(orgId, "payment.received", {
@@ -347,20 +347,20 @@ export async function invoiceRoutes(app: FastifyInstance) {
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
     if (!key || !webhookSecret) {
       return reply.code(501).send({
-        error: "Stripe checkout is not fully configured",
-        hint: "Set both STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET, or record an offline payment.",
+        error: "el pago en línea no está completamente configurado",
+        hint: "Configura STRIPE_SECRET_KEY y STRIPE_WEBHOOK_SECRET, o registra un pago manual.",
       });
     }
 
     const [inv] = await db.select().from(invoices).where(and(eq(invoices.orgId, orgId), eq(invoices.id, id)));
-    if (!inv) return reply.code(404).send({ error: "not found" });
+    if (!inv) return reply.code(404).send({ error: "no encontrado" });
     if (inv.status === "paid" || inv.status === "void") {
-      return reply.code(409).send({ error: `cannot create checkout for a ${inv.status} invoice` });
+      return reply.code(409).send({ error: `no se puede crear el pago de una factura ${inv.status}` });
     }
     const prior = await db.select().from(payments).where(and(eq(payments.orgId, orgId), eq(payments.invoiceId, id)));
     const paid = prior.reduce((sum, payment) => sum + payment.amount, 0);
     const remaining = inv.total - paid;
-    if (remaining <= 0) return reply.code(409).send({ error: "invoice has no remaining balance" });
+    if (remaining <= 0) return reply.code(409).send({ error: "la factura no tiene saldo pendiente" });
 
     const webOrigin = resolvePublicWebUrl();
     const Stripe = (await import("stripe")).default;

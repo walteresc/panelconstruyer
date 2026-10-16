@@ -28,29 +28,29 @@ const KINDS: Array<{
 }> = [
   {
     kind: "invoice",
-    title: "Invoice email",
-    description: "Sent when you email an invoice to a customer.",
+    title: "Correo de factura",
+    description: "Se envía cuando mandas una factura por correo a un cliente.",
     subjectField: "invoiceEmailSubject",
     bodyField: "invoiceEmailBody",
   },
   {
     kind: "estimate",
-    title: "Estimate email",
-    description: "Sent when you email an estimate to a customer.",
+    title: "Correo de cotización",
+    description: "Se envía cuando mandas una cotización por correo a un cliente.",
     subjectField: "estimateEmailSubject",
     bodyField: "estimateEmailBody",
   },
   {
     kind: "portal_link",
-    title: "Portal link email",
-    description: "Sent when you email a customer their secure portal link.",
+    title: "Correo del enlace del portal",
+    description: "Se envía cuando mandas a un cliente su enlace seguro del portal.",
     subjectField: "portalLinkSubject",
     bodyField: "portalLinkBody",
   },
   {
     kind: "review_request",
-    title: "Review request message",
-    description: "Sent when you ask a customer to leave a review.",
+    title: "Mensaje de solicitud de reseña",
+    description: "Se envía cuando pides a un cliente que deje una reseña.",
     bodyField: "reviewRequestBody",
   },
 ];
@@ -102,7 +102,7 @@ function TemplateCard({
       <CardContent className="grid gap-4">
         {subjectField ? (
           <label className="grid gap-1.5 text-sm text-fg-muted">
-            Subject
+            Asunto
             <Input
               value={subject}
               onChange={(event) => onMessagesChange({ ...messages, [subjectField!]: event.target.value })}
@@ -111,7 +111,7 @@ function TemplateCard({
           </label>
         ) : null}
         <label className="grid gap-1.5 text-sm text-fg-muted">
-          Message
+          Mensaje
           <textarea
             value={body}
             onChange={(event) => onMessagesChange({ ...messages, [bodyField]: event.target.value })}
@@ -122,24 +122,24 @@ function TemplateCard({
 
         {unknown.length > 0 ? (
           <div className="rounded-lg border border-red/30 bg-red/5 p-3 text-sm text-red">
-            Unknown variable{unknown.length > 1 ? "s" : ""}: {unknown.join(", ")}. Check the list below.
+            Variable desconocida{unknown.length > 1 ? "s" : ""}: {unknown.join(", ")}. Check the list below.
           </div>
         ) : null}
         {unknown.length === 0 && missingRequired.length > 0 ? (
           <div className="rounded-lg border border-yellow/40 bg-yellow/10 p-3 text-sm text-fg">
-            Warning: this template never references {missingRequired.join(", ")} — the customer email may not include it.
+            Aviso: esta plantilla nunca usa {missingRequired.join(", ")} : el correo al cliente podría no incluirlo.
           </div>
         ) : null}
 
         <div>
-          <p className="mb-1.5 text-xs font-medium text-fg-muted">Available variables</p>
+          <p className="mb-1.5 text-xs font-medium text-fg-muted">Variables disponibles</p>
           <div className="flex flex-wrap gap-1.5">
             {available.map((name) => (
               <button
                 key={name}
                 type="button"
                 onClick={() => appendVariable(name)}
-                title={`Insert {{${name}}} at the end of the message`}
+                title={`Insertar {{${name}}} al final del mensaje`}
                 className="rounded-full border border-border bg-surface-100 px-2 py-0.5 font-mono text-xs text-accent hover:border-accent/60 hover:bg-accent/10"
               >
                 {`{{${name}}}`}
@@ -149,7 +149,7 @@ function TemplateCard({
         </div>
 
         <div>
-          <p className="mb-1.5 text-xs font-medium text-fg-muted">Live preview</p>
+          <p className="mb-1.5 text-xs font-medium text-fg-muted">Vista previa en vivo</p>
           <div className="rounded-lg border border-border bg-surface-100 p-3">
             <p className="text-sm font-semibold text-fg">{renderMessageTemplate(subject, sample)}</p>
             <pre className="mt-2 whitespace-pre-wrap text-sm text-fg">{renderMessageTemplate(body, sample)}</pre>
@@ -169,8 +169,7 @@ export function MessageTemplatesEditor({ settings, updateSettings, companyName }
   return (
     <div className="grid gap-4">
       <p className="text-sm text-fg-muted">
-        Emails are plain text. Wrap a variable name in double braces — <code>{"{{variable}}"}</code> — to insert live
-        values. Unknown variables block saving; variables a template should use are highlighted when missing.
+        Los correos son texto plano. Escribe el nombre de la variable entre llaves dobles: <code>{"{{variable}}"}</code> para insertar los valores reales. Las variables desconocidas impiden guardar; las que la plantilla debería usar se resaltan si faltan.
       </p>
       {KINDS.map((card) => (
         <TemplateCard

@@ -82,7 +82,7 @@ export function NotificationsPopover() {
       <button
         onClick={handleOpen}
         className="relative p-1.5 rounded-lg bg-surface-300 hover:bg-surface-400 transition-colors cursor-pointer border-none text-fg-muted hover:text-fg"
-        aria-label="Notifications"
+        aria-label="Notificaciones"
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -97,13 +97,13 @@ export function NotificationsPopover() {
       {open && (
         <div className="absolute right-0 top-full mt-2 w-[360px] rounded-xl border border-border bg-surface-200 shadow-xl z-50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-            <span className="text-sm font-semibold text-fg">Notifications</span>
+            <span className="text-sm font-semibold text-fg">Notificaciones</span>
             {unread > 0 && (
               <button
                 onClick={handleMarkAllRead}
                 className="text-xs text-fg-link hover:text-fg transition-colors cursor-pointer bg-transparent border-none"
               >
-                Mark all read
+                Marcar todas como leídas
               </button>
             )}
           </div>
@@ -123,7 +123,7 @@ export function NotificationsPopover() {
               </div>
             ) : notifs.length === 0 ? (
               <div className="p-8 text-center">
-                <p className="text-sm text-fg-muted">No notifications yet</p>
+                <p className="text-sm text-fg-muted">Aún no hay notificaciones</p>
               </div>
             ) : (
               notifs.map((n) => (

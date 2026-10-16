@@ -325,7 +325,7 @@ test("operations proxy sanitizes an unavailable controller response", async () =
       headers: { authorization: `Bearer ${token}` },
     });
     assert.equal(response.statusCode, 503);
-    assert.deepEqual(response.json(), { error: "operations controller unavailable" });
+    assert.deepEqual(response.json(), { error: "controlador de operaciones no disponible" });
     assert.equal(response.body.includes("controller.internal"), false);
     assert.equal(response.body.includes("do-not-leak"), false);
   });
@@ -371,7 +371,7 @@ test("operations proxy rejects every query string before calling the controller"
       headers: { authorization: `Bearer ${token}` },
     });
     assert.equal(getResponse.statusCode, 400);
-    assert.deepEqual(getResponse.json(), { error: "invalid operation request" });
+    assert.deepEqual(getResponse.json(), { error: "solicitud de operación no válida" });
 
     const postResponse = await app.inject({
       method: "POST",
@@ -383,7 +383,7 @@ test("operations proxy rejects every query string before calling the controller"
       payload: { label: "nightly" },
     });
     assert.equal(postResponse.statusCode, 400);
-    assert.deepEqual(postResponse.json(), { error: "invalid operation request" });
+    assert.deepEqual(postResponse.json(), { error: "solicitud de operación no válida" });
     assert.equal(calls, 0);
   });
 });

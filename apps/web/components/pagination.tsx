@@ -17,7 +17,7 @@ export function Pagination({ skip, take, total, onSkipChange }: PaginationProps)
     <div className="flex items-center justify-between pt-4 pb-2">
       {total !== undefined ? (
         <p className="text-xs text-fg-dim">
-          Showing {from}&ndash;{to} of {total}
+          Mostrando {from}&ndash;{to} of {total}
         </p>
       ) : (
         <div />
@@ -29,7 +29,7 @@ export function Pagination({ skip, take, total, onSkipChange }: PaginationProps)
           disabled={!hasPrev}
           onClick={() => onSkipChange(Math.max(0, skip - take))}
         >
-          ← Previous
+          ← Anterior
         </Button>
         <Button
           variant="ghost"
@@ -37,7 +37,7 @@ export function Pagination({ skip, take, total, onSkipChange }: PaginationProps)
           disabled={!hasNext}
           onClick={() => onSkipChange(skip + take)}
         >
-          Next →
+          Siguiente →
         </Button>
       </div>
     </div>

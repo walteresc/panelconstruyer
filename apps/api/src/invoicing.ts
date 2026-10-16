@@ -43,10 +43,10 @@ export function applyPayment(
   current: InvoiceStatus,
 ): PaymentApplication {
   if (current === "void") {
-    throw new Error("cannot pay a void invoice");
+    throw new Error("no se puede pagar una factura anulada");
   }
   if (amount <= 0) {
-    throw new Error("payment amount must be positive");
+    throw new Error("el monto del pago debe ser positivo");
   }
   const paidSoFar = priorPaid + amount;
   const remaining = Math.max(0, total - paidSoFar);
@@ -69,17 +69,17 @@ export function applyPaymentWithRules(
   rules: PaymentRules,
 ): PaymentApplication {
   if (!rules.acceptedMethods.includes(method)) {
-    throw new Error(`payment method ${method} is not accepted for this organization`);
+    throw new Error(`el método de pago ${method} no está habilitado para esta empresa`);
   }
   if (amount <= 0) {
-    throw new Error("payment amount must be positive");
+    throw new Error("el monto del pago debe ser positivo");
   }
   const remaining = Math.max(0, total - priorPaid);
   if (amount > remaining) {
-    throw new Error(`payment of $${(amount / 100).toFixed(2)} exceeds the remaining balance of $${(remaining / 100).toFixed(2)}`);
+    throw new Error(`el pago de S/ ${(amount / 100).toFixed(2)} supera el saldo pendiente de S/ ${(remaining / 100).toFixed(2)}`);
   }
   if (!rules.allowPartial && amount < remaining) {
-    throw new Error("partial payments are not allowed for this organization");
+    throw new Error("esta empresa no permite pagos parciales");
   }
   return applyPayment(total, priorPaid, amount, current);
 }
@@ -115,7 +115,7 @@ export function updateInvoiceStatus(
 ): InvoiceStatus {
   if (current === requested) return current;
   if (current === "paid" || current === "void") {
-    throw new Error(`cannot mark a ${current} invoice ${requested}`);
+    throw new Error(`no se puede marcar como ${requested} una factura ${current}`);
   }
   return requested;
 }

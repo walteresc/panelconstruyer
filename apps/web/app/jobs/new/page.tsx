@@ -33,8 +33,8 @@ async function createJob(body: {
   });
 
   if (!response.ok) {
-    const message = await response.text().catch(() => "Unable to create job");
-    throw new Error(message || "Unable to create job");
+    const message = await response.text().catch(() => "No se pudo crear el trabajo");
+    throw new Error(message || "No se pudo crear el trabajo");
   }
 
   return response.json() as Promise<JobDTO>;
@@ -93,19 +93,19 @@ export default function NewJobPage() {
     setError(null);
 
     if (!title.trim()) {
-      setError("Enter a job title before continuing.");
+      setError("Escribe un título para el trabajo antes de continuar.");
       return;
     }
     if (customerMode === "existing" && !customerId) {
-      setError("Select a customer or create a new one.");
+      setError("Selecciona un cliente o crea uno nuevo.");
       return;
     }
     if (customerMode === "new" && !customerName.trim()) {
-      setError("Enter the new customer’s name.");
+      setError("Escribe el nombre del nuevo cliente.");
       return;
     }
     if (scheduleNow && !startsAt) {
-      setError("Choose a start date and time.");
+      setError("Elige la fecha y la hora de inicio.");
       return;
     }
 
@@ -152,8 +152,8 @@ export default function NewJobPage() {
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader
-        title="New job"
-        description="Create the work order, customer record, and appointment in one intake flow."
+        title="Nuevo trabajo"
+        description="Crea la orden de trabajo, la ficha del cliente y la visita en un solo paso."
       />
 
       {error && (
@@ -166,8 +166,8 @@ export default function NewJobPage() {
         <div className="space-y-5">
           <Card>
             <CardHeader>
-              <CardTitle>Customer</CardTitle>
-              <p className="text-xs text-fg-muted">Attach this job to an existing customer or create the customer during intake.</p>
+              <CardTitle>Cliente</CardTitle>
+              <p className="text-xs text-fg-muted">Asocia el trabajo a un cliente existente o crea el cliente aquí mismo.</p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-2 rounded-xl bg-surface-100 p-1">
@@ -176,18 +176,18 @@ export default function NewJobPage() {
                     key={mode}
                     type="button"
                     onClick={() => setCustomerMode(mode)}
-                    className={`rounded-lg px-3 py-2 text-sm font-semibold capitalize ${
+                    className={`rounded-lg px-3 py-2 text-sm font-semibold ${
                       customerMode === mode ? "bg-accent text-white" : "text-fg-muted hover:text-fg"
                     }`}
                   >
-                    {mode} customer
+                    {mode === "existing" ? "Cliente existente" : "Cliente nuevo"}
                   </button>
                 ))}
               </div>
 
               {customerMode === "existing" ? (
                 <div>
-                  <label htmlFor="customer" className="mb-1.5 block text-xs font-semibold text-fg-muted">Customer</label>
+                  <label htmlFor="customer" className="mb-1.5 block text-xs font-semibold text-fg-muted">Cliente</label>
                   <select
                     id="customer"
                     value={customerId}
@@ -195,27 +195,27 @@ export default function NewJobPage() {
                     disabled={loading}
                     className="h-11 w-full rounded-lg border border-border bg-surface-200 px-3 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
                   >
-                    <option value="">{loading ? "Loading customers…" : "Select a customer"}</option>
+                    <option value="">{loading ? "Cargando clientes…" : "Selecciona un cliente"}</option>
                     {customers.map((customer) => (
                       <option key={customer.id} value={customer.id}>{customer.name}</option>
                     ))}
                   </select>
                   {!loading && customers.length === 0 && (
-                    <p className="mt-2 text-xs text-yellow">No customers exist yet. Choose “New customer” to create one.</p>
+                    <p className="mt-2 text-xs text-yellow">Aún no hay clientes. Elige «Nuevo cliente» para crear uno.</p>
                   )}
                 </div>
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="sm:col-span-2">
-                    <label htmlFor="customer-name" className="mb-1.5 block text-xs font-semibold text-fg-muted">Customer name</label>
-                    <Input id="customer-name" value={customerName} onChange={(event) => setCustomerName(event.target.value)} placeholder="Jordan Smith" />
+                    <label htmlFor="customer-name" className="mb-1.5 block text-xs font-semibold text-fg-muted">Nombre del cliente</label>
+                    <Input id="customer-name" value={customerName} onChange={(event) => setCustomerName(event.target.value)} placeholder="Carlos Rojas" />
                   </div>
                   <div>
-                    <label htmlFor="customer-phone" className="mb-1.5 block text-xs font-semibold text-fg-muted">Phone</label>
+                    <label htmlFor="customer-phone" className="mb-1.5 block text-xs font-semibold text-fg-muted">Teléfono</label>
                     <Input id="customer-phone" value={customerPhone} onChange={(event) => setCustomerPhone(event.target.value)} placeholder="(555) 555-0199" />
                   </div>
                   <div>
-                    <label htmlFor="customer-email" className="mb-1.5 block text-xs font-semibold text-fg-muted">Email</label>
+                    <label htmlFor="customer-email" className="mb-1.5 block text-xs font-semibold text-fg-muted">Correo</label>
                     <Input id="customer-email" type="email" value={customerEmail} onChange={(event) => setCustomerEmail(event.target.value)} placeholder="jordan@example.com" />
                   </div>
                 </div>
@@ -225,22 +225,22 @@ export default function NewJobPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Work order</CardTitle>
-              <p className="text-xs text-fg-muted">Capture what the customer needs before assigning or dispatching the visit.</p>
+              <CardTitle>Orden de trabajo</CardTitle>
+              <p className="text-xs text-fg-muted">Registra lo que necesita el cliente antes de asignar o despachar la visita.</p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label htmlFor="job-title" className="mb-1.5 block text-xs font-semibold text-fg-muted">Job title</label>
-                <Input id="job-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Washer leaking during drain" />
+                <label htmlFor="job-title" className="mb-1.5 block text-xs font-semibold text-fg-muted">Título del trabajo</label>
+                <Input id="job-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Fuga de agua en el lavadero" />
               </div>
               <div>
-                <label htmlFor="job-description" className="mb-1.5 block text-xs font-semibold text-fg-muted">Customer complaint and access notes</label>
+                <label htmlFor="job-description" className="mb-1.5 block text-xs font-semibold text-fg-muted">Solicitud del cliente y notas de acceso</label>
                 <textarea
                   id="job-description"
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
                   rows={5}
-                  placeholder="Describe the issue, preferred contact method, parking, gate codes, pets, or other arrival notes."
+                  placeholder="Describe el problema, la forma de contacto preferida, el acceso al edificio, el estacionamiento u otras notas de llegada."
                   className="w-full resize-y rounded-lg border border-border bg-surface-200 px-3 py-2 text-sm text-fg placeholder:text-fg-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
                 />
               </div>
@@ -253,14 +253,14 @@ export default function NewJobPage() {
             <CardHeader>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <CardTitle>Schedule and dispatch</CardTitle>
-                  <p className="mt-1 text-xs text-fg-muted">Leave scheduling off to create an unscheduled lead.</p>
+                  <CardTitle>Agenda y despacho</CardTitle>
+                  <p className="mt-1 text-xs text-fg-muted">Deja la agenda desactivada para crear una solicitud sin programar.</p>
                 </div>
                 <button
                   type="button"
                   role="switch"
                   aria-checked={scheduleNow}
-                  aria-label="Schedule this job"
+                  aria-label="Programar este trabajo"
                   onClick={() => setScheduleNow((value) => !value)}
                   className={`relative h-7 w-12 rounded-full transition-colors ${scheduleNow ? "bg-accent" : "bg-surface-400"}`}
                 >
@@ -272,24 +272,24 @@ export default function NewJobPage() {
               {scheduleNow ? (
                 <>
                   <div>
-                    <label htmlFor="starts-at" className="mb-1.5 block text-xs font-semibold text-fg-muted">Start date and time</label>
+                    <label htmlFor="starts-at" className="mb-1.5 block text-xs font-semibold text-fg-muted">Fecha y hora de inicio</label>
                     <Input id="starts-at" type="datetime-local" value={startsAt} onChange={(event) => setStartsAt(event.target.value)} />
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                     <div>
-                      <label htmlFor="duration" className="mb-1.5 block text-xs font-semibold text-fg-muted">Visit length</label>
+                      <label htmlFor="duration" className="mb-1.5 block text-xs font-semibold text-fg-muted">Duración de la visita</label>
                       <select id="duration" value={durationMinutes} onChange={(event) => setDurationMinutes(event.target.value)} className="h-11 w-full rounded-lg border border-border bg-surface-200 px-3 text-sm text-fg">
-                        <option value="30">30 minutes</option>
-                        <option value="60">1 hour</option>
-                        <option value="90">1.5 hours</option>
-                        <option value="120">2 hours</option>
-                        <option value="180">3 hours</option>
+                        <option value="30">30 minutos</option>
+                        <option value="60">1 hora</option>
+                        <option value="90">1.5 horas</option>
+                        <option value="120">2 horas</option>
+                        <option value="180">3 horas</option>
                       </select>
                     </div>
                     <div>
-                      <label htmlFor="technician" className="mb-1.5 block text-xs font-semibold text-fg-muted">Technician</label>
+                      <label htmlFor="technician" className="mb-1.5 block text-xs font-semibold text-fg-muted">Especialista</label>
                       <select id="technician" value={technicianId} onChange={(event) => setTechnicianId(event.target.value)} className="h-11 w-full rounded-lg border border-border bg-surface-200 px-3 text-sm text-fg">
-                        <option value="">Unassigned</option>
+                        <option value="">Sin asignar</option>
                         {technicians.map((technician) => (
                           <option key={technician.id} value={technician.id}>{technician.name}</option>
                         ))}
@@ -299,7 +299,7 @@ export default function NewJobPage() {
                 </>
               ) : (
                 <div className="rounded-xl border border-dashed border-border p-5 text-sm text-fg-muted">
-                  The job will enter the pipeline as an unscheduled lead and can be dispatched later.
+                  El trabajo entrará al embudo como solicitud sin programar y se podrá despachar después.
                 </div>
               )}
             </CardContent>
@@ -307,15 +307,15 @@ export default function NewJobPage() {
 
           <Card className="border-accent/25 bg-accent/5">
             <CardContent className="space-y-3 pt-5">
-              <p className="text-sm font-semibold text-fg">What happens next</p>
+              <p className="text-sm font-semibold text-fg">Qué sigue</p>
               <p className="text-xs leading-5 text-fg-muted">
-                OpenFieldPro creates the customer when needed, creates the work order, adds the appointment when scheduled, and opens the job detail for estimates, notes, photos, invoices, and payment.
+                Se crea el cliente si hace falta, la orden de trabajo y la visita (si la programaste), y se abre el detalle del trabajo para cotizaciones, notas, fotos, facturas y pagos.
               </p>
               <Button type="submit" className="w-full" disabled={saving || loading}>
-                {saving ? "Creating job…" : scheduleNow ? "Create and schedule job" : "Create unscheduled job"}
+                {saving ? "Creando trabajo…" : scheduleNow ? "Crear y programar trabajo" : "Crear trabajo sin programar"}
               </Button>
               <Button type="button" variant="secondary" className="w-full" onClick={() => router.back()} disabled={saving}>
-                Cancel
+                Cancelar
               </Button>
             </CardContent>
           </Card>

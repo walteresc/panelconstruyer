@@ -111,7 +111,7 @@ export default function IntegrationsPage() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Integrations" description="Connect OpenFieldPro to the tools you already use." />
+        <PageHeader title="Integraciones" description="Conecta Construyer con las herramientas que ya usas." />
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
         </div>
@@ -121,7 +121,7 @@ export default function IntegrationsPage() {
 
   return (
     <div>
-      <PageHeader title="Integrations" description="Connect OpenFieldPro to the tools you already use — open plugin architecture, not a closed store." />
+      <PageHeader title="Integraciones" description="Conecta Construyer con las herramientas que ya usas." />
 
       <div className="grid gap-3 md:grid-cols-2">
         {catalog.map((p) => (
@@ -131,7 +131,7 @@ export default function IntegrationsPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-semibold text-fg">{p.name}</h3>
-                    {p.firstParty && <Badge variant="completed">first-party</Badge>}
+                    {p.firstParty && <Badge variant="completed">oficial</Badge>}
                     {p.installed && (
                       <Badge variant={p.enabled ? "completed" : "draft"}>{p.enabled ? "active" : "paused"}</Badge>
                     )}
@@ -152,7 +152,7 @@ export default function IntegrationsPage() {
               {/* One-time token reveal */}
               {freshToken?.pluginId === p.id && (
                 <div className="rounded-lg border border-green/30 bg-green/5 p-3 space-y-1">
-                  <p className="text-xs font-semibold text-green">API token — copy it now, it won't be shown again</p>
+                  <p className="text-xs font-semibold text-green">Token de la API: cópialo ahora, no se volverá a mostrar</p>
                   <code className="block text-xs font-mono text-fg break-all select-all">{freshToken.token}</code>
                 </div>
               )}
@@ -166,7 +166,7 @@ export default function IntegrationsPage() {
                     onChange={(e) => setWebhookDraft((d) => ({ ...d, [p.id]: e.target.value }))}
                     className="text-xs"
                   />
-                  <Button variant="secondary" disabled={busyId === p.id} onClick={() => saveWebhook(p)}>Save</Button>
+                  <Button variant="secondary" disabled={busyId === p.id} onClick={() => saveWebhook(p)}>Guardar</Button>
                 </div>
               )}
 
@@ -174,15 +174,15 @@ export default function IntegrationsPage() {
                 {p.installed ? (
                   <>
                     <Button variant="secondary" disabled={busyId === p.id} onClick={() => toggle(p)}>
-                      {p.enabled ? "Pause" : "Resume"}
+                      {p.enabled ? "Pausar" : "Reanudar"}
                     </Button>
                     <Button variant="ghost" disabled={busyId === p.id} onClick={() => uninstall(p)} className="text-red">
-                      Uninstall
+                      Desinstalar
                     </Button>
                   </>
                 ) : (
                   <Button disabled={busyId === p.id} onClick={() => install(p)}>
-                    {busyId === p.id ? "Installing…" : "Install"}
+                    {busyId === p.id ? "Instalando…" : "Instalar"}
                   </Button>
                 )}
               </div>
@@ -192,11 +192,11 @@ export default function IntegrationsPage() {
       </div>
 
       {/* Recent outbound deliveries */}
-      <h2 className="text-sm font-semibold text-fg mt-8 mb-3">Recent deliveries</h2>
+      <h2 className="text-sm font-semibold text-fg mt-8 mb-3">Envíos recientes</h2>
       <Card>
         <CardContent className="p-0">
           {events.length === 0 ? (
-            <p className="text-sm text-fg-muted p-6 text-center">No events delivered yet. Create a job or take a payment to fire one.</p>
+            <p className="text-sm text-fg-muted p-6 text-center">Aún no se enviaron eventos. Crea un trabajo o registra un pago para generar uno.</p>
           ) : (
             <div className="divide-y divide-border">
               {events.map((e) => (
@@ -206,7 +206,7 @@ export default function IntegrationsPage() {
                     {e.error && <span className="text-fg-dim truncate max-w-[200px]">{e.error}</span>}
                     {e.responseStatus != null && <span className="text-fg-dim">HTTP {e.responseStatus}</span>}
                     <Badge variant={STATUS_VARIANT[e.status] ?? "draft"}>{e.status}</Badge>
-                    <span className="text-fg-dim">{new Date(e.createdAt).toLocaleString()}</span>
+                    <span className="text-fg-dim">{new Date(e.createdAt).toLocaleString("es-PE")}</span>
                   </div>
                 </div>
               ))}

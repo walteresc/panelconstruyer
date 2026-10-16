@@ -46,7 +46,7 @@ export async function verifiedClaims(
     await request.jwtVerify();
     const claims = request.user as JwtClaims;
     if (!claims?.orgId || !claims?.userId || !["owner", "dispatcher", "technician"].includes(claims.role)) {
-      await reply.code(401).send({ error: "invalid authentication claims" });
+      await reply.code(401).send({ error: "credenciales de autenticación no válidas" });
       return null;
     }
     return claims;
@@ -54,7 +54,7 @@ export async function verifiedClaims(
     if (process.env.NODE_ENV !== "production" && !request.headers.authorization) {
       return { userId: "development-owner", orgId: "development", role: "owner" };
     }
-    await reply.code(401).send({ error: "authentication required" });
+    await reply.code(401).send({ error: "se requiere iniciar sesión" });
     return null;
   }
 }
@@ -70,7 +70,7 @@ export async function operationalAuthorizationGuard(
   if (!claims || reply.sent) return;
   if (!required.includes(claims.role as UserRole)) {
     await reply.code(403).send({
-      error: "insufficient role for this operation",
+      error: "tu rol no permite esta operación",
       requiredRoles: required,
     });
   }

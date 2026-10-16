@@ -20,10 +20,10 @@ export async function stripeWebhookRoute(app: FastifyInstance) {
   app.post("/stripe/webhook", async (req, reply) => {
     const secret = process.env.STRIPE_WEBHOOK_SECRET;
     const key = process.env.STRIPE_SECRET_KEY;
-    if (!secret || !key) return reply.code(501).send({ error: "Stripe webhook not configured" });
+    if (!secret || !key) return reply.code(501).send({ error: "webhook de Stripe no configurado" });
 
     const signature = req.headers["stripe-signature"];
-    if (typeof signature !== "string") return reply.code(400).send({ error: "missing signature" });
+    if (typeof signature !== "string") return reply.code(400).send({ error: "falta la firma" });
 
     const Stripe = (await import("stripe")).default;
     const stripe = new Stripe(key);
@@ -31,7 +31,7 @@ export async function stripeWebhookRoute(app: FastifyInstance) {
     try {
       event = stripe.webhooks.constructEvent(req.body as Buffer, signature, secret);
     } catch (error) {
-      return reply.code(400).send({ error: `signature verification failed: ${(error as Error).message}` });
+      return reply.code(400).send({ error: `falló la verificación de la firma: ${(error as Error).message}` });
     }
 
     if (event.type !== "checkout.session.completed") return { received: true };
@@ -41,7 +41,7 @@ export async function stripeWebhookRoute(app: FastifyInstance) {
     const orgId = session.metadata?.orgId;
     const amount = session.amount_total ?? 0;
     if (!invoiceId || !orgId || amount <= 0 || session.payment_status !== "paid") {
-      return reply.code(400).send({ error: "completed checkout is missing verified payment metadata" });
+      return reply.code(400).send({ error: "al pago completado le faltan datos de verificación" });
     }
 
     const reference = `stripe:${event.id}`;
@@ -94,10 +94,10 @@ export async function stripeWebhookRoute(app: FastifyInstance) {
     });
 
     if (result.kind === "duplicate") return { received: true, duplicate: true };
-    if (result.kind === "not-found") return reply.code(404).send({ error: "invoice not found for checkout metadata" });
+    if (result.kind === "not-found") return reply.code(404).send({ error: "factura no encontrada para el pago" });
     if (result.kind === "amount-mismatch") {
       return reply.code(409).send({
-        error: "checkout amount does not match the current invoice balance",
+        error: "el monto pagado no coincide con el saldo de la factura",
         expected: result.expected,
         received: result.received,
       });
@@ -107,7 +107,7 @@ export async function stripeWebhookRoute(app: FastifyInstance) {
     safeEmitActivity(
       orgId,
       "payment.received",
-      `Received card payment of $${(amount / 100).toFixed(2)} on ${result.invoice.number}`,
+      `Pago con tarjeta de S/ ${(amount / 100).toFixed(2)} recibido en ${result.invoice.number}`,
       { jobId: result.invoice.jobId },
     );
     void safeEmitEvent(orgId, "payment.received", {

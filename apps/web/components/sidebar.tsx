@@ -1,5 +1,7 @@
 "use client";
 
+import { SourceLink } from "@/components/source-link";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -7,6 +9,7 @@ import { BrandLogo } from "@/components/brand-logo";
 import { NAV_SECTIONS, activeNavHref } from "@/lib/nav";
 import { useTheme } from "@/components/theme-provider";
 import { NotificationsPopover } from "@/components/notifications-popover";
+import { roleLabel } from "@/lib/labels";
 import { useSessionUser } from "@/lib/use-session-user";
 
 export function Sidebar() {
@@ -59,16 +62,16 @@ export function Sidebar() {
         <button
           onClick={toggle}
           className="flex w-full cursor-pointer items-center gap-3 rounded-lg border-none bg-transparent px-3 py-2 text-sm text-fg-muted transition-all duration-150 hover:bg-surface-300 hover:text-fg"
-          aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+          aria-label={`Cambiar a modo ${theme === "dark" ? "claro" : "oscuro"}`}
         >
           <span className="w-5 text-center text-base">{theme === "dark" ? "☀" : "☾"}</span>
-          {theme === "dark" ? "Light mode" : "Dark mode"}
+          {theme === "dark" ? "Modo claro" : "Modo oscuro"}
         </button>
       </div>
 
       <div className="shrink-0 border-t border-border p-3">
         {loading ? (
-          <div className="px-3 py-2 text-xs text-fg-dim">Loading session…</div>
+          <div className="px-3 py-2 text-xs text-fg-dim">Cargando sesión…</div>
         ) : user ? (
           <div className="space-y-2">
             <div className="flex items-center gap-3 px-3 py-2">
@@ -77,7 +80,7 @@ export function Sidebar() {
               </div>
               <div className="min-w-0 flex-1">
                 <span className="block truncate text-sm text-fg-muted">{user.name}</span>
-                <span className="block text-[10px] capitalize text-fg-dim">{user.role || "team member"}</span>
+                <span className="block text-[10px] capitalize text-fg-dim">{user.role ? roleLabel(user.role) : "integrante del equipo"}</span>
               </div>
             </div>
             <button
@@ -87,7 +90,7 @@ export function Sidebar() {
               className="flex w-full items-center gap-3 rounded-lg border-none bg-transparent px-3 py-2 text-sm text-fg-muted transition-colors hover:bg-surface-300 hover:text-fg disabled:cursor-not-allowed disabled:opacity-60"
             >
               <span className="w-5 text-center">↪</span>
-              {signingOut ? "Signing out…" : "Sign out"}
+              {signingOut ? "Cerrando sesión…" : "Cerrar sesión"}
             </button>
           </div>
         ) : (
@@ -96,9 +99,10 @@ export function Sidebar() {
             className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-fg-muted no-underline transition-all duration-150 hover:bg-surface-300 hover:text-fg"
           >
             <span className="w-5 text-center text-base">↪</span>
-            Sign in
+            Iniciar sesión
           </Link>
         )}
+        <SourceLink className="mt-1 block px-3" />
       </div>
     </aside>
   );

@@ -27,7 +27,7 @@ export async function recurringRoutes(app: FastifyInstance) {
       .select({ id: customers.id })
       .from(customers)
       .where(and(eq(customers.orgId, orgId), eq(customers.id, parsed.data.customerId)));
-    if (!cust) return reply.code(404).send({ error: "customer not found" });
+    if (!cust) return reply.code(404).send({ error: "cliente no encontrado" });
     const [row] = await db
       .insert(recurringJobs)
       .values({
@@ -51,7 +51,7 @@ export async function recurringRoutes(app: FastifyInstance) {
       .set({ active: false })
       .where(and(eq(recurringJobs.orgId, orgId), eq(recurringJobs.id, id)))
       .returning();
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
     return row;
   });
 }

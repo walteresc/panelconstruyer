@@ -25,27 +25,27 @@ const str = (v: unknown): string => (typeof v === "string" ? v : "");
 export function formatNotification(kind: string, data: Record<string, unknown>): string {
   switch (kind) {
     case "job.created":
-      return `🆕 New job: ${str(data.title) || "untitled"}`;
+      return `🆕 Nuevo trabajo: ${str(data.title) || "sin título"}`;
     case "job.updated":
-      return `✏️ Job updated: ${str(data.title) || str(data.id)}`;
+      return `✏️ Trabajo actualizado: ${str(data.title) || str(data.id)}`;
     case "invoice.created":
-      return `🧾 Invoice ${str(data.number)} created — ${formatMoney(num(data.total))}`;
+      return `🧾 Factura ${str(data.number)} creada — ${formatMoney(num(data.total))}`;
     case "invoice.paid":
-      return `✅ Invoice ${str(data.number)} paid — ${formatMoney(num(data.total))}`;
+      return `✅ Factura ${str(data.number)} pagada — ${formatMoney(num(data.total))}`;
     case "payment.received":
-      return `💵 Payment ${formatMoney(num(data.amount))} (${str(data.method) || "manual"}) on ${str(data.number)}`;
+      return `💵 Pago ${formatMoney(num(data.amount))} (${str(data.method) || "manual"}) en ${str(data.number)}`;
     case "customer.created":
-      return `👤 New customer: ${str(data.name) || str(data.id)}`;
+      return `👤 Nuevo cliente: ${str(data.name) || str(data.id)}`;
     case "estimate.accepted":
-      return `📝 Estimate accepted — ${formatMoney(num(data.total))}`;
+      return `📝 Cotización aceptada — ${formatMoney(num(data.total))}`;
     default:
-      return `OpenFieldPro: ${kind}`;
+      return `Construyer: ${kind}`;
   }
 }
 
 /** Short title for channels that support one (ntfy). */
 export function titleFor(kind: string): string {
-  return `OpenFieldPro · ${kind}`;
+  return `Construyer · ${kind}`;
 }
 
 /**

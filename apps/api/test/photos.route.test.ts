@@ -159,7 +159,7 @@ test("GET /:photoId/file — 404 for non-existent photo", async () => {
   });
 
   assert.equal(res.statusCode, 404);
-  assert.deepEqual(JSON.parse(res.body), { error: "photo not found" });
+  assert.deepEqual(JSON.parse(res.body), { error: "foto no encontrada" });
 
   await app.close();
 });

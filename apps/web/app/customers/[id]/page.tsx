@@ -34,28 +34,28 @@ export default async function CustomerDetailPage({
     <div>
       {customerLoadFailed ? (
         <PageHeader
-          title="Customer (couldn't load)"
+          title="Cliente (no se pudo cargar)"
           description={`ID: ${customerId}`}
         />
       ) : customer ? (
         <PageHeader
           title={customer.name}
-          description={`${customer.email ?? "—"} · ${customer.phone ?? "—"} · added ${new Date(customer.createdAt).toLocaleDateString()}`}
+          description={`${customer.email ?? "—"} · ${customer.phone ?? "—"} · added ${new Date(customer.createdAt).toLocaleDateString("es-PE")}`}
           actions={<EditCustomerDialog customer={customer} />}
         />
       ) : (
-        <PageHeader title="Customer not found" description={`No customer with id ${customerId} in this org.`} />
+        <PageHeader title="Cliente no encontrado" description={`No existe un cliente con id ${customerId} en esta organización.`} />
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Jobs */}
         <Card>
           <CardHeader>
-            <CardTitle>Jobs ({customerJobs.length})</CardTitle>
+            <CardTitle>Trabajos ({customerJobs.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {customerJobs.length === 0 ? (
-              <p className="text-sm text-fg-muted py-6 text-center">No jobs for this customer.</p>
+              <p className="text-sm text-fg-muted py-6 text-center">Este cliente no tiene trabajos.</p>
             ) : (
               <div className="flex flex-col gap-1">
                 {customerJobs.map((j) => (
@@ -81,11 +81,11 @@ export default async function CustomerDetailPage({
         {/* Activity timeline */}
         <Card>
           <CardHeader>
-            <CardTitle>Activity</CardTitle>
+            <CardTitle>Actividad</CardTitle>
           </CardHeader>
           <CardContent>
             {timeline.length === 0 ? (
-              <p className="text-sm text-fg-muted py-6 text-center">No activity yet.</p>
+              <p className="text-sm text-fg-muted py-6 text-center">Aún no hay actividad.</p>
             ) : (
               <div className="relative pl-4 border-l-2 border-surface-400 space-y-4">
                 {timeline.map((a) => (
@@ -93,7 +93,7 @@ export default async function CustomerDetailPage({
                     <div className="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-surface-500 border-2 border-surface-300" />
                     <p className="text-sm text-fg">{a.summary}</p>
                     <p className="text-xs text-fg-dim mt-0.5">
-                      {new Date(a.createdAt).toLocaleString()}
+                      {new Date(a.createdAt).toLocaleString("es-PE")}
                     </p>
                   </div>
                 ))}

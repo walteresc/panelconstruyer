@@ -148,7 +148,7 @@ export default function CustomersPage() {
       setCreatePhone("");
       setCreateNotes("");
     } catch {
-      setCreateErr("Failed to create customer");
+      setCreateErr("No se pudo crear el cliente");
     } finally {
       setCreating(false);
     }
@@ -213,7 +213,7 @@ export default function CustomersPage() {
   return (
     <div>
       <PageHeader
-        title="Customers"
+        title="Clientes"
         description={
           customers.length > 0
             ? `${filteredSorted.length} of ${customers.length} total`
@@ -221,7 +221,7 @@ export default function CustomersPage() {
         }
         actions={
           <Button size="sm" onClick={() => setShowCreate(true)}>
-            + New Customer
+            + Nuevo cliente
           </Button>
         }
       />
@@ -234,13 +234,13 @@ export default function CustomersPage() {
             <span className="ml-1.5 font-semibold text-fg">{customers.length}</span>
           </div>
           <div>
-            <span className="text-fg-dim">With activity</span>
+            <span className="text-fg-dim">Con actividad</span>
             <span className="ml-1.5 font-semibold text-fg">
               {lastActivityMap.size}
             </span>
           </div>
           <div>
-            <span className="text-fg-dim">New (30d)</span>
+            <span className="text-fg-dim">Nuevos (30 días)</span>
             <span className="ml-1.5 font-semibold text-fg">
               {customers.filter(
                 (c) => new Date(c.createdAt).getTime() > Date.now() - 30 * 86400000
@@ -253,7 +253,7 @@ export default function CustomersPage() {
       {/* ── Error ── */}
       {error && (
         <Card className="mb-6 border-red/30 bg-red/5">
-          <p className="text-red text-sm">API unreachable ({error}).</p>
+          <p className="text-red text-sm">No se puede conectar con la API ({error}).</p>
         </Card>
       )}
 
@@ -262,7 +262,7 @@ export default function CustomersPage() {
         <div className="mb-4">
           <Input
             type="search"
-            placeholder="Search customers by name, email, or phone..."
+            placeholder="Buscar clientes por nombre, correo o teléfono..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="max-w-md"
@@ -274,12 +274,12 @@ export default function CustomersPage() {
       {customers.length === 0 && !error ? (
         <Card>
           <EmptyState
-            title="No customers yet"
-            description="Add your first customer to get started"
+            title="Aún no hay clientes"
+            description="Agrega tu primer cliente para comenzar"
           />
           <div className="flex justify-center pb-6">
             <Button size="sm" onClick={() => setShowCreate(true)}>
-              + New Customer
+              + Nuevo cliente
             </Button>
           </div>
         </Card>
@@ -290,12 +290,12 @@ export default function CustomersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <SortHeader field="name" label="Name" />
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <SortHeader field="lastActivity" label="Last activity" />
-                  <SortHeader field="createdAt" label="Added" />
-                  <TableHead className="text-right">Detail</TableHead>
+                  <SortHeader field="name" label="Nombre" />
+                  <TableHead>Correo</TableHead>
+                  <TableHead>Teléfono</TableHead>
+                  <SortHeader field="lastActivity" label="Última actividad" />
+                  <SortHeader field="createdAt" label="Registrado" />
+                  <TableHead className="text-right">Detalle</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -303,13 +303,13 @@ export default function CustomersPage() {
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-10">
                       <p className="text-sm text-fg-muted">
-                        No customers match &ldquo;{search}&rdquo;
+                        Ningún cliente coincide con &ldquo;{search}&rdquo;
                       </p>
                       <button
                         onClick={() => setSearch("")}
                         className="text-xs text-fg-link hover:text-fg mt-1 cursor-pointer bg-transparent border-none"
                       >
-                        Clear search
+                        Limpiar búsqueda
                       </button>
                     </TableCell>
                   </TableRow>
@@ -342,14 +342,14 @@ export default function CustomersPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-fg-muted text-xs">
-                          {new Date(c.createdAt).toLocaleDateString()}
+                          {new Date(c.createdAt).toLocaleDateString("es-PE")}
                         </TableCell>
                         <TableCell className="text-right">
                           <Link
                             href={`/customers/${c.id}`}
                             className="text-xs text-fg-link hover:text-fg transition-colors"
                           >
-                            View →
+                            Ver →
                           </Link>
                         </TableCell>
                       </TableRow>
@@ -366,13 +366,13 @@ export default function CustomersPage() {
               <Card>
                 <div className="text-center py-10">
                   <p className="text-sm text-fg-muted">
-                    No customers match &ldquo;{search}&rdquo;
+                    Ningún cliente coincide con &ldquo;{search}&rdquo;
                   </p>
                   <button
                     onClick={() => setSearch("")}
                     className="text-xs text-fg-link hover:text-fg mt-1 cursor-pointer bg-transparent border-none"
                   >
-                    Clear search
+                    Limpiar búsqueda
                   </button>
                 </div>
               </Card>
@@ -400,7 +400,7 @@ export default function CustomersPage() {
                       <div className="flex items-center gap-4 pt-2 border-t border-border">
                         {last ? (
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs text-fg-muted">Last activity</p>
+                            <p className="text-xs text-fg-muted">Última actividad</p>
                             <p className="text-xs text-fg leading-snug line-clamp-1 mt-0.5">
                               {last.summary}
                             </p>
@@ -409,10 +409,10 @@ export default function CustomersPage() {
                             </p>
                           </div>
                         ) : (
-                          <p className="text-xs text-fg-dim flex-1">No activity</p>
+                          <p className="text-xs text-fg-dim flex-1">Sin actividad</p>
                         )}
                         <p className="text-xs text-fg-dim text-right shrink-0">
-                          Added {new Date(c.createdAt).toLocaleDateString()}
+                          Registrado {new Date(c.createdAt).toLocaleDateString("es-PE")}
                         </p>
                       </div>
                     </Card>
@@ -439,7 +439,7 @@ export default function CustomersPage() {
         }}
       >
         <DialogHeader>
-          <DialogTitle>New Customer</DialogTitle>
+          <DialogTitle>Nuevo cliente</DialogTitle>
         </DialogHeader>
         <DialogContent>
           <form
@@ -450,18 +450,18 @@ export default function CustomersPage() {
             className="flex flex-col gap-4"
           >
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-fg-muted">Name *</label>
+              <label className="text-xs font-medium text-fg-muted">Nombre *</label>
               <input
                 className="h-10 px-3 rounded-lg border border-border bg-surface-300 text-fg text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
                 value={createName}
                 onChange={(e) => setCreateName(e.target.value)}
-                placeholder="Jane Smith"
+                placeholder="Ana Torres"
                 autoFocus
                 required
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-fg-muted">Email</label>
+              <label className="text-xs font-medium text-fg-muted">Correo</label>
               <input
                 className="h-10 px-3 rounded-lg border border-border bg-surface-300 text-fg text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
                 type="email"
@@ -471,7 +471,7 @@ export default function CustomersPage() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-fg-muted">Phone</label>
+              <label className="text-xs font-medium text-fg-muted">Teléfono</label>
               <input
                 className="h-10 px-3 rounded-lg border border-border bg-surface-300 text-fg text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
                 type="tel"
@@ -481,12 +481,12 @@ export default function CustomersPage() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-fg-muted">Notes</label>
+              <label className="text-xs font-medium text-fg-muted">Notas</label>
               <textarea
                 className="min-h-[80px] px-3 py-2 rounded-lg border border-border bg-surface-300 text-fg text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 resize-none"
                 value={createNotes}
                 onChange={(e) => setCreateNotes(e.target.value)}
-                placeholder="Optional notes..."
+                placeholder="Notas opcionales..."
               />
             </div>
             {createErr && (
@@ -494,10 +494,10 @@ export default function CustomersPage() {
             )}
             <DialogFooter>
               <Button type="button" variant="ghost" size="sm" disabled={creating} onClick={() => setShowCreate(false)}>
-                Cancel
+                Cancelar
               </Button>
               <Button type="submit" size="sm" disabled={!createName.trim() || creating}>
-                {creating ? "Creating..." : "Create"}
+                {creating ? "Creando..." : "Crear"}
               </Button>
             </DialogFooter>
           </form>

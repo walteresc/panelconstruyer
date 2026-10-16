@@ -31,7 +31,7 @@ test("non-owners cannot manage the team (403)", () => {
     assert.equal(result.ok, false);
     if (!result.ok) {
       assert.equal(result.code, 403);
-      assert.match(result.error, /Only owners/);
+      assert.match(result.error, /Solo los propietarios/);
     }
   }
 });
@@ -42,7 +42,7 @@ test("a user cannot change their own role (409)", () => {
   assert.equal(result.ok, false);
   if (!result.ok) {
     assert.equal(result.code, 409);
-    assert.match(result.error, /cannot change your own role/);
+    assert.match(result.error, /No puedes cambiar tu propio rol/);
   }
 });
 
@@ -67,8 +67,8 @@ test("the final active owner cannot be demoted (409)", () => {
   assert.equal(result.ok, false);
   if (!result.ok) {
     assert.equal(result.code, 409);
-    assert.match(result.error, /final owner cannot be demoted/);
-    assert.match(result.hint ?? "", /Promote another/);
+    assert.match(result.error, /último propietario/);
+    assert.match(result.hint ?? "", /Asigna primero el rol/);
   }
 });
 

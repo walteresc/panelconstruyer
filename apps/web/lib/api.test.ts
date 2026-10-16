@@ -3,10 +3,10 @@ import test from "node:test";
 import { parseSessionUser } from "./api.js";
 
 test("session responses require every display and authorization field", () => {
-  assert.throws(() => parseSessionUser({}), /Invalid session response/);
+  assert.throws(() => parseSessionUser({}), /Respuesta de sesión no válida/);
   assert.throws(
     () => parseSessionUser({ id: "owner-1", name: undefined, email: "owner@example.test", role: "owner" }),
-    /Invalid session response/,
+    /Respuesta de sesión no válida/,
   );
 });
 

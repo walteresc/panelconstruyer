@@ -57,7 +57,7 @@ export async function jobRoutes(app: FastifyInstance) {
       ? and(eq(jobs.orgId, orgId), eq(jobs.id, id), eq(jobs.assignedTo, claims.userId))
       : and(eq(jobs.orgId, orgId), eq(jobs.id, id));
     const [row] = await db.select().from(jobs).where(scope).limit(1);
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
     return row;
   });
 
@@ -74,7 +74,7 @@ export async function jobRoutes(app: FastifyInstance) {
         scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
       })
       .returning();
-    safeEmitActivity(orgId, "job.created", `Created job: ${row.title}`, {
+    safeEmitActivity(orgId, "job.created", `Trabajo creado: ${row.title}`, {
       customerId: row.customerId,
       jobId: row.id,
     });
@@ -94,7 +94,7 @@ export async function jobRoutes(app: FastifyInstance) {
     if (claims.role === "technician") {
       if (!technicianJobPatchAllowed(parsed.data as Record<string, unknown>)) {
         return reply.code(403).send({
-          error: "technicians may only start or complete their assigned jobs",
+          error: "los especialistas solo pueden iniciar o terminar los trabajos que tienen asignados",
         });
       }
       const [current] = await db
@@ -102,13 +102,13 @@ export async function jobRoutes(app: FastifyInstance) {
         .from(jobs)
         .where(and(eq(jobs.orgId, orgId), eq(jobs.id, id)))
         .limit(1);
-      if (!current) return reply.code(404).send({ error: "not found" });
+      if (!current) return reply.code(404).send({ error: "no encontrado" });
       if (current.assignedTo !== claims.userId) {
-        return reply.code(403).send({ error: "job is not assigned to this technician" });
+        return reply.code(403).send({ error: "el trabajo no está asignado a este especialista" });
       }
       if (!validTechnicianTransition(current.status, parsed.data.status)) {
         return reply.code(409).send({
-          error: "invalid technician job transition",
+          error: "cambio de estado no permitido para el especialista",
           currentStatus: current.status,
           requestedStatus: parsed.data.status,
         });
@@ -126,11 +126,11 @@ export async function jobRoutes(app: FastifyInstance) {
       })
       .where(and(eq(jobs.orgId, orgId), eq(jobs.id, id)))
       .returning();
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
 
     if (parsed.data.status) {
       const label = parsed.data.status.replaceAll("_", " ");
-      safeEmitActivity(orgId, "job.status_changed", `Job marked ${label}: ${row.title}`, {
+      safeEmitActivity(orgId, "job.status_changed", `Trabajo marcado como ${label}: ${row.title}`, {
         customerId: row.customerId,
         jobId: row.id,
       });

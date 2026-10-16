@@ -21,7 +21,7 @@ function formatDate(value: Date | string | null | undefined): string | null {
   if (!value) return null;
   const date = typeof value === "string" ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  return date.toLocaleDateString("es-PE", { year: "numeric", month: "short", day: "numeric" });
 }
 
 /**

@@ -22,7 +22,7 @@ export function PayButton({ token, invoiceId, number, remaining }: PayButtonProp
       const { url } = await api.portalCheckout(token, invoiceId);
       window.location.href = url;
     } catch (err) {
-      let message = "Checkout could not be started. Please try again.";
+      let message = "No se pudo iniciar el pago. Inténtalo de nuevo.";
       if (err instanceof Error) {
         try {
           const body = JSON.parse(err.message.slice(err.message.indexOf(":") + 1)) as { error?: string; hint?: string };
@@ -45,13 +45,13 @@ export function PayButton({ token, invoiceId, number, remaining }: PayButtonProp
         disabled={state === "working"}
         className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface-50 transition-colors hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
       >
-        {state === "working" ? "Starting checkout…" : `Pay ${formatMoney(remaining)}`}
+        {state === "working" ? "Iniciando el pago…" : `Pay ${formatMoney(remaining)}`}
       </button>
       {state === "error" && error ? (          <p role="alert" className="max-w-xs text-right text-xs text-red">
           {error}
         </p>
       ) : null}
-      <p className="text-xs text-fg-dim">Invoice {number}</p>
+      <p className="text-xs text-fg-dim">Factura {number}</p>
     </div>
   );
 }

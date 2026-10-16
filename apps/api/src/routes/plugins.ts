@@ -115,7 +115,7 @@ export async function pluginRoutes(app: FastifyInstance) {
       .set(parsed.data)
       .where(and(eq(pluginInstalls.orgId, orgId), eq(pluginInstalls.id, id)))
       .returning();
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
     return row;
   });
 
@@ -127,7 +127,7 @@ export async function pluginRoutes(app: FastifyInstance) {
       .delete(pluginInstalls)
       .where(and(eq(pluginInstalls.orgId, orgId), eq(pluginInstalls.id, id)))
       .returning();
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
     return reply.code(204).send();
   });
 

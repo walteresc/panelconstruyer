@@ -23,9 +23,9 @@ export default async function EstimatePreviewPage({
   if (!estimate) {
     return (
       <div>
-        <PageHeader title="Estimate preview unavailable" description={`Estimate ID: ${id}`} />
+        <PageHeader title="Vista previa de la cotización no disponible" description={`ID de la cotización: ${id}`} />
         <Card>
-          <EmptyState title="No estimate data" description="Verify the estimate ID or check your API connection." />
+          <EmptyState title="Sin datos de la cotización" description="Verifica el identificador de la cotización o la conexión con la API." />
         </Card>
       </div>
     );
@@ -51,22 +51,22 @@ export default async function EstimatePreviewPage({
     <div>
       <PageHeader
         title={`Preview ${estimateNumber}`}
-        description="Customer-facing estimate document preview."
+        description="Vista previa del documento de cotización para el cliente."
         actions={
           <div className="flex flex-wrap gap-2">
             <Link href={`/estimates/${estimate.id}/document.html`} target="_blank">
-              <Button size="sm" variant="secondary">Open customer view</Button>
+              <Button size="sm" variant="secondary">Abrir vista del cliente</Button>
             </Link>
             {job && (
               <Link href={`/jobs/${job.id}`}>
-                <Button size="sm" variant="secondary">Back to job</Button>
+                <Button size="sm" variant="secondary">Volver al trabajo</Button>
               </Link>
             )}
           </div>
         }
       />
       <DocumentPreviewWorkbench
-        documents={[{ id: "estimate", label: "Estimate", html, variants }]}
+        documents={[{ id: "estimate", label: "Cotización", html, variants }]}
         fileName={`${estimateNumber}.html`}
       />
     </div>

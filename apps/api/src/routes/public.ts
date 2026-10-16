@@ -26,7 +26,7 @@ export async function publicRoutes(app: FastifyInstance) {
   app.get("/:orgId/logo", async (req, reply) => {
     const { orgId } = req.params as { orgId: string };
     const logo = await getOrgLogo(orgId);
-    if (!logo) return reply.code(404).send({ error: "logo not found" });
+    if (!logo) return reply.code(404).send({ error: "logo no encontrado" });
     reply.header("Cache-Control", "public, max-age=300, immutable");
     return reply.type(logo.contentType).send(logo.buffer);
   });
@@ -34,7 +34,7 @@ export async function publicRoutes(app: FastifyInstance) {
   app.get("/:orgId", async (req, reply) => {
     const { orgId } = req.params as { orgId: string };
     const [org] = await db.select({ id: orgs.id, name: orgs.name }).from(orgs).where(eq(orgs.id, orgId));
-    if (!org) return reply.code(404).send({ error: "business not found" });
+    if (!org) return reply.code(404).send({ error: "empresa no encontrada" });
     return { org };
   });
 
@@ -44,7 +44,7 @@ export async function publicRoutes(app: FastifyInstance) {
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() });
 
     const [org] = await db.select({ id: orgs.id }).from(orgs).where(eq(orgs.id, orgId));
-    if (!org) return reply.code(404).send({ error: "business not found" });
+    if (!org) return reply.code(404).send({ error: "empresa no encontrada" });
 
     const { name, phone, title, description } = parsed.data;
     const email = parsed.data.email?.toLowerCase();

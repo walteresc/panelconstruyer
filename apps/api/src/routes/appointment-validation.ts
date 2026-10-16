@@ -33,11 +33,11 @@ export function resolveAppointmentWindow(
   const endsAt = patch.endsAt ? new Date(patch.endsAt) : current.endsAt;
 
   if (!Number.isFinite(startsAt.getTime()) || !Number.isFinite(endsAt.getTime())) {
-    return { ok: false, error: "startsAt and endsAt must be valid datetimes" };
+    return { ok: false, error: "startsAt y endsAt deben ser fechas y horas válidas" };
   }
 
   if (endsAt <= startsAt) {
-    return { ok: false, error: "endsAt must be after startsAt" };
+    return { ok: false, error: "endsAt debe ser posterior a startsAt" };
   }
 
   return { ok: true, startsAt, endsAt };

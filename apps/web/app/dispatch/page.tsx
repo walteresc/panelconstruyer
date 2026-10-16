@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { dispatchApi, type DispatchAppointment } from "@/lib/dispatch-api";
+import { jobStatusLabel } from "@/lib/labels";
 import {
   buildConflictMap,
   conflictsForAppointment,
@@ -41,11 +42,11 @@ function addDays(date: Date, amount: number) {
 }
 
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString("es-PE", { hour: "numeric", minute: "2-digit" });
 }
 
 function statusLabel(status: JobDTO["status"]) {
-  return status.replaceAll("_", " ");
+  return jobStatusLabel(status);
 }
 
 function statusClasses(status: JobDTO["status"]) {
@@ -73,7 +74,7 @@ function DispatchCard({
   onAssign: (appointment: DispatchAppointment, technicianId: string | null) => void;
   onDragStart: (event: DragEvent<HTMLElement>, appointmentId: string) => void;
 }) {
-  const title = job?.title ?? `Job ${appointment.jobId.slice(0, 8)}`;
+  const title = job?.title ?? `Trabajo ${appointment.jobId.slice(0, 8)}`;
   const status = job?.status ?? "scheduled";
   const hasConflict = conflictTitles.length > 0;
 
@@ -108,16 +109,16 @@ function DispatchCard({
 
       {hasConflict ? (
         <div className="mt-3 rounded-lg border border-red/30 bg-red/10 px-2.5 py-2" role="alert">
-          <p className="text-[10px] font-black uppercase tracking-wide text-red">Time conflict</p>
+          <p className="text-[10px] font-black uppercase tracking-wide text-red">Conflicto de horario</p>
           <p className="mt-1 text-[11px] text-fg-muted">
-            Overlaps {conflictTitles.join(", ")}
+            Se cruza con {conflictTitles.join(", ")}
           </p>
         </div>
       ) : null}
 
       <div className="mt-3 border-t border-border pt-3">
         <label className="block text-[10px] font-bold uppercase tracking-wide text-fg-dim" htmlFor={`assign-${appointment.id}`}>
-          Assigned technician
+          Especialista asignado
         </label>
         <select
           id={`assign-${appointment.id}`}
@@ -127,7 +128,7 @@ function DispatchCard({
           onChange={(event) => onAssign(appointment, event.target.value || null)}
           className="mt-1.5 w-full rounded-lg border border-border bg-surface-100 px-2.5 py-2 text-xs text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 disabled:opacity-50"
         >
-          <option value="">Unassigned</option>
+          <option value="">Sin asignar</option>
           {technicians.map((technician) => (
             <option key={technician.id} value={technician.id}>
               {technician.name}
@@ -199,8 +200,8 @@ function DispatchLane({
       <div className="space-y-3 p-3">
         {column.appointments.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border px-3 py-8 text-center">
-            <p className="text-xs font-medium text-fg-muted">No visits assigned</p>
-            <p className="mt-1 text-[11px] text-fg-dim">Drop an appointment here</p>
+            <p className="text-xs font-medium text-fg-muted">Sin visitas asignadas</p>
+            <p className="mt-1 text-[11px] text-fg-dim">Suelta una visita aquí</p>
           </div>
         ) : (
           column.appointments.map((appointment) => {
@@ -312,8 +313,8 @@ export default function DispatchPage() {
       {
         id: "unassigned",
         technicianId: null,
-        title: "Unassigned",
-        subtitle: "Needs dispatcher attention",
+        title: "Sin asignar",
+        subtitle: "Requiere atención del coordinador",
         appointments: unassigned,
       },
       ...technicianColumns,
@@ -335,14 +336,14 @@ export default function DispatchPage() {
         const job = jobsById.get(item.jobId);
         return `${job?.title ?? "another visit"} (${formatTime(item.startsAt)}–${formatTime(item.endsAt)})`;
       });
-      const message = `Cannot assign ${jobsById.get(appointment.jobId)?.title ?? "this visit"} to ${technician?.name ?? "that technician"} because it overlaps ${conflictLabels.join(", ")}.`;
+      const message = `No se puede asignar ${jobsById.get(appointment.jobId)?.title ?? "esta visita"} a ${technician?.name ?? "ese especialista"} porque se cruza con ${conflictLabels.join(", ")}.`;
       setError(message);
       setAnnouncement(message);
       return;
     }
 
     const previous = appointment.technicianId;
-    const title = jobsById.get(appointment.jobId)?.title ?? "Visit";
+    const title = jobsById.get(appointment.jobId)?.title ?? "Visita";
     setError(null);
     setAnnouncement(`Assigning ${title}.`);
     setSavingIds((current) => new Set(current).add(appointment.id));
@@ -353,14 +354,14 @@ export default function DispatchPage() {
     try {
       const saved = await dispatchApi.assignAppointment(appointment.id, technicianId);
       setAppointments((current) => current.map((item) => (item.id === saved.id ? saved : item)));
-      setAnnouncement(`${title} assigned to ${technician?.name ?? "Unassigned"}.`);
+      setAnnouncement(`${title} asignado a ${technician?.name ?? "Sin asignar"}.`);
     } catch (caught) {
       setAppointments((current) =>
         current.map((item) => (item.id === appointment.id ? { ...item, technicianId: previous } : item)),
       );
       const message = caught instanceof Error ? caught.message : String(caught);
       setError(message);
-      setAnnouncement(`${title} was not reassigned. ${message}`);
+      setAnnouncement(`${title} no se reasignó. ${message}`);
     } finally {
       setSavingIds((current) => {
         const next = new Set(current);
@@ -404,82 +405,82 @@ export default function DispatchPage() {
         {announcement}
       </p>
       <PageHeader
-        title="Dispatch board"
-        description="Assign today’s visits, balance technician workload, and prevent double-booking."
+        title="Tablero de despacho"
+        description="Asigna las visitas de hoy, equilibra la carga de los especialistas y evita cruces de horario."
         actions={
           <div className="flex gap-2">
             <Link href="/schedule" className="no-underline">
-              <Button variant="secondary" size="sm">Calendar</Button>
+              <Button variant="secondary" size="sm">Calendario</Button>
             </Link>
-            <Button variant="secondary" size="sm" onClick={() => void load()}>Refresh</Button>
+            <Button variant="secondary" size="sm" onClick={() => void load()}>Actualizar</Button>
           </div>
         }
       />
 
       {error ? (
         <Card className="mb-5 border-red/30 bg-red/5" role="alert">
-          <p className="text-sm font-semibold text-red">Dispatch attention required</p>
+          <p className="text-sm font-semibold text-red">Se requiere atención en el despacho</p>
           <p className="mt-1 text-xs text-fg-muted">{error}</p>
           <button
             type="button"
             onClick={() => setError(null)}
             className="mt-3 text-xs font-semibold text-red underline underline-offset-2"
           >
-            Dismiss
+            Descartar
           </button>
         </Card>
       ) : null}
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Card className="p-4">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-fg-dim">Visits</p>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-fg-dim">Visitas</p>
           <p className="mt-2 text-2xl font-black text-fg">{dayAppointments.length}</p>
-          <p className="mt-1 text-xs text-fg-muted">On the selected day</p>
+          <p className="mt-1 text-xs text-fg-muted">En el día seleccionado</p>
         </Card>
         <Card className="p-4">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-fg-dim">Unassigned</p>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-fg-dim">Sin asignar</p>
           <p className={`mt-2 text-2xl font-black ${columns[0]?.appointments.length ? "text-yellow" : "text-green"}`}>
             {columns[0]?.appointments.length ?? 0}
           </p>
-          <p className="mt-1 text-xs text-fg-muted">Needs dispatcher action</p>
+          <p className="mt-1 text-xs text-fg-muted">Requiere acción del coordinador</p>
         </Card>
         <Card className={`p-4 ${conflictPairCount > 0 ? "border-red/35 bg-red/5" : ""}`}>
-          <p className="text-[10px] font-bold uppercase tracking-wide text-fg-dim">Schedule conflicts</p>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-fg-dim">Cruces de horario</p>
           <p className={`mt-2 text-2xl font-black ${conflictPairCount > 0 ? "text-red" : "text-green"}`}>
             {conflictPairCount}
           </p>
-          <p className="mt-1 text-xs text-fg-muted">Overlapping technician visits</p>
+          <p className="mt-1 text-xs text-fg-muted">Visitas del especialista que se cruzan</p>
         </Card>
         <Card className="p-4">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-fg-dim">Technicians</p>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-fg-dim">Especialistas</p>
           <p className="mt-2 text-2xl font-black text-fg">{technicians.length}</p>
-          <p className="mt-1 text-xs text-fg-muted">Active field staff</p>
+          <p className="mt-1 text-xs text-fg-muted">Personal de campo activo</p>
         </Card>
         <Card className="p-4">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-fg-dim">Highest load</p>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-fg-dim">Mayor carga</p>
           <p className="mt-2 text-2xl font-black text-fg">{busiestCount}</p>
-          <p className="mt-1 text-xs text-fg-muted">Visits on one lane</p>
+          <p className="mt-1 text-xs text-fg-muted">Visitas en un mismo carril</p>
         </Card>
       </div>
 
       <Card className="mb-5 p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="secondary" size="sm" onClick={() => setSelectedDate((current) => addDays(current, -1))}>← Previous</Button>
-            <Button variant="secondary" size="sm" onClick={() => setSelectedDate(new Date())}>Today</Button>
-            <Button variant="secondary" size="sm" onClick={() => setSelectedDate((current) => addDays(current, 1))}>Next →</Button>
+            <Button variant="secondary" size="sm" onClick={() => setSelectedDate((current) => addDays(current, -1))}>← Anterior</Button>
+            <Button variant="secondary" size="sm" onClick={() => setSelectedDate(new Date())}>Hoy</Button>
+            <Button variant="secondary" size="sm" onClick={() => setSelectedDate((current) => addDays(current, 1))}>Siguiente →</Button>
             <div className="ml-1">
               <p className="text-sm font-bold text-fg">
-                {selectedDate.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+                {selectedDate.toLocaleDateString("es-PE", { weekday: "long", month: "long", day: "numeric" })}
               </p>
-              <p className="text-[11px] text-fg-dim">Drag cards between lanes or use the assignment menu. Conflicting assignments are blocked.</p>
+              <p className="text-[11px] text-fg-dim">Arrastra las tarjetas entre carriles o usa el menú de asignación. Las asignaciones que se cruzan quedan bloqueadas.</p>
             </div>
           </div>
           <Input
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search job, status, or technician…"
+            placeholder="Buscar trabajo, estado o especialista…"
             className="w-full lg:max-w-sm"
           />
         </div>
@@ -487,10 +488,10 @@ export default function DispatchPage() {
 
       {visibleAppointments.length === 0 ? (
         <Card className="py-16 text-center">
-          <p className="text-base font-semibold text-fg">No visits on this day</p>
-          <p className="mt-2 text-sm text-fg-muted">Choose another date or create an appointment from the calendar.</p>
+          <p className="text-base font-semibold text-fg">No hay visitas este día</p>
+          <p className="mt-2 text-sm text-fg-muted">Elige otra fecha o crea una visita desde el calendario.</p>
           <Link href="/schedule" className="mt-4 inline-block text-sm font-semibold text-accent no-underline hover:underline">
-            Open calendar
+            Abrir calendario
           </Link>
         </Card>
       ) : (

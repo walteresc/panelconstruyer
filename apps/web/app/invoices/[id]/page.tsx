@@ -27,9 +27,9 @@ interface Payment {
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
   manual: "Manual",
-  card: "Card",
-  cash: "Cash",
-  check: "Check",
+  card: "Tarjeta",
+  cash: "Efectivo",
+  check: "Cheque",
 };
 
 export default function InvoiceDetailPage() {
@@ -130,9 +130,9 @@ export default function InvoiceDetailPage() {
   const allowPartialPayments = paymentSettings?.allowPartialPayments !== false;
   const acceptedPaymentMethods = useMemo(() => {
     const methods: { value: string; label: string }[] = [{ value: "manual", label: "Manual" }];
-    if (paymentSettings?.allowManualCash !== false) methods.push({ value: "cash", label: "Cash" });
+    if (paymentSettings?.allowManualCash !== false) methods.push({ value: "cash", label: "Efectivo" });
     if (paymentSettings?.allowManualCheck !== false) methods.push({ value: "check", label: "Check" });
-    if (paymentSettings?.allowManualCard !== false) methods.push({ value: "card", label: "Card" });
+    if (paymentSettings?.allowManualCard !== false) methods.push({ value: "card", label: "Tarjeta" });
     return methods;
   }, [paymentSettings]);
 
@@ -151,7 +151,7 @@ export default function InvoiceDetailPage() {
       anchor.remove();
       URL.revokeObjectURL(url);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Unable to download the PDF");
+      setActionError(err instanceof Error ? err.message : "No se pudo descargar el PDF");
     } finally {
       setDownloadingPdf(false);
     }
@@ -204,7 +204,7 @@ export default function InvoiceDetailPage() {
     const cents = Math.round(parseFloat(payAmount || "0") * 100);
     if (cents <= 0) return;
     if (cents > remaining) {
-      setPayError(`Amount cannot exceed the remaining balance of ${formatMoney(remaining)}.`);
+      setPayError(`El monto no puede superar el saldo pendiente de ${formatMoney(remaining)}.`);
       return;
     }
     setPaySubmitting(true);
@@ -249,15 +249,15 @@ export default function InvoiceDetailPage() {
     const quantity = Math.floor(Number(lineQuantity));
     const cents = Math.round(parseFloat(linePrice || "0") * 100);
     if (!description) {
-      setLineError("Description is required.");
+      setLineError("La descripción es obligatoria.");
       return;
     }
     if (!Number.isInteger(quantity) || quantity < 1) {
-      setLineError("Quantity must be a whole number of at least 1.");
+      setLineError("La cantidad debe ser un número entero de al menos 1.");
       return;
     }
     if (!Number.isFinite(cents) || cents < 0) {
-      setLineError("Unit price must be zero or more.");
+      setLineError("El precio unitario debe ser cero o mayor.");
       return;
     }
     setLineSubmitting(true);
@@ -329,14 +329,14 @@ export default function InvoiceDetailPage() {
             <Card className="w-full max-w-sm">
               <div className="p-6">
                 <h3 className="text-base font-semibold text-fg mb-2">
-                  {confirmAction === "sent" ? "Mark as Sent?" : confirmAction === "paid" ? "Mark as Paid?" : "Void this invoice?"}
+                  {confirmAction === "sent" ? "¿Marcar como enviada?" : confirmAction === "paid" ? "¿Marcar como pagada?" : "¿Anular esta factura?"}
                 </h3>
                 <p className="text-sm text-fg-muted mb-4">
                   {confirmAction === "sent"
-                    ? `This will mark invoice ${invoice?.number} as sent to the customer.`
+                    ? `Se marcará la factura ${invoice?.number} como enviada al cliente.`
                     : confirmAction === "paid"
-                    ? `Record a payment of ${formatMoney(Math.max(0, remaining))} on invoice ${invoice?.number} and mark it as paid.`
-                    : `This will void invoice ${invoice?.number}. This cannot be undone.`}
+                    ? `Se registrará un pago de ${formatMoney(Math.max(0, remaining))} en la factura ${invoice?.number} y se marcará como pagada.`
+                    : `Se anulará la factura ${invoice?.number}. Esta acción no se puede deshacer.`}
                 </p>
                 {actionError && (
                   <p className="text-red text-xs mb-3 p-2 rounded bg-red/5">{actionError}</p>
@@ -348,11 +348,11 @@ export default function InvoiceDetailPage() {
                     variant={confirmAction === "void" ? "danger" : "default"}
                   >
                     {submittingStatus === confirmAction
-                      ? (confirmAction === "void" ? "Voiding..." : confirmAction === "paid" ? "Paying..." : "Sending...")
-                      : (confirmAction === "void" ? "Yes, void it" : confirmAction === "paid" ? "Yes, record payment" : "Yes, mark as sent")}
+                      ? (confirmAction === "void" ? "Anulando..." : confirmAction === "paid" ? "Registrando pago..." : "Enviando...")
+                      : (confirmAction === "void" ? "Sí, anular" : confirmAction === "paid" ? "Sí, registrar pago" : "Sí, marcar como enviada")}
                   </Button>
                   <Button variant="secondary" onClick={() => setConfirmAction(null)}>
-                    Cancel
+                    Cancelar
                   </Button>
                 </div>
               </div>
@@ -375,7 +375,7 @@ export default function InvoiceDetailPage() {
                 className="p-6"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-semibold text-fg">Record Payment</h3>
+                  <h3 className="text-base font-semibold text-fg">Registrar pago</h3>
                   <button
                     type="button"
                     onClick={() => setShowPayment(false)}
@@ -390,13 +390,13 @@ export default function InvoiceDetailPage() {
                 )}
 
                 <p className="text-xs text-fg-muted mb-3">
-                  Invoice {invoice.number} · {formatMoney(invoice.total)} total · {formatMoney(Math.max(0, remaining))} remaining
+                  Factura {invoice.number} · {formatMoney(invoice.total)} total · {formatMoney(Math.max(0, remaining))} remaining
                 </p>
 
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-semibold text-fg-muted mb-1.5">
-                      Amount ($) *
+                      Monto (S/) *
                     </label>
                     <Input
                       type="number"
@@ -411,13 +411,13 @@ export default function InvoiceDetailPage() {
                     />
                     {!allowPartialPayments && (
                       <p className="text-xs text-fg-muted mt-1.5">
-                        Partial payments are disabled — the full balance must be paid at once.
+                        Los pagos parciales están desactivados: se debe pagar el saldo completo.
                       </p>
                     )}
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-fg-muted mb-1.5">
-                      Method
+                      Método
                     </label>
                     <select
                       value={payMethod}
@@ -435,10 +435,10 @@ export default function InvoiceDetailPage() {
 
                 <div className="flex gap-2 mt-6">
                   <Button type="submit" disabled={paySubmitting || !payAmount}>
-                    {paySubmitting ? "Recording..." : "Record Payment"}
+                    {paySubmitting ? "Registrando..." : "Registrar pago"}
                   </Button>
                   <Button type="button" variant="secondary" onClick={() => setShowPayment(false)}>
-                    Cancel
+                    Cancelar
                   </Button>
                 </div>
               </form>
@@ -462,7 +462,7 @@ export default function InvoiceDetailPage() {
               >
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-base font-semibold text-fg">
-                    {lineModal.mode === "edit" ? "Edit line item" : "Add line item"}
+                    {lineModal.mode === "edit" ? "Editar concepto" : "Agregar concepto"}
                   </h3>
                   <button
                     type="button"
@@ -480,7 +480,7 @@ export default function InvoiceDetailPage() {
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="line-description" className="block text-xs font-semibold text-fg-muted mb-1.5">
-                      Description *
+                      Descripción *
                     </label>
                     <Input
                       id="line-description"
@@ -493,7 +493,7 @@ export default function InvoiceDetailPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label htmlFor="line-quantity" className="block text-xs font-semibold text-fg-muted mb-1.5">
-                        Quantity *
+                        Cantidad *
                       </label>
                       <Input
                         id="line-quantity"
@@ -506,7 +506,7 @@ export default function InvoiceDetailPage() {
                     </div>
                     <div>
                       <label htmlFor="line-price" className="block text-xs font-semibold text-fg-muted mb-1.5">
-                        Unit price ($) *
+                        Precio unitario (S/) *
                       </label>
                       <Input
                         id="line-price"
@@ -527,10 +527,10 @@ export default function InvoiceDetailPage() {
 
                 <div className="flex gap-2 mt-6">
                   <Button type="submit" disabled={lineSubmitting || !lineDescription.trim() || !linePrice}>
-                    {lineSubmitting ? "Saving..." : lineModal.mode === "edit" ? "Save changes" : "Add line"}
+                    {lineSubmitting ? "Guardando..." : lineModal.mode === "edit" ? "Guardar cambios" : "Agregar concepto"}
                   </Button>
                   <Button type="button" variant="secondary" onClick={() => setLineModal(null)}>
-                    Cancel
+                    Cancelar
                   </Button>
                 </div>
               </form>
@@ -541,9 +541,9 @@ export default function InvoiceDetailPage() {
 
       {/* ── Header ── */}
       {loadFailed ? (
-        <PageHeader title="Couldn't load invoice" description={`ID: ${invoiceId}`} />
+        <PageHeader title="No se pudo cargar la factura" description={`ID: ${invoiceId}`} />
       ) : !invoice ? (
-        <PageHeader title="Invoice not found" description={`No invoice with id ${invoiceId}.`} />
+        <PageHeader title="Factura no encontrada" description={`No existe una factura con id ${invoiceId}.`} />
       ) : (
         <PageHeader
           title={invoice.number}
@@ -578,37 +578,37 @@ export default function InvoiceDetailPage() {
             <div className="flex gap-2 flex-wrap">
               {(invoice.status === "draft" || invoice.status === "sent" || invoice.status === "paid") && (
                 <Button size="sm" variant="secondary" disabled={downloadingPdf} onClick={() => void downloadPdf()}>
-                  {downloadingPdf ? "Preparing…" : "Download PDF"}
+                  {downloadingPdf ? "Preparando…" : "Descargar PDF"}
                 </Button>
               )}
               {(invoice.status === "draft" || invoice.status === "sent" || invoice.status === "paid") && (
                 <Button size="sm" variant="secondary" onClick={() => setEmailOpen(true)}>
-                  Email invoice
+                  Enviar factura por correo
                 </Button>
               )}
               {invoice.status === "draft" && (
                 <Button size="sm" onClick={() => setConfirmAction("sent")}>
-                  Mark as Sent
+                  Marcar como enviada
                 </Button>
               )}
               {(invoice.status === "draft" || invoice.status === "sent") && (
                 <Button size="sm" variant="danger" onClick={() => setConfirmAction("void")}>
-                  Void
+                  Anulada
                 </Button>
               )}
               {(invoice.status === "draft" || invoice.status === "sent") && remaining > 0 && (
                 <Button size="sm" onClick={() => setConfirmAction("paid")}>
-                  Mark as Paid
+                  Marcar como pagada
                 </Button>
               )}
               {(invoice.status === "draft" || invoice.status === "sent" || (invoice.status === "paid" && remaining > 0)) && (
                 <Button size="sm" variant="secondary" onClick={openPayment}>
-                  Record Payment
+                  Registrar pago
                 </Button>
               )}
               {job && (
                 <Link href={`/jobs/${job.id}`}>
-                  <Button variant="secondary" size="sm">View job</Button>
+                  <Button variant="secondary" size="sm">Ver trabajo</Button>
                 </Link>
               )}
             </div>
@@ -619,8 +619,8 @@ export default function InvoiceDetailPage() {
       {!invoice ? (
         <Card>
           <EmptyState
-            title="No invoice data"
-            description="Verify the invoice ID or check your API connection"
+            title="Sin datos de la factura"
+            description="Verifica el identificador de la factura o la conexión con la API"
           />
         </Card>
       ) : (
@@ -646,12 +646,12 @@ export default function InvoiceDetailPage() {
               {/* Invoice details */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Invoice details</CardTitle>
+                  <CardTitle>Detalles de la factura</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-fg-muted">Status</span>
+                      <span className="text-xs text-fg-muted">Estado</span>
                       <InvoiceStatusBadge status={invoice.status} />
                     </div>
                     <div className="flex justify-between items-center">
@@ -662,13 +662,13 @@ export default function InvoiceDetailPage() {
                     </div>
                     {invoice.pricing && invoice.pricing.discount > 0 && (
                       <div className="flex justify-between items-center">
-                        <span className="text-xs text-fg-muted">{invoice.pricing.discountLabel || "Discount"}</span>
+                        <span className="text-xs text-fg-muted">{invoice.pricing.discountLabel || "Descuento"}</span>
                         <span className="text-sm text-fg tabular-nums">-{formatMoney(invoice.pricing.discount)}</span>
                       </div>
                     )}
                     {invoice.pricing && invoice.pricing.tax > 0 && (
                       <div className="flex justify-between items-center">
-                        <span className="text-xs text-fg-muted">{invoice.pricing.taxLabel || "Tax"}</span>
+                        <span className="text-xs text-fg-muted">{invoice.pricing.taxLabel || "Impuesto"}</span>
                         <span className="text-sm text-fg tabular-nums">{formatMoney(invoice.pricing.tax)}</span>
                       </div>
                     )}
@@ -679,13 +679,13 @@ export default function InvoiceDetailPage() {
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-fg-muted">Paid</span>
+                      <span className="text-xs text-fg-muted">Pagada</span>
                       <span className="text-sm font-semibold text-green tabular-nums">
                         {formatMoney(totalPaid)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-fg-muted">Remaining</span>
+                      <span className="text-xs text-fg-muted">Pendiente</span>
                       <span
                         className={`text-sm font-semibold tabular-nums ${
                           remaining <= 0 ? "text-green" : "text-yellow"
@@ -696,9 +696,9 @@ export default function InvoiceDetailPage() {
                     </div>
                     {invoice.dueAt && (
                       <div className="flex justify-between items-center pt-3 border-t border-border">
-                        <span className="text-xs text-fg-muted">Due date</span>
+                        <span className="text-xs text-fg-muted">Vencimiento</span>
                         <span className="text-sm text-fg">
-                          {new Date(invoice.dueAt).toLocaleDateString(undefined, {
+                          {new Date(invoice.dueAt).toLocaleDateString("es-PE", {
                             year: "numeric",
                             month: "short",
                             day: "numeric",
@@ -708,9 +708,9 @@ export default function InvoiceDetailPage() {
                     )}
                     {invoice.createdAt && (
                       <div className="flex justify-between items-center">
-                        <span className="text-xs text-fg-muted">Created</span>
+                        <span className="text-xs text-fg-muted">Creada</span>
                         <span className="text-sm text-fg">
-                          {new Date(invoice.createdAt).toLocaleDateString(undefined, {
+                          {new Date(invoice.createdAt).toLocaleDateString("es-PE", {
                             year: "numeric",
                             month: "short",
                             day: "numeric",
@@ -726,13 +726,13 @@ export default function InvoiceDetailPage() {
               {(job || customer) && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Related</CardTitle>
+                    <CardTitle>Relacionado</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
                       {job && (
                         <div>
-                          <p className="text-xs text-fg-muted mb-1">Job</p>
+                          <p className="text-xs text-fg-muted mb-1">Trabajo</p>
                           <Link
                             href={`/jobs/${job.id}`}
                             className="text-sm font-medium text-fg-link hover:text-fg transition-colors"
@@ -743,7 +743,7 @@ export default function InvoiceDetailPage() {
                       )}
                       {customer && (
                         <div className="pt-2 border-t border-border">
-                          <p className="text-xs text-fg-muted mb-1">Customer</p>
+                          <p className="text-xs text-fg-muted mb-1">Cliente</p>
                           <Link
                             href={`/customers/${customer.id}`}
                             className="text-sm font-medium text-fg-link hover:text-fg transition-colors"
@@ -769,12 +769,12 @@ export default function InvoiceDetailPage() {
               {/* Line items */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Line Items</CardTitle>
+                  <CardTitle>Conceptos</CardTitle>
                   <CardDescription>
                     {invoice.lineItems.length === 0
-                      ? "No items"
+                      ? "Sin conceptos"
                       : `${invoice.lineItems.length} item${invoice.lineItems.length !== 1 ? "s" : ""}`}
-                    {invoice.status === "draft" ? " · Editable while draft" : " · Frozen at send"}
+                    {invoice.status === "draft" ? "· Editable mientras es borrador" : "· Se bloquea al enviarla"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -785,12 +785,12 @@ export default function InvoiceDetailPage() {
                     <div className="py-4 text-center">
                       <p className="text-sm text-fg-muted">
                         {invoice.status === "draft"
-                          ? "No line items yet — add them before sending."
-                          : "No line items on this invoice."}
+                          ? "Aún no hay conceptos: agrégalos antes de enviar."
+                          : "Esta factura no tiene conceptos."}
                       </p>
                       {invoice.status === "draft" && (
                         <Button size="sm" variant="secondary" className="mt-3" onClick={openAddLine}>
-                          Add line item
+                          Agregar concepto
                         </Button>
                       )}
                     </div>
@@ -815,23 +815,23 @@ export default function InvoiceDetailPage() {
                               {confirmingDeleteId === item.id ? (
                                 <>
                                   <Button size="sm" variant="danger" onClick={() => handleDeleteLine(item.id)}>
-                                    Delete
+                                    Eliminar
                                   </Button>
                                   <Button size="sm" variant="secondary" onClick={() => setConfirmingDeleteId(null)}>
-                                    Keep
+                                    Conservar
                                   </Button>
                                 </>
                               ) : (
                                 <>
                                   <Button size="sm" variant="secondary" onClick={() => openEditLine(item)}>
-                                    Edit
+                                    Editar
                                   </Button>
                                   <Button
                                     size="sm"
                                     variant="danger"
                                     onClick={() => { setDeleteError(null); setConfirmingDeleteId(item.id); }}
                                   >
-                                    Remove
+                                    Quitar
                                   </Button>
                                 </>
                               )}
@@ -847,7 +847,7 @@ export default function InvoiceDetailPage() {
                       </div>
                       {invoice.status === "draft" && (
                         <Button size="sm" variant="secondary" className="self-start mt-2" onClick={openAddLine}>
-                          Add line item
+                          Agregar concepto
                         </Button>
                       )}
                     </div>
@@ -858,17 +858,17 @@ export default function InvoiceDetailPage() {
               {/* Payments */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Payments</CardTitle>
+                  <CardTitle>Pagos</CardTitle>
                   <CardDescription>
                     {invoice.payments.length === 0
-                      ? "No payments yet"
+                      ? "Aún no hay pagos"
                       : `${invoice.payments.length} payment${invoice.payments.length !== 1 ? "s" : ""}`}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {invoice.payments.length === 0 ? (
                     <p className="text-sm text-fg-muted py-4 text-center">
-                      No payments recorded for this invoice.
+                      No hay pagos registrados para esta factura.
                     </p>
                   ) : (
                     <div className="flex flex-col gap-2">
@@ -886,7 +886,7 @@ export default function InvoiceDetailPage() {
                             </span>
                           </div>
                           <span className="text-xs text-fg-dim">
-                            {new Date(p.paidAt).toLocaleDateString(undefined, {
+                            {new Date(p.paidAt).toLocaleDateString("es-PE", {
                               month: "short",
                               day: "numeric",
                             })}
@@ -908,8 +908,8 @@ export default function InvoiceDetailPage() {
           onOpenChange={setEmailOpen}
           kind="invoice"
           documentId={invoiceId}
-          title={`Email invoice ${invoice.number}`}
-          description="Sends the customer a copy of this invoice using your message template settings."
+          title={`Enviar factura ${invoice.number} por correo`}
+          description="Envía al cliente una copia de la factura con tus plantillas de mensaje."
         />
       )}
     </div>

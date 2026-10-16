@@ -40,7 +40,7 @@ export async function customerRoutes(app: FastifyInstance) {
       .select()
       .from(customers)
       .where(and(eq(customers.orgId, orgId), eq(customers.id, id)));
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
     return row;
   });
 
@@ -65,7 +65,7 @@ export async function customerRoutes(app: FastifyInstance) {
       .set(parsed.data)
       .where(and(eq(customers.orgId, orgId), eq(customers.id, id)))
       .returning();
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
     return row;
   });
 }

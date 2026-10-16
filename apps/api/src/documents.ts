@@ -18,7 +18,7 @@ import {
   customers,
   orgs,
 } from "@ofp/db";
-import { formatDocumentCents, invoiceDocumentData, estimateDocumentData, fieldDocumentTitle } from "@ofp/shared";
+import { documentStatusLabel, formatDocumentCents, invoiceDocumentData, estimateDocumentData, fieldDocumentTitle } from "@ofp/shared";
 import { mergeBusinessSettings } from "@ofp/shared";
 
 export function documentSha256(buffer: Buffer): string {
@@ -62,7 +62,7 @@ function drawHeader(ctx: PdfContext, data: import("@ofp/shared").FieldDocumentDa
   }
 
   // Right-aligned kind block.
-  doc.font("Helvetica-Bold").fontSize(7).fillColor(brandColor).text((data.status ?? "draft").toUpperCase(), 440, MARGIN + 2, { width: 124, align: "right" });
+  doc.font("Helvetica-Bold").fontSize(7).fillColor(brandColor).text(documentStatusLabel(data.status ?? "draft").toUpperCase(), 440, MARGIN + 2, { width: 124, align: "right" });
   doc.font("Helvetica-Bold").fontSize(26).fillColor("#17201b").text(title, 440, MARGIN + 12, { width: 124, align: "right" });
   doc.font("Helvetica").fontSize(10).fillColor("#364139").text(`#${data.number}`, 440, MARGIN + 46, { width: 124, align: "right" });
   ctx.y = MARGIN + 70;
@@ -82,11 +82,11 @@ function drawInfoBoxes(ctx: PdfContext, data: import("@ofp/shared").FieldDocumen
   ].filter((value): value is string => Boolean(value));
   const jobLines = [
     data.jobTitle ?? fieldDocumentTitle(data.kind),
-    `Issued ${data.issuedAt ?? new Date().toLocaleDateString()}${data.dueAt ? `  ·  Due ${data.dueAt}` : ""}`,
+    `Emitida ${data.issuedAt ?? new Date().toLocaleDateString("es-PE")}${data.dueAt ? `  ·  Vence ${data.dueAt}` : ""}`,
   ];
 
-  drawBox(ctx, MARGIN, "CUSTOMER", customer);
-  drawBox(ctx, MARGIN + boxWidth + 14, "JOB", jobLines);
+  drawBox(ctx, MARGIN, "CLIENTE", customer);
+  drawBox(ctx, MARGIN + boxWidth + 14, "TRABAJO", jobLines);
   ctx.y += 18;
 }
 
@@ -111,9 +111,9 @@ function drawLineItemsTable(ctx: PdfContext, items: { description: string; quant
   ];
 
   doc.font("Helvetica-Bold").fontSize(7).fillColor("#6b776f");
-  doc.text("DESCRIPTION", columns[0].x, ctx.y + 4, { width: columns[0].width });
-  doc.text("QTY", columns[1].x, ctx.y + 4, { width: columns[1].width, align: columns[1].align });
-  doc.text("UNIT", columns[2].x, ctx.y + 4, { width: columns[2].width, align: columns[2].align });
+  doc.text("DESCRIPCIÓN", columns[0].x, ctx.y + 4, { width: columns[0].width });
+  doc.text("CANT.", columns[1].x, ctx.y + 4, { width: columns[1].width, align: columns[1].align });
+  doc.text("P. UNIT.", columns[2].x, ctx.y + 4, { width: columns[2].width, align: columns[2].align });
   doc.text("TOTAL", columns[3].x, ctx.y + 4, { width: columns[3].width, align: columns[3].align });
   ctx.y += 22;
   doc.moveTo(MARGIN, ctx.y).lineTo(612 - MARGIN, ctx.y).strokeColor("#ccd5ce").lineWidth(1).stroke();
@@ -142,12 +142,12 @@ function drawTotals(ctx: PdfContext, totals: { subtotalCents: number; paidCents:
     ["Subtotal", formatDocumentCents(totals.subtotalCents), false],
   ];
   if (pricing) {
-    if (pricing.discountCents > 0) rows.push([pricing.discountLabel || "Discount", `-${formatDocumentCents(pricing.discountCents)}`, false]);
-    if (pricing.taxCents > 0 || pricing.taxLabel) rows.push([pricing.taxLabel || "Tax", formatDocumentCents(pricing.taxCents), false]);
+    if (pricing.discountCents > 0) rows.push([pricing.discountLabel || "Descuento", `-${formatDocumentCents(pricing.discountCents)}`, false]);
+    if (pricing.taxCents > 0 || pricing.taxLabel) rows.push([pricing.taxLabel || "Impuesto", formatDocumentCents(pricing.taxCents), false]);
     rows.push(["Total", formatDocumentCents(pricing.totalCents), true]);
   }
-  if (show.payments && !pricing) rows.push(["Paid", formatDocumentCents(totals.paidCents), false]);
-  if (show.balance) rows.push(["Balance", formatDocumentCents(totals.balanceCents), true]);
+  if (show.payments && !pricing) rows.push(["Pagado", formatDocumentCents(totals.paidCents), false]);
+  if (show.balance) rows.push(["Saldo", formatDocumentCents(totals.balanceCents), true]);
   ensureSpace(ctx, rows.length * 22 + 8);
 
   for (const [label, value, strong] of rows) {
@@ -174,8 +174,8 @@ function drawFooter(ctx: PdfContext, data: import("@ofp/shared").FieldDocumentDa
   ensureSpace(ctx, 40);
   doc.moveTo(MARGIN, PAGE_HEIGHT - MARGIN - 24).lineTo(612 - MARGIN, PAGE_HEIGHT - MARGIN - 24).strokeColor("#dfe5e0").lineWidth(1).stroke();
   doc.font("Helvetica").fontSize(8).fillColor("#6b776f");
-  doc.text(data.branding.footerText ?? "Field service document", MARGIN, PAGE_HEIGHT - MARGIN - 18, { width: 400 });
-  const attribution = data.branding.removeOpenFieldProAttribution ? "" : "Powered by OpenFieldPro";
+  doc.text(data.branding.footerText ?? "Documento de Construyer", MARGIN, PAGE_HEIGHT - MARGIN - 18, { width: 400 });
+  const attribution = data.branding.removeOpenFieldProAttribution ? "" : "Con tecnología de OpenFieldPro";
   if (attribution) {
     doc.font("Helvetica-Bold").fontSize(8).fillColor("#364139").text(attribution, 400, PAGE_HEIGHT - MARGIN - 18, { width: 164, align: "right" });
   }
@@ -220,7 +220,7 @@ export function renderFieldDocumentPdf(data: import("@ofp/shared").FieldDocument
         ctx.y += 22;
         drawLineItemsTable(ctx, option.lineItems, showPrices);
         doc.font("Helvetica-Bold").fontSize(10).fillColor("#17201b");
-        doc.text(`Option total  ${formatDocumentCents(optionTotal)}`, 380, ctx.y, { width: 184, align: "right" });
+        doc.text(`Total de la opción  ${formatDocumentCents(optionTotal)}`, 380, ctx.y, { width: 184, align: "right" });
         ctx.y += 22;
       }
     } else {
@@ -327,7 +327,7 @@ export async function ensureInvoiceDocument(orgId: string, invoiceId: string): P
     .select()
     .from(invoices)
     .where(and(eq(invoices.orgId, orgId), eq(invoices.id, invoiceId)));
-  if (!invoice) return { error: "invoice not found", statusCode: 404 };
+  if (!invoice) return { error: "factura no encontrada", statusCode: 404 };
 
   const existing = await loadStored(orgId, "invoice", invoiceId);
   if (existing) return { row: existing, buffer: existing.data, created: false };
@@ -355,7 +355,7 @@ export async function ensureInvoiceDocument(orgId: string, invoiceId: string): P
     org,
   });
   const buffer = await renderFieldDocumentPdf(data);
-  const filename = documentFilename("Invoice", invoice.number);
+  const filename = documentFilename("Factura", invoice.number);
   const { row } = await storePdf(orgId, "invoice", invoiceId, filename, buffer);
   return { row, buffer, created: true };
 }
@@ -366,7 +366,7 @@ export async function ensureEstimateDocument(orgId: string, estimateId: string):
     .select()
     .from(estimates)
     .where(and(eq(estimates.orgId, orgId), eq(estimates.id, estimateId)));
-  if (!estimate) return { error: "estimate not found", statusCode: 404 };
+  if (!estimate) return { error: "cotización no encontrada", statusCode: 404 };
 
   const existing = await loadStored(orgId, "estimate", estimateId);
   if (existing) return { row: existing, buffer: existing.data, created: false };
@@ -403,7 +403,7 @@ export async function ensureEstimateDocument(orgId: string, estimateId: string):
     org,
   });
   const buffer = await renderFieldDocumentPdf(data);
-  const filename = documentFilename("Estimate", data.number);
+  const filename = documentFilename("Cotizacion", data.number);
   const { row } = await storePdf(orgId, "estimate", estimateId, filename, buffer);
   return { row, buffer, created: true };
 }

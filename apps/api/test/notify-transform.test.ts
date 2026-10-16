@@ -16,33 +16,33 @@ test("formatNotification renders money in dollars and includes key fields", () =
   assert.match(formatNotification("job.created", { title: "AC tune-up" }), /AC tune-up/);
   assert.equal(
     formatNotification("invoice.paid", { number: "INV-1001", total: 18900 }),
-    "✅ Invoice INV-1001 paid — $189.00",
+    "✅ Factura INV-1001 pagada — S/\u00A0189.00",
   );
   assert.equal(
     formatNotification("payment.received", { number: "INV-1001", amount: 5000, method: "card" }),
-    "💵 Payment $50.00 (card) on INV-1001",
+    "💵 Pago S/\u00A050.00 (card) en INV-1001",
   );
 });
 
 test("formatNotification tolerates missing fields", () => {
-  assert.equal(formatNotification("invoice.created", {}), "🧾 Invoice  created — $0.00");
-  assert.equal(formatNotification("unknown.event", {}), "OpenFieldPro: unknown.event");
+  assert.equal(formatNotification("invoice.created", {}), "🧾 Factura  creada — S/\u00A00.00");
+  assert.equal(formatNotification("unknown.event", {}), "Construyer: unknown.event");
 });
 
 test("toNotificationDelivery shapes Slack payload", () => {
   const d = toNotificationDelivery("slack", "job.created", { title: "Fix furnace" });
   assert.equal(d.headers["content-type"], "application/json");
-  assert.deepEqual(JSON.parse(d.body), { text: "🆕 New job: Fix furnace" });
+  assert.deepEqual(JSON.parse(d.body), { text: "🆕 Nuevo trabajo: Fix furnace" });
 });
 
 test("toNotificationDelivery shapes Discord payload", () => {
   const d = toNotificationDelivery("discord", "job.created", { title: "Fix furnace" });
-  assert.deepEqual(JSON.parse(d.body), { content: "🆕 New job: Fix furnace" });
+  assert.deepEqual(JSON.parse(d.body), { content: "🆕 Nuevo trabajo: Fix furnace" });
 });
 
 test("toNotificationDelivery shapes ntfy as plain text with a title header", () => {
   const d = toNotificationDelivery("ntfy", "invoice.paid", { number: "INV-2", total: 1000 });
   assert.equal(d.headers["content-type"], "text/plain");
-  assert.equal(d.headers.Title, "OpenFieldPro · invoice.paid");
-  assert.equal(d.body, "✅ Invoice INV-2 paid — $10.00");
+  assert.equal(d.headers.Title, "Construyer · invoice.paid");
+  assert.equal(d.body, "✅ Factura INV-2 pagada — S/\u00A010.00");
 });

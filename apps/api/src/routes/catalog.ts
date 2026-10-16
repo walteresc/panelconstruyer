@@ -62,7 +62,7 @@ export async function catalogRoutes(app: FastifyInstance) {
       .select({ id: catalogCategories.id })
       .from(catalogCategories)
       .where(and(eq(catalogCategories.orgId, orgId), eq(catalogCategories.id, parsed.data.categoryId)));
-    if (!category) return reply.code(404).send({ error: "category not found" });
+    if (!category) return reply.code(404).send({ error: "categoría no encontrada" });
     const [row] = await db.insert(catalogItems).values({ orgId, ...parsed.data }).returning();
     return reply.code(201).send(row);
   });
@@ -77,7 +77,7 @@ export async function catalogRoutes(app: FastifyInstance) {
       .set(parsed.data)
       .where(and(eq(catalogItems.orgId, orgId), eq(catalogItems.id, id)))
       .returning();
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
     return row;
   });
 
@@ -88,7 +88,7 @@ export async function catalogRoutes(app: FastifyInstance) {
       .delete(catalogItems)
       .where(and(eq(catalogItems.orgId, orgId), eq(catalogItems.id, id)))
       .returning();
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
     return reply.code(204).send();
   });
 }

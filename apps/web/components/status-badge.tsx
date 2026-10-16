@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { invoiceStatusLabel, jobStatusLabel } from "@/lib/labels";
 import type { JobStatus, InvoiceStatus } from "@ofp/shared";
 
 const jobStatusMap: Record<JobStatus, "lead" | "scheduled" | "in_progress" | "completed" | "canceled"> = {
@@ -17,9 +18,9 @@ const invoiceStatusMap: Record<InvoiceStatus, "draft" | "sent" | "paid" | "void"
 };
 
 export function JobStatusBadge({ status }: { status: JobStatus }) {
-  return <Badge variant={jobStatusMap[status]}>{status.replace("_", " ")}</Badge>;
+  return <Badge variant={jobStatusMap[status]}>{jobStatusLabel(status)}</Badge>;
 }
 
 export function InvoiceStatusBadge({ status }: { status: InvoiceStatus }) {
-  return <Badge variant={invoiceStatusMap[status]}>{status}</Badge>;
+  return <Badge variant={invoiceStatusMap[status]}>{invoiceStatusLabel(status)}</Badge>;
 }

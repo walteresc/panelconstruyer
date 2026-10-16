@@ -16,16 +16,16 @@ interface MessageSendDialogProps {
 }
 
 function logState(log: MessageLogDTO): { label: string; className: string } {
-  if (log.status === "sent") return { label: "Delivered", className: "bg-green/10 text-green" };
-  if (log.status === "failed") return { label: "Failed", className: "bg-red/10 text-red" };
-  return { label: "Pending", className: "bg-yellow/10 text-yellow" };
+  if (log.status === "sent") return { label: "Entregado", className: "bg-green/10 text-green" };
+  if (log.status === "failed") return { label: "Fallido", className: "bg-red/10 text-red" };
+  return { label: "Pendientes", className: "bg-yellow/10 text-yellow" };
 }
 
 function formatWhen(value: string | null): string {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" });
+  return date.toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" });
 }
 
 export function MessageSendDialog({ open, onOpenChange, kind, documentId, title, description }: MessageSendDialogProps) {
@@ -49,7 +49,7 @@ export function MessageSendDialog({ open, onOpenChange, kind, documentId, title,
       setPreview(previewResult);
       setLogs(logRows);
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : "Unable to prepare the email");
+      setLoadError(err instanceof Error ? err.message : "No se pudo preparar el correo");
       setPreview(null);
     } finally {
       setLoading(false);
@@ -71,12 +71,12 @@ export function MessageSendDialog({ open, onOpenChange, kind, documentId, title,
         kind === "invoice" ? await api.invoiceSendEmail(documentId) : await api.estimateSendEmail(documentId);
       setSendNotice(
         result.log.status === "sent"
-          ? `Email sent to ${result.draft.to}. PDF attached: ${result.attachment.filename} (${Math.max(1, Math.round(result.attachment.sizeBytes / 1024))} KB).`
-          : `Delivery failed: ${result.log.error ?? "SMTP rejected the message"}. You can retry from history.`,
+          ? `Correo enviado a ${result.draft.to}. PDF adjunto: ${result.attachment.filename} (${Math.max(1, Math.round(result.attachment.sizeBytes / 1024))} KB).`
+          : `No se pudo entregar: ${result.log.error ?? "El servidor de correo rechazó el mensaje"}. Puedes reintentar desde el historial.`,
       );
       setLogs(await api.messageLogs({ kind, documentId }));
     } catch (err) {
-      setSendNotice(`Email not sent: ${err instanceof Error ? err.message : "unexpected error"}`);
+      setSendNotice(`No se envió el correo: ${err instanceof Error ? err.message : "error inesperado"}`);
     } finally {
       setSending(false);
     }
@@ -86,10 +86,10 @@ export function MessageSendDialog({ open, onOpenChange, kind, documentId, title,
     setRetryingId(logId);
     try {
       await api.retryMessage(logId);
-      setSendNotice("Retried the failed message.");
+      setSendNotice("Se reintentó el mensaje fallido.");
       setLogs(await api.messageLogs({ kind, documentId }));
     } catch (err) {
-      setSendNotice(`Retry failed: ${err instanceof Error ? err.message : "unexpected error"}`);
+      setSendNotice(`No se pudo reintentar: ${err instanceof Error ? err.message : "error inesperado"}`);
     } finally {
       setRetryingId(null);
     }
@@ -112,29 +112,29 @@ export function MessageSendDialog({ open, onOpenChange, kind, documentId, title,
         ) : preview ? (
           <div className="grid gap-4">
             {sendNotice ? (
-              <div className={`rounded-lg border p-3 text-sm ${sendNotice.startsWith("Email sent") || sendNotice.startsWith("Retried") ? "border-green/30 bg-green/10 text-green" : "border-red/30 bg-red/5 text-red"}`}>
+              <div className={`rounded-lg border p-3 text-sm ${sendNotice.startsWith("Correo enviado") || sendNotice.startsWith("Reintentado") ? "border-green/30 bg-green/10 text-green" : "border-red/30 bg-red/5 text-red"}`}>
                 {sendNotice}
               </div>
             ) : null}
             <div className="grid gap-1">
-              <p className="text-xs font-medium text-fg-muted">To</p>
+              <p className="text-xs font-medium text-fg-muted">Para</p>
               <p className="text-sm text-fg">
                 {preview.recipientName} &lt;{preview.to}&gt;
               </p>
             </div>
             <div className="grid gap-1">
-              <p className="text-xs font-medium text-fg-muted">Subject</p>
+              <p className="text-xs font-medium text-fg-muted">Asunto</p>
               <p className="text-sm font-semibold text-fg">{preview.subject}</p>
             </div>
             <div className="grid gap-1">
-              <p className="text-xs font-medium text-fg-muted">Message</p>
+              <p className="text-xs font-medium text-fg-muted">Mensaje</p>
               <pre className="whitespace-pre-wrap rounded-lg border border-border bg-surface-100 p-3 text-sm text-fg">{preview.body}</pre>
             </div>
 
             <div className="grid gap-2">
-              <p className="text-xs font-medium text-fg-muted">Delivery history</p>
+              <p className="text-xs font-medium text-fg-muted">Historial de envíos</p>
               {logs.length === 0 ? (
-                <p className="text-sm text-fg-muted">No emails sent for this {kind} yet.</p>
+                <p className="text-sm text-fg-muted">No se enviaron correos para este {kind} yet.</p>
               ) : (
                 logs.map((log) => (
                   <div key={log.id} className="rounded-lg border border-border bg-surface-100 p-3">
@@ -147,12 +147,12 @@ export function MessageSendDialog({ open, onOpenChange, kind, documentId, title,
                       </div>
                       {log.status === "failed" ? (
                         <Button size="sm" variant="secondary" disabled={retryingId === log.id} onClick={() => void retry(log.id)}>
-                          {retryingId === log.id ? "Retrying…" : "Retry"}
+                          {retryingId === log.id ? "Reintentando…" : "Reintentar"}
                         </Button>
                       ) : null}
                     </div>
                     <p className="mt-1 text-xs text-fg-muted">
-                      To {log.recipient} · attempt {log.attempts} · {formatWhen(log.lastAttemptAt)}
+                      Para {log.recipient} · intento {log.attempts} · {formatWhen(log.lastAttemptAt)}
                     </p>
                     {log.error ? <p className="mt-1 text-xs text-red">{log.error}</p> : null}
                   </div>
@@ -164,10 +164,10 @@ export function MessageSendDialog({ open, onOpenChange, kind, documentId, title,
       </DialogContent>
       <DialogFooter>
         <Button variant="secondary" onClick={() => onOpenChange(false)}>
-          Close
+          Cerrar
         </Button>
         <Button disabled={!preview || sending} onClick={() => void send()}>
-          {sending ? "Sending…" : "Send email"}
+          {sending ? "Enviando…" : "Enviar correo"}
         </Button>
       </DialogFooter>
     </Dialog>

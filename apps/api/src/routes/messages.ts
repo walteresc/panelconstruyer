@@ -54,7 +54,7 @@ export async function messageRoutes(app: FastifyInstance) {
       safeEmitActivity(
         orgId,
         "message.retried",
-        `Retried and delivered email "${result.subject}" to ${result.recipient}`,
+        `Correo "${result.subject}" reintentado y entregado a ${result.recipient}`,
         { customerId: result.customerId },
       );
     }
@@ -94,7 +94,7 @@ export async function messageRoutes(app: FastifyInstance) {
       safeEmitActivity(
         orgId,
         "invoice.email_sent",
-        `Emailed invoice to ${draft.recipientName} (${draft.recipient})`,
+        `Factura enviada por correo a ${draft.recipientName} (${draft.recipient})`,
         { customerId: draft.customerId },
       );
     }
@@ -140,7 +140,7 @@ export async function messageRoutes(app: FastifyInstance) {
       safeEmitActivity(
         orgId,
         "estimate.email_sent",
-        `Emailed estimate to ${draft.recipientName} (${draft.recipient})`,
+        `Cotización enviada por correo a ${draft.recipientName} (${draft.recipient})`,
         { customerId: draft.customerId },
       );
     }

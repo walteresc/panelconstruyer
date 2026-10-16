@@ -69,7 +69,7 @@ export function parseSessionUser(value: unknown): LoginResult["user"] {
     typeof value.email !== "string" ||
     typeof value.role !== "string"
   ) {
-    throw new Error("Invalid session response");
+    throw new Error("Respuesta de sesión no válida");
   }
   return value as LoginResult["user"];
 }

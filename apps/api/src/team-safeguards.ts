@@ -43,8 +43,8 @@ export function guardTeamChange(snapshot: TeamSnapshot, change: TeamChange): Tea
     return {
       ok: false,
       code: 403,
-      error: "Only owners can manage team members.",
-      hint: "Ask an owner to make this change.",
+      error: "Solo los propietarios pueden gestionar al equipo.",
+      hint: "Pide a un propietario que haga este cambio.",
     };
   }
 
@@ -56,16 +56,16 @@ export function guardTeamChange(snapshot: TeamSnapshot, change: TeamChange): Tea
       return {
         ok: false,
         code: 409,
-        error: "You cannot remove your own account.",
-        hint: "Another owner must remove you from the team.",
+        error: "No puedes eliminar tu propia cuenta.",
+        hint: "Otro propietario debe quitarte del equipo.",
       };
     }
     if (change.targetRole !== snapshot.target.role) {
       return {
         ok: false,
         code: 409,
-        error: "You cannot change your own role.",
-        hint: "Ask another owner to change your role.",
+        error: "No puedes cambiar tu propio rol.",
+        hint: "Pide a otro propietario que cambie tu rol.",
       };
     }
   }
@@ -77,16 +77,16 @@ export function guardTeamChange(snapshot: TeamSnapshot, change: TeamChange): Tea
       return {
         ok: false,
         code: 409,
-        error: "The final owner cannot be demoted.",
-        hint: "Promote another team member to owner first.",
+        error: "No se puede degradar al último propietario.",
+        hint: "Asigna primero el rol de propietario a otra persona.",
       };
     }
     if (change.kind !== "role") {
       return {
         ok: false,
         code: 409,
-        error: "The final owner cannot be removed.",
-        hint: "Promote another team member to owner first.",
+        error: "No se puede eliminar al último propietario.",
+        hint: "Asigna primero el rol de propietario a otra persona.",
       };
     }
   }

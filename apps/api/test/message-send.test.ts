@@ -25,9 +25,9 @@ test("invoice email renders number, total, balance, and due date", () => {
     dueDate: new Date("2026-09-01T00:00:00Z"),
     formattedMoney: money,
   });
-  assert.equal(rendered.subject, "Invoice INV-1005 from Marco's Appliance Repair");
-  assert.match(rendered.body, /Hi Jordan Lee/);
-  assert.match(rendered.body, /Balance due: \$443\.00/);
+  assert.equal(rendered.subject, "Factura INV-1005 de Marco's Appliance Repair");
+  assert.match(rendered.body, /Hola Jordan Lee/);
+  assert.match(rendered.body, /Saldo pendiente: \$443\.00/);
   assert.equal(rendered.variables.invoiceNumber, "INV-1005");
 });
 
@@ -57,7 +57,7 @@ test("estimate email renders number, total, option labels, and expiry section", 
     expiresAt: new Date("2026-09-01T00:00:00Z"),
     formattedMoney: money,
   });
-  assert.equal(rendered.subject, "Estimate from Marco's Appliance Repair");
+  assert.equal(rendered.subject, "Cotización de Marco's Appliance Repair");
   assert.equal(rendered.variables.estimateTotal, "$200.00");
   assert.equal(rendered.variables.optionLabels, "Good, Better, Best");
   assert.equal(rendered.variables.optionCount, 3);

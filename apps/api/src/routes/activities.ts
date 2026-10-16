@@ -21,7 +21,7 @@ const createBody = z
     summary: z.string().min(1).max(500),
   })
   .refine((d) => Boolean(d.customerId) || Boolean(d.jobId), {
-    message: "Provide customerId or jobId",
+    message: "Indica customerId o jobId",
   });
 
 export async function activityRoutes(app: FastifyInstance) {

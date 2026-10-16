@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
 const AR_LABELS: Record<string, string> = {
-  current: "Current",
+  current: "Actual",
   "1-30": "1–30 days",
   "31-60": "31–60 days",
   "61-90": "61–90 days",
@@ -30,11 +30,11 @@ async function downloadCsv(report: string, params: { days?: number; months?: num
 }
 
 const JOB_STATUS_LABELS: Record<string, string> = {
-  lead: "Lead",
-  scheduled: "Scheduled",
-  in_progress: "In Progress",
+  lead: "Solicitud",
+  scheduled: "Programado",
+  in_progress: "En curso",
   completed: "Completed",
-  canceled: "Canceled",
+  canceled: "Cancelado",
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -70,7 +70,7 @@ function StatCard({
 function RatingStars({ rating }: { rating: number }) {
   const full = Math.round(rating);
   return (
-    <span className="inline-flex gap-0.5" aria-label={`${rating.toFixed(1)} out of 5 stars`}>
+    <span className="inline-flex gap-0.5" aria-label={`${rating.toFixed(1)} de 5 estrellas`}>
       {[1, 2, 3, 4, 5].map((i) => (
         <span
           key={i}
@@ -140,11 +140,11 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <PageHeader title="Reports" description="Business performance at a glance." />
+      <PageHeader title="Reportes" description="El desempeño del negocio de un vistazo." />
 
       {error && (
         <Card className="mb-6 border-red/30 bg-red/5">
-          <p className="text-red text-sm">API unreachable ({error}).</p>
+          <p className="text-red text-sm">No se puede conectar con la API ({error}).</p>
         </Card>
       )}
 
@@ -153,25 +153,25 @@ export default function ReportsPage() {
           {/* Top-level KPIs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
             <StatCard
-              title="Revenue Collected"
+              title="Ingresos cobrados"
               value={formatMoney(data.revenueCollectedCents)}
-              subtitle="Paid invoices"
+              subtitle="Facturas pagadas"
             />
             <StatCard
-              title="Accounts Receivable"
+              title="Cuentas por cobrar"
               value={formatMoney(data.accountsReceivableCents)}
-              subtitle="Outstanding"
+              subtitle="Por cobrar"
             />
             <StatCard
-              title="Realized Margin"
+              title="Margen realizado"
               value={formatMoney(data.realizedMarginCents)}
-              subtitle="Completed jobs"
+              subtitle="Trabajos terminados"
               accent={data.realizedMarginCents >= 0 ? "border-l-4 border-l-green" : "border-l-4 border-l-red"}
             />
             <StatCard
-              title="Pipeline Margin"
+              title="Margen del embudo"
               value={formatMoney(data.pipelineMarginCents)}
-              subtitle="All non-canceled"
+              subtitle="Todos los no cancelados"
               accent={data.pipelineMarginCents >= 0 ? "border-l-4 border-l-green" : "border-l-4 border-l-red"}
             />
           </div>
@@ -180,7 +180,7 @@ export default function ReportsPage() {
             {/* Pipeline by status */}
             <Card>
               <CardHeader>
-                <CardTitle>Pipeline by Status</CardTitle>
+                <CardTitle>Embudo por estado</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -212,7 +212,7 @@ export default function ReportsPage() {
             {/* Margin by status */}
             <Card>
               <CardHeader>
-                <CardTitle>Margin by Status</CardTitle>
+                <CardTitle>Margen por estado</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -240,7 +240,7 @@ export default function ReportsPage() {
             {/* Ratings */}
             <Card>
               <CardHeader>
-                <CardTitle>Customer Rating</CardTitle>
+                <CardTitle>Valoración de clientes</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-4">
@@ -250,7 +250,7 @@ export default function ReportsPage() {
                   <div className="flex flex-col gap-1">
                     <RatingStars rating={data.rating.average} />
                     <p className="text-xs text-fg-muted">
-                      Based on {data.rating.count} review{data.rating.count !== 1 ? "s" : ""}
+                      Basado en {data.rating.count} review{data.rating.count !== 1 ? "s" : ""}
                     </p>
                   </div>
                 </div>
@@ -260,15 +260,15 @@ export default function ReportsPage() {
             {/* Quick summary */}
             <Card>
               <CardHeader>
-                <CardTitle>Summary</CardTitle>
+                <CardTitle>Resumen</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {[
-                    { label: "Total jobs", value: Object.values(data.jobsByStatus).reduce((a, b) => a + b, 0) },
+                    { label: "Total de trabajos", value: Object.values(data.jobsByStatus).reduce((a, b) => a + b, 0) },
                     { label: "Completed", value: data.jobsByStatus.completed ?? 0 },
-                    { label: "Canceled", value: data.jobsByStatus.canceled ?? 0 },
-                    { label: "Avg rating", value: `${data.rating.average.toFixed(1)} ⭐` },
+                    { label: "Cancelado", value: data.jobsByStatus.canceled ?? 0 },
+                    { label: "Valoración promedio", value: `${data.rating.average.toFixed(1)} ⭐` },
                   ].map((row) => (
                     <div key={row.label} className="flex justify-between items-center">
                       <span className="text-xs text-fg-muted">{row.label}</span>
@@ -285,13 +285,13 @@ export default function ReportsPage() {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between gap-3">
-                  <CardTitle>Accounts Receivable Aging</CardTitle>
-                  <Button size="sm" variant="secondary" onClick={() => void downloadCsv("ar-aging").catch(() => {})}>Download CSV</Button>
+                  <CardTitle>Antigüedad de cuentas por cobrar</CardTitle>
+                  <Button size="sm" variant="secondary" onClick={() => void downloadCsv("ar-aging").catch(() => {})}>Descargar CSV</Button>
                 </div>
               </CardHeader>
               <CardContent>
                 {arAging && arAging.invoiceCount === 0 ? (
-                  <p className="text-sm text-fg-muted">No outstanding balances.</p>
+                  <p className="text-sm text-fg-muted">No hay saldos pendientes.</p>
                 ) : (
                   <>
                     <div className="space-y-2">
@@ -305,7 +305,7 @@ export default function ReportsPage() {
                       ))}
                     </div>
                     <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-                      <span className="text-xs text-fg-muted">Total outstanding ({arAging?.invoiceCount ?? 0} invoices)</span>
+                      <span className="text-xs text-fg-muted">Total por cobrar ({arAging?.invoiceCount ?? 0} facturas)</span>
                       <span className="text-sm font-bold text-fg tabular-nums">{formatMoney(arAging?.totalOutstandingCents ?? 0)}</span>
                     </div>
                   </>
@@ -316,8 +316,8 @@ export default function ReportsPage() {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between gap-3">
-                  <CardTitle>Estimate Conversion</CardTitle>
-                  <Button size="sm" variant="secondary" onClick={() => void downloadCsv("estimate-conversion", { days: 90 }).catch(() => {})}>Download CSV</Button>
+                  <CardTitle>Conversión de cotizaciones</CardTitle>
+                  <Button size="sm" variant="secondary" onClick={() => void downloadCsv("estimate-conversion", { days: 90 }).catch(() => {})}>Descargar CSV</Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -325,14 +325,14 @@ export default function ReportsPage() {
                   <div className="text-3xl font-bold text-fg tabular-nums">
                     {conversion ? Math.round(conversion.conversionRate * 100) : 0}%
                   </div>
-                  <p className="pb-1 text-xs text-fg-muted">approved of sent · last 90 days</p>
+                  <p className="pb-1 text-xs text-fg-muted">aprobadas de las enviadas · últimos 90 días</p>
                 </div>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {[
-                    { label: "Sent", value: conversion?.sent ?? 0 },
-                    { label: "Approved", value: conversion?.approved ?? 0 },
-                    { label: "Declined", value: conversion?.declined ?? 0 },
-                    { label: "Expired", value: conversion?.expired ?? 0 },
+                    { label: "Enviada", value: conversion?.sent ?? 0 },
+                    { label: "Aprobada", value: conversion?.approved ?? 0 },
+                    { label: "Rechazadas", value: conversion?.declined ?? 0 },
+                    { label: "Vencido", value: conversion?.expired ?? 0 },
                   ].map((row) => (
                     <div key={row.label} className="rounded-lg bg-surface-200 p-3 text-center">
                       <div className="text-lg font-bold text-fg tabular-nums">{row.value}</div>
@@ -342,8 +342,8 @@ export default function ReportsPage() {
                 </div>
                 <p className="mt-3 text-xs text-fg-muted">
                   {conversion?.avgDaysToApprove === null || conversion?.avgDaysToApprove === undefined
-                    ? "No approvals yet in this window."
-                    : `Average time from sent to approval: ${conversion.avgDaysToApprove} days.`}
+                    ? "Aún no hay aprobaciones en este periodo."
+                    : `Tiempo promedio entre el envío y la aprobación: ${conversion.avgDaysToApprove} días.`}
                 </p>
               </CardContent>
             </Card>
@@ -351,8 +351,8 @@ export default function ReportsPage() {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between gap-3">
-                  <CardTitle>Revenue Trend</CardTitle>
-                  <Button size="sm" variant="secondary" onClick={() => void downloadCsv("revenue-trend", { months: 12 }).catch(() => {})}>Download CSV</Button>
+                  <CardTitle>Tendencia de ingresos</CardTitle>
+                  <Button size="sm" variant="secondary" onClick={() => void downloadCsv("revenue-trend", { months: 12 }).catch(() => {})}>Descargar CSV</Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -372,7 +372,7 @@ export default function ReportsPage() {
                   })}
                 </div>
                 <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-                  <span className="text-xs text-fg-muted">Total ({trend?.months.length ?? 0} months)</span>
+                  <span className="text-xs text-fg-muted">Total ({trend?.months.length ?? 0} meses)</span>
                   <span className="text-sm font-bold text-fg tabular-nums">{formatMoney(trend?.totalRevenueCents ?? 0)}</span>
                 </div>
               </CardContent>
@@ -381,23 +381,23 @@ export default function ReportsPage() {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between gap-3">
-                  <CardTitle>Technician Scorecards</CardTitle>
-                  <Button size="sm" variant="secondary" onClick={() => void downloadCsv("technician-scorecards", { days: 90 }).catch(() => {})}>Download CSV</Button>
+                  <CardTitle>Desempeño de especialistas</CardTitle>
+                  <Button size="sm" variant="secondary" onClick={() => void downloadCsv("technician-scorecards", { days: 90 }).catch(() => {})}>Descargar CSV</Button>
                 </div>
               </CardHeader>
               <CardContent>
                 {!scorecards || scorecards.scorecards.length === 0 ? (
-                  <p className="text-sm text-fg-muted">No completed jobs in the last 90 days.</p>
+                  <p className="text-sm text-fg-muted">No hay trabajos terminados en los últimos 90 días.</p>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-fg-muted">
-                          <th className="py-2 pr-3">Technician</th>
-                          <th className="py-2 pr-3 text-right">Jobs</th>
-                          <th className="py-2 pr-3 text-right">Revenue</th>
-                          <th className="py-2 pr-3 text-right">Rating</th>
-                          <th className="py-2 text-right">On-time</th>
+                          <th className="py-2 pr-3">Especialista</th>
+                          <th className="py-2 pr-3 text-right">Trabajos</th>
+                          <th className="py-2 pr-3 text-right">Ingresos</th>
+                          <th className="py-2 pr-3 text-right">Valoración</th>
+                          <th className="py-2 text-right">Puntualidad</th>
                         </tr>
                       </thead>
                       <tbody>

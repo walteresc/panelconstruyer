@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/empty-state";
+import { estimateStatusLabel } from "@/lib/labels";
 import { Table, TableHeader, TableHead, TableBody, TableRow } from "@/components/ui/table";
 
 interface Estimate {
@@ -31,9 +32,9 @@ type StatusFilter = "all" | "pending" | "accepted";
 type SortField = "job" | "total" | "status" | "date";
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "pending", label: "Pending" },
-  { value: "accepted", label: "Accepted" },
+  { value: "all", label: "Todas" },
+  { value: "pending", label: "Pendientes" },
+  { value: "accepted", label: "Aceptadas" },
 ];
 
 function SortHead({
@@ -238,11 +239,11 @@ export default function EstimatesPage() {
   return (
     <div>
       <PageHeader
-        title="Estimates"
+        title="Cotizaciones"
         description={`${estimates.length} estimate${estimates.length !== 1 ? "s" : ""} · ${estimates.filter((e) => e.accepted).length} accepted`}
         actions={
           <Button onClick={openCreate} size="sm">
-            ⊕ Create Estimate
+            ⊕ Crear cotización
           </Button>
         }
       />
@@ -261,7 +262,7 @@ export default function EstimatesPage() {
                 className="p-6"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-semibold text-fg">Create Estimate</h3>
+                  <h3 className="text-base font-semibold text-fg">Crear cotización</h3>
                   <button
                     type="button"
                     onClick={() => setShowCreate(false)}
@@ -276,19 +277,19 @@ export default function EstimatesPage() {
                 )}
 
                 <p className="text-xs text-fg-muted mb-3">
-                  Generates an estimate that snapshots the job&rsquo;s current total.
+                  Genera una cotización con el total actual del trabajo.
                 </p>
 
                 <div>
                   <label className="block text-xs font-semibold text-fg-muted mb-1.5">
-                    Job *
+                    Trabajo *
                   </label>
                   <select
                     value={createJobId}
                     onChange={(e) => setCreateJobId(e.target.value)}
                     className="h-10 w-full rounded-lg border border-border bg-surface-200 px-3 py-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 cursor-pointer"
                   >
-                    <option value="">Select a job...</option>
+                    <option value="">Selecciona un trabajo...</option>
                     {unestimatedJobs.map((j) => {
                       const cust = customerMap.get(j.customerId);
                       return (
@@ -299,16 +300,16 @@ export default function EstimatesPage() {
                     })}
                   </select>
                   {unestimatedJobs.length === 0 && (
-                    <p className="text-xs text-fg-dim mt-1">All jobs already have estimates.</p>
+                    <p className="text-xs text-fg-dim mt-1">Todos los trabajos ya tienen cotización.</p>
                   )}
                 </div>
 
                 <div className="flex gap-2 mt-6">
                   <Button type="submit" disabled={!createJobId || createSubmitting}>
-                    {createSubmitting ? "Creating..." : "Create Estimate"}
+                    {createSubmitting ? "Creando..." : "Crear cotización"}
                   </Button>
                   <Button type="button" variant="secondary" onClick={() => setShowCreate(false)}>
-                    Cancel
+                    Cancelar
                   </Button>
                 </div>
               </form>
@@ -319,15 +320,15 @@ export default function EstimatesPage() {
 
       {error && (
         <Card className="mb-6 border-red/30 bg-red/5">
-          <p className="text-red text-sm">API unreachable ({error}).</p>
+          <p className="text-red text-sm">No se puede conectar con la API ({error}).</p>
         </Card>
       )}
 
       {estimates.length === 0 && !error ? (
         <Card>
           <EmptyState
-            title="No estimates yet"
-            description="Create an estimate from a job to send to your customer."
+            title="Aún no hay cotizaciones"
+            description="Crea una cotización desde un trabajo para enviarla a tu cliente."
           />
         </Card>
       ) : (
@@ -336,7 +337,7 @@ export default function EstimatesPage() {
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <Input
               type="search"
-              placeholder="Search by job title or customer..."
+              placeholder="Buscar por título del trabajo o cliente..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="max-w-xs flex-1"
@@ -360,27 +361,27 @@ export default function EstimatesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="px-3 py-2 text-left text-xs font-semibold text-fg-dim uppercase tracking-wider">
-                    Estimate
+                    Cotización
                   </TableHead>
-                  <SortHead field="job" label="Job" sort={sort} dir={dir} onSort={handleSort} />
+                  <SortHead field="job" label="Trabajo" sort={sort} dir={dir} onSort={handleSort} />
                   <TableHead className="px-3 py-2 text-left text-xs font-semibold text-fg-dim uppercase tracking-wider">
-                    Customer
+                    Cliente
                   </TableHead>
                   <SortHead field="total" label="Total" sort={sort} dir={dir} onSort={handleSort} className="text-right" />
-                  <SortHead field="status" label="Status" sort={sort} dir={dir} onSort={handleSort} />
-                  <SortHead field="date" label="Created" sort={sort} dir={dir} onSort={handleSort} />
+                  <SortHead field="status" label="Estado" sort={sort} dir={dir} onSort={handleSort} />
+                  <SortHead field="date" label="Creada" sort={sort} dir={dir} onSort={handleSort} />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredSorted.length === 0 ? (
                   <TableRow>
                     <td colSpan={6} className="text-center py-10">
-                      <p className="text-sm text-fg-muted">No estimates match your filters</p>
+                      <p className="text-sm text-fg-muted">Ninguna cotización coincide con los filtros</p>
                       <button
                         onClick={() => { setSearch(""); setStatusFilter("all"); }}
                         className="text-xs text-fg-link hover:text-fg mt-1 cursor-pointer bg-transparent border-none"
                       >
-                        Clear filters
+                        Limpiar filtros
                       </button>
                     </td>
                   </TableRow>
@@ -395,7 +396,7 @@ export default function EstimatesPage() {
                           <Link href={`/estimates/${e.id}`} className="text-sm font-medium text-fg-link hover:text-fg transition-colors no-underline">
                             {e.number}
                           </Link>
-                          {e.expiresAt ? <p className="text-[11px] text-fg-dim">Expires {new Date(e.expiresAt).toLocaleDateString()}</p> : null}
+                          {e.expiresAt ? <p className="text-[11px] text-fg-dim">Vence {new Date(e.expiresAt).toLocaleDateString("es-PE")}</p> : null}
                         </td>
                         <td className="px-3 py-3">
                           <Link
@@ -421,12 +422,12 @@ export default function EstimatesPage() {
                                 : "bg-yellow/15 text-yellow"
                             }`}
                           >
-                            {e.status === "approved" ? "Approved" : expired ? "Expired" : e.status}
+                            {e.status === "approved" ? "Aprobada" : expired ? "Vencido" : estimateStatusLabel(e.status)}
                           </span>
                           {e.acceptedByName ? <p className="mt-1 text-[11px] text-fg-dim">by {e.acceptedByName}</p> : null}
                         </td>
                         <td className="px-3 py-3 text-sm text-fg-muted">
-                          {new Date(e.createdAt).toLocaleDateString()}
+                          {new Date(e.createdAt).toLocaleDateString("es-PE")}
                         </td>
                       </TableRow>
                     );
@@ -441,12 +442,12 @@ export default function EstimatesPage() {
             {filteredSorted.length === 0 ? (
               <Card>
                 <div className="text-center py-10">
-                  <p className="text-sm text-fg-muted">No estimates match your filters</p>
+                  <p className="text-sm text-fg-muted">Ninguna cotización coincide con los filtros</p>
                   <button
                     onClick={() => { setSearch(""); setStatusFilter("all"); }}
                     className="text-xs text-fg-link hover:text-fg mt-1 cursor-pointer bg-transparent border-none"
                   >
-                    Clear filters
+                    Limpiar filtros
                   </button>
                 </div>
               </Card>
@@ -480,10 +481,10 @@ export default function EstimatesPage() {
                                   : "bg-yellow/15 text-yellow"
                             }`}
                           >
-                              {e.status === "approved" ? "Approved" : expired ? "Expired" : e.status}
+                              {e.status === "approved" ? "Aprobada" : expired ? "Vencido" : estimateStatusLabel(e.status)}
                             </span>
                             <span className="text-xs text-fg-dim">
-                              {new Date(e.createdAt).toLocaleDateString()}
+                              {new Date(e.createdAt).toLocaleDateString("es-PE")}
                             </span>
                           </div>
                         </div>

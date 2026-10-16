@@ -27,8 +27,10 @@ test("sumLines adds every line", () => {
 });
 
 test("formatMoney renders cents as dollars", () => {
-  assert.equal(formatMoney(18900), "$189.00");
-  assert.equal(formatMoney(0), "$0.00");
+  assert.equal(formatMoney(18900), "S/ 189.00");
+  assert.equal(formatMoney(0), "S/ 0.00");
+  assert.equal(formatMoney(123456789), "S/ 1,234,567.89");
+  assert.equal(formatMoney(-250050), "-S/ 2,500.50");
 });
 
 test("sumCosts computes per-line costs and tolerates missing unitCost", () => {

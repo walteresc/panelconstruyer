@@ -111,14 +111,14 @@ export function validateMessageTemplate(template: string, kind: MessageTemplateK
 
 /** Sample variables used by the settings live preview for a template kind. */
 export function messageTemplateSampleVariables(kind: MessageTemplateKind, companyName: string): Record<string, string> {
-  const common = { companyName, customerName: "Jordan Lee" };
+  const common = { companyName, customerName: "Carlos Rojas" };
   switch (kind) {
     case "invoice":
-      return { ...common, invoiceNumber: "INV-1005", invoiceTotal: "$522.00", balance: "$443.00", dueDate: "Sep 1, 2026" };
+      return { ...common, invoiceNumber: "FAC-1005", invoiceTotal: "S/ 522.00", balance: "S/ 443.00", dueDate: "1 de septiembre de 2026" };
     case "estimate":
-      return { ...common, estimateNumber: "EST-1005", estimateTotal: "$200.00", optionCount: "3", optionLabels: "Good, Better, Best", expiresAt: "Sep 10, 2026" };
+      return { ...common, estimateNumber: "COT-1005", estimateTotal: "S/ 200.00", optionCount: "3", optionLabels: "Básica, Intermedia, Completa", expiresAt: "10 de septiembre de 2026" };
     case "portal_link":
-      return { ...common, portalLink: "https://portal.example.test/p/pl_demo-token-0001", portalExpiresAt: "Sep 10, 2026" };
+      return { ...common, portalLink: "https://portal.example.test/p/pl_demo-token-0001", portalExpiresAt: "10 de septiembre de 2026" };
     case "review_request":
       return { companyName };
   }

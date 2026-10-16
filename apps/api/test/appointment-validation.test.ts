@@ -26,7 +26,7 @@ test("rejects a partial start update that crosses the persisted end time", () =>
     startsAt: "2026-07-11T15:30:00.000Z",
   });
 
-  assert.deepEqual(result, { ok: false, error: "endsAt must be after startsAt" });
+  assert.deepEqual(result, { ok: false, error: "endsAt debe ser posterior a startsAt" });
 });
 
 test("rejects a partial end update before the persisted start time", () => {
@@ -34,7 +34,7 @@ test("rejects a partial end update before the persisted start time", () => {
     endsAt: "2026-07-11T13:30:00.000Z",
   });
 
-  assert.deepEqual(result, { ok: false, error: "endsAt must be after startsAt" });
+  assert.deepEqual(result, { ok: false, error: "endsAt debe ser posterior a startsAt" });
 });
 
 test("accepts a complete reschedule with a valid final window", () => {

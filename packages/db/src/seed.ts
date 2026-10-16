@@ -18,20 +18,20 @@ import {
   traceRoutes,
   users,
 } from "./index.js";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { randomBytes, scryptSync } from "node:crypto";
 
 const NOTIFY_EVENTS = ["job.created", "invoice.created", "invoice.paid", "payment.received"];
 const FIRST_PARTY_PLUGINS = [
-  { slug: "slack-notifier", name: "Slack", description: "Post job, invoice, and payment alerts to a Slack channel.", events: NOTIFY_EVENTS, scopes: [], transform: "slack" },
-  { slug: "discord-notifier", name: "Discord", description: "Post job, invoice, and payment alerts to a Discord channel.", events: NOTIFY_EVENTS, scopes: [], transform: "discord" },
-  { slug: "ntfy-notifier", name: "ntfy", description: "Push job, invoice, and payment alerts to your phone via ntfy.", events: NOTIFY_EVENTS, scopes: [], transform: "ntfy" },
-  { slug: "google-maps", name: "Google Maps & Routing", description: "Geocode service addresses and optimize technician routes.", events: [], scopes: ["jobs:read", "customers:read"], transform: "generic" },
-  { slug: "twilio-sms", name: "Twilio SMS", description: "Text customers on job and payment events.", events: ["job.created", "invoice.created", "payment.received"], scopes: ["jobs:read", "customers:read"], transform: "generic" },
-  { slug: "resend-email", name: "Resend Email", description: "Send transactional email for invoices and estimates.", events: ["invoice.created", "estimate.accepted"], scopes: ["invoices:read", "customers:read"], transform: "generic" },
-  { slug: "mailchimp", name: "Mailchimp", description: "Sync customers into a marketing audience.", events: ["customer.created"], scopes: ["customers:read"], transform: "generic" },
-  { slug: "quickbooks", name: "QuickBooks Online", description: "Push paid invoices and payments into accounting.", events: ["invoice.paid", "payment.received"], scopes: ["invoices:read"], transform: "generic" },
-  { slug: "zapier", name: "Zapier", description: "Fan field-service events out to automation workflows.", events: ["job.created", "job.updated", "invoice.created", "invoice.paid", "payment.received", "customer.created", "estimate.accepted"], scopes: ["*"], transform: "generic" },
+  { slug: "slack-notifier", name: "Slack", description: "Publica alertas de trabajos, facturas y pagos en un canal de Slack.", events: NOTIFY_EVENTS, scopes: [], transform: "slack" },
+  { slug: "discord-notifier", name: "Discord", description: "Publica alertas de trabajos, facturas y pagos en un canal de Discord.", events: NOTIFY_EVENTS, scopes: [], transform: "discord" },
+  { slug: "ntfy-notifier", name: "ntfy", description: "Envía alertas de trabajos, facturas y pagos a tu celular con ntfy.", events: NOTIFY_EVENTS, scopes: [], transform: "ntfy" },
+  { slug: "google-maps", name: "Google Maps & Routing", description: "Geolocaliza las direcciones de servicio y optimiza las rutas de los especialistas.", events: [], scopes: ["jobs:read", "customers:read"], transform: "generic" },
+  { slug: "twilio-sms", name: "Twilio SMS", description: "Envía mensajes de texto a los clientes en eventos de trabajos y pagos.", events: ["job.created", "invoice.created", "payment.received"], scopes: ["jobs:read", "customers:read"], transform: "generic" },
+  { slug: "resend-email", name: "Resend Email", description: "Envía correos transaccionales de facturas y cotizaciones.", events: ["invoice.created", "estimate.accepted"], scopes: ["invoices:read", "customers:read"], transform: "generic" },
+  { slug: "mailchimp", name: "Mailchimp", description: "Sincroniza clientes con una audiencia de marketing.", events: ["customer.created"], scopes: ["customers:read"], transform: "generic" },
+  { slug: "quickbooks", name: "QuickBooks Online", description: "Envía a contabilidad las facturas pagadas y los pagos.", events: ["invoice.paid", "payment.received"], scopes: ["invoices:read"], transform: "generic" },
+  { slug: "zapier", name: "Zapier", description: "Envía eventos de operaciones a flujos de automatización.", events: ["job.created", "job.updated", "invoice.created", "invoice.paid", "payment.received", "customer.created", "estimate.accepted"], scopes: ["*"], transform: "generic" },
 ] as const;
 
 async function seedPlugins(): Promise<void> {
@@ -45,7 +45,8 @@ async function seedPlugins(): Promise<void> {
         firstParty: true,
       })),
     )
-    .onConflictDoNothing({ target: plugins.slug });
+    // Actualiza el nombre y la descripción (p. ej. al traducirlos) sin tocar lo demás.
+    .onConflictDoUpdate({ target: plugins.slug, set: { name: sql`excluded.name`, description: sql`excluded.description` } });
   console.log(`seed: ${FIRST_PARTY_PLUGINS.length} first-party plugin manifests ensured`);
 }
 
@@ -56,6 +57,12 @@ function seedHash(password: string): string {
 
 async function main() {
   await seedPlugins();
+
+  // Producción: solo catálogo de integraciones, sin organización ni datos de demostración.
+  if (process.env.OFP_SEED_DEMO === "false") {
+    console.log("seed: OFP_SEED_DEMO=false, se omiten los datos de demostración");
+    process.exit(0);
+  }
 
   const existing = await db
     .select()

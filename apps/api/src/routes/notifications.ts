@@ -54,7 +54,7 @@ export async function notificationRoutes(app: FastifyInstance) {
       .set({ read: true })
       .where(and(eq(notifications.id, id), eq(notifications.userId, uid)))
       .returning();
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
     return row;
   });
 

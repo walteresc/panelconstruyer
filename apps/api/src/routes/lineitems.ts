@@ -47,7 +47,7 @@ export async function lineItemRoutes(app: FastifyInstance) {
     if (!claims || reply.sent) return;
     const { jobId } = req.params as { jobId: string };
     if (!(await canAccessJob(orgId, jobId, claims.role, claims.userId))) {
-      return reply.code(404).send({ error: "job not found" });
+      return reply.code(404).send({ error: "trabajo no encontrado" });
     }
     return db
       .select()
@@ -63,12 +63,12 @@ export async function lineItemRoutes(app: FastifyInstance) {
     const parsed = createBody.safeParse(req.body);
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() });
     if (!(await canAccessJob(orgId, jobId, claims.role, claims.userId))) {
-      return reply.code(404).send({ error: "job not found" });
+      return reply.code(404).send({ error: "trabajo no encontrado" });
     }
 
     const [row] = await db.insert(lineItems).values({ orgId, jobId, ...parsed.data }).returning();
     const { total, cost, margin } = await recomputeJobTotals(orgId, jobId);
-    safeEmitActivity(orgId, "line_item.added", `Added line item: ${row.description}`, { jobId });
+    safeEmitActivity(orgId, "line_item.added", `Concepto agregado: ${row.description}`, { jobId });
     return reply.code(201).send({ lineItem: row, jobTotal: total, jobCostCents: cost, jobMarginCents: margin });
   });
 
@@ -83,16 +83,16 @@ export async function lineItemRoutes(app: FastifyInstance) {
       .from(lineItems)
       .where(and(eq(lineItems.orgId, orgId), eq(lineItems.id, id)));
     if (!existing || !(await canAccessJob(orgId, existing.jobId, claims.role, claims.userId))) {
-      return reply.code(404).send({ error: "not found" });
+      return reply.code(404).send({ error: "no encontrado" });
     }
 
     const [removed] = await db
       .delete(lineItems)
       .where(and(eq(lineItems.orgId, orgId), eq(lineItems.id, id)))
       .returning();
-    if (!removed) return reply.code(404).send({ error: "not found" });
+    if (!removed) return reply.code(404).send({ error: "no encontrado" });
     const { total, cost, margin } = await recomputeJobTotals(orgId, removed.jobId);
-    safeEmitActivity(orgId, "line_item.removed", `Removed line item: ${removed.description}`, { jobId: removed.jobId });
+    safeEmitActivity(orgId, "line_item.removed", `Concepto eliminado: ${removed.description}`, { jobId: removed.jobId });
     return { ok: true, jobTotal: total, jobCostCents: cost, jobMarginCents: margin };
   });
 }

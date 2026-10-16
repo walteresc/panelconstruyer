@@ -23,7 +23,7 @@ async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
   return text ? (JSON.parse(text) as T) : (undefined as T);
 }
 
-const defaultBenefits = ["Priority scheduling", "Included seasonal tune-ups", "Renewal reminders"];
+const defaultBenefits = ["Atención prioritaria", "Revisiones periódicas incluidas", "Recordatorios de renovación"];
 
 export default function ServicePlansPage() {
   const [plans, setPlans] = useState<ServicePlanDTO[]>([]);
@@ -31,8 +31,8 @@ export default function ServicePlansPage() {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
-    name: "Comfort Club",
-    description: "Recurring maintenance plan with included visits and priority scheduling.",
+    name: "Plan de mantenimiento del hogar",
+    description: "Plan de mantenimiento periódico con visitas incluidas y atención prioritaria.",
     includedVisitsPerTerm: "2",
     termMonths: "12",
     price: "199",
@@ -47,7 +47,7 @@ export default function ServicePlansPage() {
       const data = await apiRequest<ServicePlanDTO[]>("/api/service-plans");
       setPlans(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load service plans");
+      setError(err instanceof Error ? err.message : "No se pudieron cargar los planes de mantenimiento");
     } finally {
       setLoading(false);
     }
@@ -83,11 +83,11 @@ export default function ServicePlansPage() {
   return (
     <div>
       <PageHeader
-        title="Service Plans"
-        description={`${activeCount} active plan${activeCount !== 1 ? "s" : ""} · memberships, included visits, renewal timing, and priority scheduling`}
+        title="Planes de mantenimiento"
+        description={`${activeCount} plan${activeCount !== 1 ? "es" : ""} activo${activeCount !== 1 ? "s" : ""} · membresías, visitas incluidas, renovaciones y atención prioritaria`}
         actions={
           <Button size="sm" onClick={() => setShowForm((v) => !v)}>
-            ⊕ New Plan
+            ⊕ Nuevo plan
           </Button>
         }
       />
@@ -96,23 +96,23 @@ export default function ServicePlansPage() {
         <Card className="mb-5 border-accent/30">
           <div className="grid gap-4">
             <div>
-              <h3 className="text-base font-semibold text-fg">Create service plan</h3>
+              <h3 className="text-base font-semibold text-fg">Crear plan de mantenimiento</h3>
               <p className="text-sm text-fg-muted mt-1">
-                Keep this practical: included visits, reminders, renewals, and priority benefits. No loyalty points needed.
+                Mantenlo simple: visitas incluidas, recordatorios, renovaciones y beneficios de prioridad.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Plan name" />
-              <Input value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} type="number" min="0" step="0.01" placeholder="Price" />
-              <Input value={form.includedVisitsPerTerm} onChange={(e) => setForm((f) => ({ ...f, includedVisitsPerTerm: e.target.value }))} type="number" min="0" placeholder="Included visits" />
-              <Input value={form.termMonths} onChange={(e) => setForm((f) => ({ ...f, termMonths: e.target.value }))} type="number" min="1" placeholder="Term months" />
+              <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Nombre del plan" />
+              <Input value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} type="number" min="0" step="0.01" placeholder="Precio" />
+              <Input value={form.includedVisitsPerTerm} onChange={(e) => setForm((f) => ({ ...f, includedVisitsPerTerm: e.target.value }))} type="number" min="0" placeholder="Visitas incluidas" />
+              <Input value={form.termMonths} onChange={(e) => setForm((f) => ({ ...f, termMonths: e.target.value }))} type="number" min="1" placeholder="Duración (meses)" />
             </div>
-            <Input value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Description" />
+            <Input value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Descripción" />
             <textarea
               value={form.benefits}
               onChange={(e) => setForm((f) => ({ ...f, benefits: e.target.value }))}
               className="min-h-24 rounded-lg border border-border bg-surface-200 px-3 py-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
-              placeholder="One benefit per line"
+              placeholder="Un beneficio por línea"
             />
             <label className="flex items-center gap-2 text-sm text-fg-muted">
               <input
@@ -120,14 +120,14 @@ export default function ServicePlansPage() {
                 checked={form.priorityScheduling}
                 onChange={(e) => setForm((f) => ({ ...f, priorityScheduling: e.target.checked }))}
               />
-              Priority scheduling benefit
+              Beneficio de atención prioritaria
             </label>
             <div className="flex gap-2">
               <Button onClick={createPlan} disabled={!form.name.trim()}>
-                Create plan
+                Crear plan
               </Button>
               <Button variant="secondary" onClick={() => setShowForm(false)}>
-                Cancel
+                Cancelar
               </Button>
             </div>
           </div>
@@ -136,18 +136,18 @@ export default function ServicePlansPage() {
 
       {error && (
         <Card className="mb-5 border-red/30 bg-red/5">
-          <p className="text-sm text-red font-medium">Service plan API unavailable</p>
+          <p className="text-sm text-red font-medium">API de planes no disponible</p>
           <p className="text-xs text-fg-muted mt-1">{error}</p>
         </Card>
       )}
 
       {loading ? (
         <Card>
-          <p className="text-sm text-fg-muted">Loading service plans...</p>
+          <p className="text-sm text-fg-muted">Cargando planes de mantenimiento...</p>
         </Card>
       ) : plans.length === 0 ? (
         <Card>
-          <EmptyState title="No service plans yet" description="Create a plan like Comfort Club to track included visits, renewal timing, and priority benefits." />
+          <EmptyState title="Aún no hay planes de mantenimiento" description="Crea un plan para controlar las visitas incluidas, la renovación y los beneficios de prioridad." />
         </Card>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -159,21 +159,21 @@ export default function ServicePlansPage() {
                   {plan.description && <p className="text-sm text-fg-muted mt-1">{plan.description}</p>}
                 </div>
                 <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${plan.active ? "bg-green/10 text-green" : "bg-surface-500 text-fg-muted"}`}>
-                  {plan.active ? "Active" : "Inactive"}
+                  {plan.active ? "Activo" : "Inactivo"}
                 </span>
               </div>
               <div className="grid grid-cols-3 gap-3 text-sm">
                 <div className="rounded-lg bg-surface-200 p-3">
-                  <p className="text-fg-dim text-xs uppercase tracking-wide">Price</p>
+                  <p className="text-fg-dim text-xs uppercase tracking-wide">Precio</p>
                   <p className="font-semibold text-fg mt-1">{formatMoney(plan.priceCents)}</p>
                 </div>
                 <div className="rounded-lg bg-surface-200 p-3">
-                  <p className="text-fg-dim text-xs uppercase tracking-wide">Visits</p>
+                  <p className="text-fg-dim text-xs uppercase tracking-wide">Visitas</p>
                   <p className="font-semibold text-fg mt-1">{plan.includedVisitsPerTerm}</p>
                 </div>
                 <div className="rounded-lg bg-surface-200 p-3">
-                  <p className="text-fg-dim text-xs uppercase tracking-wide">Term</p>
-                  <p className="font-semibold text-fg mt-1">{plan.termMonths} mo</p>
+                  <p className="text-fg-dim text-xs uppercase tracking-wide">Duración</p>
+                  <p className="font-semibold text-fg mt-1">{plan.termMonths} meses</p>
                 </div>
               </div>
               {plan.benefits?.length > 0 && (

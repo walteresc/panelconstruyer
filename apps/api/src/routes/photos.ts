@@ -48,7 +48,7 @@ export async function photoRoutes(app: FastifyInstance) {
 
       try {
         const file = await req.file();
-        if (!file) return reply.code(400).send({ error: "no file uploaded" });
+        if (!file) return reply.code(400).send({ error: "no se cargó ningún archivo" });
 
         const record = await savePhoto(orgId, jobId, {
           stream: file.file,
@@ -61,10 +61,10 @@ export async function photoRoutes(app: FastifyInstance) {
           return reply.code(error.statusCode).send({ error: error.message ?? "error" });
         }
         if (error && typeof error.code === "string" && TOO_LARGE_CODE.test(error.code)) {
-          return reply.code(413).send({ error: "photo exceeds file size limits" });
+          return reply.code(413).send({ error: "la foto supera el tamaño máximo" });
         }
         req.log.error({ err }, "savePhoto failed");
-        return reply.code(500).send({ error: "internal error" });
+        return reply.code(500).send({ error: "error interno" });
       }
     },
   );
@@ -77,7 +77,7 @@ export async function photoRoutes(app: FastifyInstance) {
 
       try {
         const result = await getPhotoFile(photoId, orgId);
-        if (!result) return reply.code(404).send({ error: "photo not found" });
+        if (!result) return reply.code(404).send({ error: "foto no encontrada" });
         reply.header("Cache-Control", "private, max-age=300");
         return reply.type(result.record.contentType).send(result.buffer);
       } catch (err: unknown) {
@@ -86,7 +86,7 @@ export async function photoRoutes(app: FastifyInstance) {
           return reply.code(error.statusCode).send({ error: error.message ?? "error" });
         }
         req.log.error({ err }, "getPhotoFile failed");
-        return reply.code(500).send({ error: "internal error" });
+        return reply.code(500).send({ error: "error interno" });
       }
     },
   );

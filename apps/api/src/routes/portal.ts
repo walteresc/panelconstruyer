@@ -87,12 +87,12 @@ export async function portalRoutes(app: FastifyInstance) {
   app.get("/links", async (req, reply) => {
     const orgId = await resolveOrgId(req);
     const { customerId } = req.query as { customerId?: string };
-    if (!customerId) return reply.code(400).send({ error: "customerId query parameter is required" });
+    if (!customerId) return reply.code(400).send({ error: "el parámetro customerId es obligatorio" });
     const [customer] = await db
       .select({ id: customers.id })
       .from(customers)
       .where(and(eq(customers.orgId, orgId), eq(customers.id, customerId)));
-    if (!customer) return reply.code(404).send({ error: "customer not found" });
+    if (!customer) return reply.code(404).send({ error: "cliente no encontrado" });
 
     const rows = await db
       .select()
@@ -111,10 +111,10 @@ export async function portalRoutes(app: FastifyInstance) {
       .select({ id: customers.id, name: customers.name })
       .from(customers)
       .where(and(eq(customers.orgId, orgId), eq(customers.id, parsed.data.customerId)));
-    if (!customer) return reply.code(404).send({ error: "customer not found" });
+    if (!customer) return reply.code(404).send({ error: "cliente no encontrado" });
 
     const scopes = parsePortalLinkScopes(parsed.data.scopes) as PortalLinkScope[];
-    if (scopes.length === 0) return reply.code(400).send({ error: "at least one portal view is required" });
+    if (scopes.length === 0) return reply.code(400).send({ error: "se requiere al menos una vista del portal" });
 
     const generated = generatePortalToken();
     const ttl = parsed.data.expiresInDays ?? DEFAULT_PORTAL_LINK_TTL_DAYS;
@@ -138,7 +138,7 @@ export async function portalRoutes(app: FastifyInstance) {
     safeEmitActivity(
       orgId,
       "portal.link_created",
-      `Created a customer portal link for ${customer.name} (${scopes.join(", ")})`,
+      `Enlace del portal creado para ${customer.name} (${scopes.join(", ")})`,
       {},
     );
     return reply.code(201).send({ link: portalLinkRow(row), token: generated.token, ttlDays: ttl });
@@ -152,8 +152,8 @@ export async function portalRoutes(app: FastifyInstance) {
       .set({ revokedAt: new Date() })
       .where(and(eq(portalLinks.orgId, orgId), eq(portalLinks.id, id)))
       .returning();
-    if (!row) return reply.code(404).send({ error: "portal link not found" });
-    safeEmitActivity(orgId, "portal.link_revoked", `Revoked a customer portal link (${row.tokenPrefix})`, {});
+    if (!row) return reply.code(404).send({ error: "enlace del portal no encontrado" });
+    safeEmitActivity(orgId, "portal.link_revoked", `Enlace del portal revocado (${row.tokenPrefix})`, {});
     return { ok: true };
   });
 
@@ -168,32 +168,32 @@ export async function portalRoutes(app: FastifyInstance) {
       .select()
       .from(portalLinks)
       .where(and(eq(portalLinks.orgId, orgId), eq(portalLinks.id, id)));
-    if (!link) return reply.code(404).send({ error: "portal link not found" });
+    if (!link) return reply.code(404).send({ error: "enlace del portal no encontrado" });
     const status = portalLinkStatus(link);
     if (status !== "active") {
-      return reply.code(409).send({ error: `cannot email a portal link that ${status === "revoked" ? "has been revoked" : "has expired"}` });
+      return reply.code(409).send({ error: `no se puede enviar por correo un enlace del portal ${status === "revoked" ? "revocado" : "vencido"}` });
     }
     if (!link.tokenCipher) {
-      return reply.code(409).send({ error: "this link predates secure re-sending; create a new portal link" });
+      return reply.code(409).send({ error: "este enlace no se puede reenviar; crea un enlace nuevo" });
     }
     const token = decryptPortalToken(link.tokenCipher, portalLinkEncryptionKey(resolveJwtSecret()));
-    if (!token) return reply.code(409).send({ error: "this portal link cannot be recovered for sending; create a new link" });
+    if (!token) return reply.code(409).send({ error: "este enlace no se puede recuperar para enviarlo; crea uno nuevo" });
 
     const [customer] = await db
       .select({ name: customers.name, email: customers.email })
       .from(customers)
       .where(and(eq(customers.orgId, orgId), eq(customers.id, link.customerId)));
-    if (!customer) return reply.code(404).send({ error: "customer not found" });
+    if (!customer) return reply.code(404).send({ error: "cliente no encontrado" });
     if (!customer.email) return reply.code(409).send({ error: `customer ${customer.name} has no email address on file` });
 
     const [org] = await db.select().from(orgs).where(eq(orgs.id, orgId));
-    if (!org) return reply.code(404).send({ error: "organization not found" });
+    if (!org) return reply.code(404).send({ error: "empresa no encontrada" });
     const settings = mergeBusinessSettings(org.businessSettings);
     const smtp = resolveSmtpConfig();
     if (!smtp) {
       return reply.code(501).send({
-        error: "email is not configured",
-        hint: "Set SMTP_HOST, SMTP_USER, and SMTP_PASS (plus SMTP_FROM) to email portal links.",
+        error: "el correo no está configurado",
+        hint: "Configura SMTP_HOST, SMTP_USER y SMTP_PASS (y SMTP_FROM) para enviar enlaces del portal por correo.",
       });
     }
 
@@ -204,14 +204,14 @@ export async function portalRoutes(app: FastifyInstance) {
       customerName: customer.name,
       portalLink: portalUrl,
       portalExpiresAt: link.expiresAt
-        ? new Date(link.expiresAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
+        ? new Date(link.expiresAt).toLocaleDateString("es-PE", { year: "numeric", month: "short", day: "numeric" })
         : null,
     };
     const subject = renderMessageTemplate(settings.messages.portalLinkSubject, variables);
     const body = renderMessageTemplate(settings.messages.portalLinkBody, variables);
 
     const result = await sendEmail({ to: customer.email, subject, text: body });
-    if (!result) return reply.code(501).send({ error: "email is not configured" });
+    if (!result) return reply.code(501).send({ error: "el correo no está configurado" });
 
     await db
       .update(portalLinks)
@@ -220,7 +220,7 @@ export async function portalRoutes(app: FastifyInstance) {
     safeEmitActivity(
       orgId,
       "portal.link_sent",
-      `Emailed the customer portal link to ${customer.name} (${customer.email})`,
+      `Enlace del portal enviado a ${customer.name} (${customer.email})`,
       {},
     );
     return { ok: true, to: customer.email, messageId: result.messageId, sentAt: new Date().toISOString() };
@@ -230,25 +230,25 @@ export async function portalRoutes(app: FastifyInstance) {
   app.get("/:token", { preHandler: portalSessionRateLimit }, async (req, reply) => {
     const { token } = req.params as { token: string };
     const link = await resolveTokenLink(token);
-    if (!link) return reply.code(404).send({ error: "portal link not found" });
+    if (!link) return reply.code(404).send({ error: "enlace del portal no encontrado" });
 
     const status = portalLinkStatus(link);
     if (status !== "active") {
-      return reply.code(410).send({ error: `portal link ${status === "revoked" ? "has been revoked" : "has expired"}` });
+      return reply.code(410).send({ error: `enlace del portal ${status === "revoked" ? "revocado" : "vencido"}` });
     }
 
     const [org] = await db.select().from(orgs).where(eq(orgs.id, link.orgId));
-    if (!org) return reply.code(404).send({ error: "portal link not found" });
+    if (!org) return reply.code(404).send({ error: "enlace del portal no encontrado" });
     const settings = mergeBusinessSettings(org.businessSettings);
     if (settings.portal.enabled === false) {
-      return reply.code(410).send({ error: "customer portal is disabled by the service company" });
+      return reply.code(410).send({ error: "la empresa desactivó el portal del cliente" });
     }
 
     const [customer] = await db
       .select({ name: customers.name, email: customers.email, phone: customers.phone })
       .from(customers)
       .where(and(eq(customers.orgId, link.orgId), eq(customers.id, link.customerId)));
-    if (!customer) return reply.code(404).send({ error: "portal link not found" });
+    if (!customer) return reply.code(404).send({ error: "enlace del portal no encontrado" });
 
     await db
       .update(portalLinks)
@@ -264,7 +264,7 @@ export async function portalRoutes(app: FastifyInstance) {
       if (scopes.includes("receipts")) views.push("receipts");
     }
     if (scopes.includes("service_plans")) views.push("service_plans");
-    if (views.length === 0) return reply.code(410).send({ error: "this portal link does not grant any views" });
+    if (views.length === 0) return reply.code(410).send({ error: "este enlace del portal no da acceso a ninguna vista" });
 
     const orgInvoices = await db
       .select()
@@ -372,27 +372,27 @@ export async function portalRoutes(app: FastifyInstance) {
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() });
 
     const link = await resolveTokenLink(token);
-    if (!link) return reply.code(404).send({ error: "portal link not found" });
+    if (!link) return reply.code(404).send({ error: "enlace del portal no encontrado" });
     const status = portalLinkStatus(link);
     if (status !== "active") {
-      return reply.code(410).send({ error: `portal link ${status === "revoked" ? "has been revoked" : "has expired"}` });
+      return reply.code(410).send({ error: `enlace del portal ${status === "revoked" ? "revocado" : "vencido"}` });
     }
 
     const scopes = parsePortalLinkScopes(link.scopes);
-    if (!scopes.includes("checkout")) return reply.code(403).send({ error: "this portal link does not allow checkout" });
+    if (!scopes.includes("checkout")) return reply.code(403).send({ error: "este enlace del portal no permite pagar" });
 
     const [org] = await db.select().from(orgs).where(eq(orgs.id, link.orgId));
-    if (!org) return reply.code(404).send({ error: "portal link not found" });
+    if (!org) return reply.code(404).send({ error: "enlace del portal no encontrado" });
     const settings = mergeBusinessSettings(org.businessSettings);
     if (settings.portal.enabled === false || settings.portal.allowInvoicePayment === false) {
-      return reply.code(403).send({ error: "online payment is not available for this portal link" });
+      return reply.code(403).send({ error: "el pago en línea no está disponible para este enlace" });
     }
 
     const key = process.env.STRIPE_SECRET_KEY;
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
     if (!key || !webhookSecret) {
       return reply.code(501).send({
-        error: "online payment is not configured",
+        error: "el pago en línea no está configurado",
         hint: settings.invoice.paymentInstructions,
       });
     }
@@ -401,7 +401,7 @@ export async function portalRoutes(app: FastifyInstance) {
       .select()
       .from(invoices)
       .where(and(eq(invoices.orgId, link.orgId), eq(invoices.id, parsed.data.invoiceId)));
-    if (!inv) return reply.code(404).send({ error: "invoice not found" });
+    if (!inv) return reply.code(404).send({ error: "factura no encontrada" });
     if (inv.status === "paid" || inv.status === "void") {
       return reply.code(409).send({ error: `cannot create checkout for a ${inv.status} invoice` });
     }
@@ -411,7 +411,7 @@ export async function portalRoutes(app: FastifyInstance) {
       .where(and(eq(payments.orgId, link.orgId), eq(payments.invoiceId, inv.id)));
     const paid = paidRows.reduce((sum, p) => sum + p.amount, 0);
     const remaining = inv.total - paid;
-    if (remaining <= 0) return reply.code(409).send({ error: "invoice has no remaining balance" });
+    if (remaining <= 0) return reply.code(409).send({ error: "la factura no tiene saldo pendiente" });
 
     const webOrigin = resolvePublicWebUrl();
     const Stripe = (await import("stripe")).default;

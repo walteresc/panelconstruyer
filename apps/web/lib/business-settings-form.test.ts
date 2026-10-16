@@ -14,13 +14,13 @@ test("service areas are trimmed, deduplicated, and capped at the API limit", () 
 
 test("business hours require at least one work day", () => {
   assert.deepEqual(validateBusinessHours({ workDays: [], startTime: "08:00", endTime: "17:00" }), {
-    workDays: "Choose at least one work day.",
+    workDays: "Elige al menos un día laborable.",
   });
 });
 
 test("business hours require a valid opening window", () => {
   assert.deepEqual(validateBusinessHours({ workDays: ["mon"], startTime: "17:00", endTime: "08:00" }), {
-    endTime: "Closing time must be later than opening time.",
+    endTime: "La hora de cierre debe ser posterior a la de apertura.",
   });
   assert.deepEqual(validateBusinessHours({ workDays: ["mon"], startTime: "08:00", endTime: "17:00" }), {});
 });

@@ -40,5 +40,5 @@ test("notifier delivery is the target shape, unsigned", () => {
     secret: "whsec_x",
   });
   assert.equal(headers["x-ofp-signature"], undefined); // no signature for notifiers
-  assert.deepEqual(JSON.parse(body), { text: "🆕 New job: AC tune-up" });
+  assert.deepEqual(JSON.parse(body), { text: "🆕 Nuevo trabajo: AC tune-up" });
 });

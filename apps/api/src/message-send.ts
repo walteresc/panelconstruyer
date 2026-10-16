@@ -126,7 +126,7 @@ async function attemptDelivery(
       (() => sendEmail({ to: delivery.recipient, subject: delivery.subject, text: delivery.body, attachments: delivery.attachments })))();
     outcome = result
       ? { ok: true, messageId: result.messageId }
-      : { ok: false, error: "email is not configured" };
+      : { ok: false, error: "el correo no está configurado" };
   } catch (error) {
     outcome = { ok: false, error: error instanceof Error ? error.message : "delivery failed" };
   }
@@ -172,9 +172,9 @@ export async function retryMessage(
     .select()
     .from(messageLogs)
     .where(and(eq(messageLogs.orgId, orgId), eq(messageLogs.id, messageId)));
-  if (!log) return { statusCode: 404, error: "message not found" };
+  if (!log) return { statusCode: 404, error: "mensaje no encontrado" };
   if (!canRetryMessage(log.status)) {
-    return { statusCode: 409, error: "only failed messages can be retried" };
+    return { statusCode: 409, error: "solo se pueden reintentar los mensajes fallidos" };
   }
   return attemptDelivery(log, {
     orgId,
@@ -234,12 +234,12 @@ export async function buildInvoiceEmail(orgId: string, invoiceId: string): Promi
     .select()
     .from(invoices)
     .where(and(eq(invoices.orgId, orgId), eq(invoices.id, invoiceId)));
-  if (!invoice) return { ok: false, statusCode: 404, error: "invoice not found" };
+  if (!invoice) return { ok: false, statusCode: 404, error: "factura no encontrada" };
 
   const customer = await customerForJob(orgId, invoice.jobId);
-  if (!customer) return { ok: false, statusCode: 404, error: "job customer not found" };
+  if (!customer) return { ok: false, statusCode: 404, error: "cliente del trabajo no encontrado" };
   if (!customer.email) {
-    return { ok: false, statusCode: 409, error: `customer ${customer.name} has no email address on file` };
+    return { ok: false, statusCode: 409, error: `el cliente ${customer.name} no tiene correo registrado` };
   }
 
   const [org] = await db.select().from(orgs).where(eq(orgs.id, orgId));
@@ -277,12 +277,12 @@ export async function buildEstimateEmail(orgId: string, estimateId: string): Pro
     .select()
     .from(estimates)
     .where(and(eq(estimates.orgId, orgId), eq(estimates.id, estimateId)));
-  if (!estimate) return { ok: false, statusCode: 404, error: "estimate not found" };
+  if (!estimate) return { ok: false, statusCode: 404, error: "cotización no encontrada" };
 
   const customer = await customerForJob(orgId, estimate.jobId);
-  if (!customer) return { ok: false, statusCode: 404, error: "job customer not found" };
+  if (!customer) return { ok: false, statusCode: 404, error: "cliente del trabajo no encontrado" };
   if (!customer.email) {
-    return { ok: false, statusCode: 409, error: `customer ${customer.name} has no email address on file` };
+    return { ok: false, statusCode: 409, error: `el cliente ${customer.name} no tiene correo registrado` };
   }
 
   const [org] = await db.select().from(orgs).where(eq(orgs.id, orgId));

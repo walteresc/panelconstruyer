@@ -25,7 +25,7 @@ function sendControllerError(reply: FastifyReply, error: unknown) {
     return reply.code(error.status).send(error.body);
   }
   if (error instanceof OperationsControllerUnavailableError) {
-    return reply.code(503).send({ error: "operations controller unavailable" });
+    return reply.code(503).send({ error: "controlador de operaciones no disponible" });
   }
   throw error;
 }
@@ -41,7 +41,7 @@ async function mutation<T extends object>(
     request.headers["idempotency-key"],
   );
   if (!body.success || !idempotencyKey.success) {
-    return reply.code(400).send({ error: "invalid operation request" });
+    return reply.code(400).send({ error: "solicitud de operación no válida" });
   }
   try {
     return reply.code(202).send(await run(body.data, idempotencyKey.data));
@@ -56,7 +56,7 @@ export async function operationRoutes(
 ) {
   app.addHook("preHandler", async (request, reply) => {
     if (request.url.includes("?")) {
-      return reply.code(400).send({ error: "invalid operation request" });
+      return reply.code(400).send({ error: "solicitud de operación no válida" });
     }
   });
 
@@ -78,7 +78,7 @@ export async function operationRoutes(
 
   app.get("/:id", async (request, reply) => {
     const id = operationIdSchema.safeParse((request.params as { id?: string }).id);
-    if (!id.success) return reply.code(400).send({ error: "invalid operation id" });
+    if (!id.success) return reply.code(400).send({ error: "identificador de operación no válido" });
     try {
       return await options.client.getOperation(id.data);
     } catch (error) {

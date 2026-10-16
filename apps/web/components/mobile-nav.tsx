@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { BrandLogo } from "@/components/brand-logo";
 import { NAV_SECTIONS, activeNavHref } from "@/lib/nav";
 import { useTheme } from "@/components/theme-provider";
+import { roleLabel } from "@/lib/labels";
 import { useSessionUser } from "@/lib/use-session-user";
 
 export function MobileNav() {
@@ -39,7 +40,7 @@ export function MobileNav() {
       <button
         onClick={() => setOpen(true)}
         className="fixed left-0 top-0 z-30 flex h-12 w-12 items-center justify-center rounded-lg text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 md:hidden"
-        aria-label="Open navigation menu"
+        aria-label="Abrir el menú de navegación"
       >
         <svg width="20" height="16" viewBox="0 0 20 16" fill="none">
           <rect y="0" width="20" height="2" rx="1" fill="currentColor" />
@@ -66,7 +67,7 @@ export function MobileNav() {
           <div className="flex items-center gap-2.5">
             <BrandLogo subtitle="Operaciones" />
           </div>
-          <button onClick={() => setOpen(false)} className="p-1 text-fg-muted hover:text-fg" aria-label="Close navigation menu">
+          <button onClick={() => setOpen(false)} className="p-1 text-fg-muted hover:text-fg" aria-label="Cerrar el menú de navegación">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M3 3L13 13M13 3L3 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
@@ -112,13 +113,13 @@ export function MobileNav() {
             className="flex w-full cursor-pointer items-center gap-3 rounded-lg border-none bg-transparent px-3 py-3 text-sm text-fg-muted transition-all duration-150 hover:bg-surface-300 hover:text-fg"
           >
             <span className="w-5 text-center text-base">{theme === "dark" ? "☀" : "☾"}</span>
-            {theme === "dark" ? "Light mode" : "Dark mode"}
+            {theme === "dark" ? "Modo claro" : "Modo oscuro"}
           </button>
         </div>
 
         <div className="shrink-0 border-t border-border p-3">
           {loading ? (
-            <div className="px-3 py-3 text-xs text-fg-dim">Loading session…</div>
+            <div className="px-3 py-3 text-xs text-fg-dim">Cargando sesión…</div>
           ) : user ? (
             <div className="space-y-2">
               <div className="flex items-center gap-3 px-3 py-3">
@@ -127,7 +128,7 @@ export function MobileNav() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <span className="block truncate text-sm text-fg-muted">{user.name}</span>
-                  <span className="block text-[10px] capitalize text-fg-dim">{user.role || "team member"}</span>
+                  <span className="block text-[10px] capitalize text-fg-dim">{user.role ? roleLabel(user.role) : "integrante del equipo"}</span>
                 </div>
               </div>
               <button
@@ -137,13 +138,13 @@ export function MobileNav() {
                 className="flex w-full items-center gap-3 rounded-lg border-none bg-transparent px-3 py-3 text-sm text-fg-muted transition-colors hover:bg-surface-300 hover:text-fg disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <span className="w-5 text-center">↪</span>
-                {signingOut ? "Signing out…" : "Sign out"}
+                {signingOut ? "Cerrando sesión…" : "Cerrar sesión"}
               </button>
             </div>
           ) : (
             <Link href="/login" onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-fg-muted no-underline hover:bg-surface-300 hover:text-fg">
               <span className="w-5 text-center text-base">↪</span>
-              Sign in
+              Iniciar sesión
             </Link>
           )}
         </div>

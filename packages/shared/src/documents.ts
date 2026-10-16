@@ -63,18 +63,35 @@ export interface FieldDocumentData {
   };
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  draft: "Borrador",
+  sent: "Enviada",
+  paid: "Pagada",
+  void: "Anulada",
+  pending: "Pendiente",
+  approved: "Aprobada",
+  accepted: "Aceptada",
+  declined: "Rechazada",
+  expired: "Vencida",
+};
+
+/** Estado legible en español para documentos (los valores internos siguen en inglés). */
+export function documentStatusLabel(status: string): string {
+  return STATUS_LABELS[status] ?? status;
+}
+
 export function fieldDocumentTitle(kind: FieldDocumentKind): string {
   switch (kind) {
     case "estimate":
-      return "Estimate";
+      return "Cotización";
     case "invoice":
-      return "Invoice";
+      return "Factura";
     case "receipt":
-      return "Receipt";
+      return "Recibo";
     case "work_order":
-      return "Work Order";
+      return "Orden de trabajo";
     case "service_plan":
-      return "Service Plan";
+      return "Plan de mantenimiento";
   }
 }
 
@@ -98,8 +115,8 @@ export function fieldDocumentTotals(data: FieldDocumentData) {
 export function documentPricingRows(pricing: DocumentPricing | undefined): Array<{ label: string; value: number; strong?: boolean }> {
   if (!pricing) return [];
   const rows: Array<{ label: string; value: number; strong?: boolean }> = [];
-  if (pricing.discountCents > 0) rows.push({ label: pricing.discountLabel || "Discount", value: -pricing.discountCents });
-  if (pricing.taxCents > 0 || pricing.taxLabel) rows.push({ label: pricing.taxLabel || "Tax", value: pricing.taxCents });
+  if (pricing.discountCents > 0) rows.push({ label: pricing.discountLabel || "Descuento", value: -pricing.discountCents });
+  if (pricing.taxCents > 0 || pricing.taxLabel) rows.push({ label: pricing.taxLabel || "Impuesto", value: pricing.taxCents });
   rows.push({ label: "Total", value: pricing.totalCents, strong: true });
   return rows;
 }
@@ -107,13 +124,13 @@ export function documentPricingRows(pricing: DocumentPricing | undefined): Array
 export function renderFieldDocumentHtml(data: FieldDocumentData): string {
   const title = fieldDocumentTitle(data.kind);
   const totals = fieldDocumentTotals(data);
-  const color = data.branding.brandColor ?? "#22C55E";
+  const color = data.branding.brandColor ?? "#1769ff";
   const logo = data.branding.logoUrl
-    ? `<img class="logo" src="${escapeHtml(data.branding.logoUrl)}" alt="${escapeHtml(data.branding.companyName)} logo" />`
+    ? `<img class="logo" src="${escapeHtml(data.branding.logoUrl)}" alt="Logo de ${escapeHtml(data.branding.companyName)}" />`
     : `<div class="logo-mark">${escapeHtml(data.branding.companyName.slice(0, 2).toUpperCase())}</div>`;
   const attribution = data.branding.removeOpenFieldProAttribution
     ? ""
-    : `<p class="attribution">Powered by OpenFieldPro</p>`;
+    : `<p class="attribution">Con tecnología de OpenFieldPro</p>`;
   const presentation = data.presentation ?? {};
   const showBusinessInfo = presentation.showBusinessInfo ?? true;
   const showLineItemPrices = presentation.showLineItemPrices ?? true;
@@ -125,8 +142,8 @@ export function renderFieldDocumentHtml(data: FieldDocumentData): string {
         <tr>
           <td>${escapeHtml(item.description)}</td>
           <td class="num">${item.quantity}</td>
-          <td class="num">${showLineItemPrices ? formatCents(item.unitPriceCents) : "Hidden"}</td>
-          <td class="num">${showLineItemPrices ? formatCents(item.quantity * item.unitPriceCents) : "Hidden"}</td>
+          <td class="num">${showLineItemPrices ? formatCents(item.unitPriceCents) : "Oculto"}</td>
+          <td class="num">${showLineItemPrices ? formatCents(item.quantity * item.unitPriceCents) : "Oculto"}</td>
         </tr>`,
     )
     .join("");
@@ -134,9 +151,9 @@ export function renderFieldDocumentHtml(data: FieldDocumentData): string {
     ? data.options.map((option) => {
       const optionTotal = option.pricing?.totalCents ?? option.lineItems.reduce((sum, item) => sum + item.quantity * item.unitPriceCents, 0);
       const optionRows = option.lineItems.map((item) => `
-        <tr><td>${escapeHtml(item.description)}</td><td class="num">${item.quantity}</td><td class="num">${showLineItemPrices ? formatCents(item.unitPriceCents) : "Hidden"}</td><td class="num">${showLineItemPrices ? formatCents(item.quantity * item.unitPriceCents) : "Hidden"}</td></tr>`).join("");
-      const selectedLabel = data.status === "approved" ? "Approved" : "Selected";
-      return `<section class="option${option.selected ? " selected" : ""}"><div class="option-heading"><h2>${escapeHtml(option.label)}</h2>${option.selected ? `<span>${selectedLabel}</span>` : ""}</div><table><thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Total</th></tr></thead><tbody>${optionRows}</tbody></table><p class="option-total">Option total <strong>${formatCents(optionTotal)}</strong></p></section>`;
+        <tr><td>${escapeHtml(item.description)}</td><td class="num">${item.quantity}</td><td class="num">${showLineItemPrices ? formatCents(item.unitPriceCents) : "Oculto"}</td><td class="num">${showLineItemPrices ? formatCents(item.quantity * item.unitPriceCents) : "Oculto"}</td></tr>`).join("");
+      const selectedLabel = data.status === "approved" ? "Aprobada" : "Seleccionada";
+      return `<section class="option${option.selected ? " selected" : ""}"><div class="option-heading"><h2>${escapeHtml(option.label)}</h2>${option.selected ? `<span>${selectedLabel}</span>` : ""}</div><table><thead><tr><th>Descripción</th><th class="num">Cant.</th><th class="num">P. unit.</th><th class="num">Total</th></tr></thead><tbody>${optionRows}</tbody></table><p class="option-total">Total de la opción <strong>${formatCents(optionTotal)}</strong></p></section>`;
     }).join("")
     : null;
   const businessContact = [data.branding.publicPhone, data.branding.publicEmail, data.branding.publicAddress]
@@ -147,7 +164,7 @@ export function renderFieldDocumentHtml(data: FieldDocumentData): string {
   const formatClass = presentation.format === "envelope" ? " format-envelope" : "";
 
   return `<!doctype html>
-<html>
+<html lang="es-PE">
 <head>
 <meta charset="utf-8" />
 <title>${escapeHtml(title)} ${escapeHtml(data.number)}</title>
@@ -166,31 +183,33 @@ export function renderFieldDocumentHtml(data: FieldDocumentData): string {
   <main class="page${formatClass}">
     <section class="top">
       ${brandBlock}
-      <div class="kind"><span class="pill">${escapeHtml(data.status ?? "draft")}</span><h1>${escapeHtml(title)}</h1><p class="muted number">#${escapeHtml(data.number)}</p></div>
+      <div class="kind"><span class="pill">${escapeHtml(documentStatusLabel(data.status ?? "draft"))}</span><h1>${escapeHtml(title)}</h1><p class="muted number">#${escapeHtml(data.number)}</p></div>
     </section>
     <section class="grid">
-      <div class="box"><h2>Customer</h2><strong>${escapeHtml(data.customerName)}</strong><p class="muted">${escapeHtml([data.customerEmail, data.customerPhone].filter(Boolean).join(" · ") || "No contact details")}</p></div>
-      <div class="box"><h2>Job</h2><strong>${escapeHtml(data.jobTitle ?? title)}</strong><p class="muted">Issued ${escapeHtml(data.issuedAt ?? new Date().toLocaleDateString())}${data.dueAt ? ` · Due ${escapeHtml(data.dueAt)}` : ""}</p></div>
+      <div class="box"><h2>Cliente</h2><strong>${escapeHtml(data.customerName)}</strong><p class="muted">${escapeHtml([data.customerEmail, data.customerPhone].filter(Boolean).join(" · ") || "Sin datos de contacto")}</p></div>
+      <div class="box"><h2>Trabajo</h2><strong>${escapeHtml(data.jobTitle ?? title)}</strong><p class="muted">Emitida ${escapeHtml(data.issuedAt ?? new Date().toLocaleDateString("es-PE"))}${data.dueAt ? ` · Vence ${escapeHtml(data.dueAt)}` : ""}</p></div>
     </section>
     ${optionSections ?? `<table>
-      <thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Total</th></tr></thead>
+      <thead><tr><th>Descripción</th><th class="num">Cant.</th><th class="num">P. unit.</th><th class="num">Total</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`}
     ${optionSections ? "" : `<section class="totals">
       <div class="total-row"><span>Subtotal</span><strong>${formatCents(totals.subtotalCents)}</strong></div>
       ${documentPricingRows(data.pricing).map((row) => `<div class="total-row${row.strong ? " strong" : ""}"><span>${escapeHtml(row.label)}</span><strong>${formatCents(row.value)}</strong></div>`).join("\n      ")}
-      ${showPayments && !data.pricing ? `<div class="total-row"><span>Paid</span><strong>${formatCents(totals.paidCents)}</strong></div>` : ""}
-      ${showBalance ? `<div class="total-row strong"><span>Balance</span><strong>${formatCents(totals.balanceCents)}</strong></div>` : ""}
+      ${showPayments && !data.pricing ? `<div class="total-row"><span>Pagado</span><strong>${formatCents(totals.paidCents)}</strong></div>` : ""}
+      ${showBalance ? `<div class="total-row strong"><span>Saldo</span><strong>${formatCents(totals.balanceCents)}</strong></div>` : ""}
     </section>`}
     ${data.notes ? `<section class="notes">${escapeHtml(data.notes)}</section>` : ""}
-    <footer class="footer"><span>${escapeHtml(data.branding.footerText ?? "Field service document")}</span>${attribution}</footer>
+    <footer class="footer"><span>${escapeHtml(data.branding.footerText ?? "Documento de Construyer")}</span>${attribution}</footer>
   </main>
 </body>
 </html>`;
 }
 
 export function formatDocumentCents(cents: DocumentMoney): string {
-  return `$${(cents / 100).toFixed(2)}`;
+  const amount = cents / 100;
+  const digits = Math.abs(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `${amount < 0 ? "-" : ""}S/ ${digits}`;
 }
 
 function formatCents(cents: DocumentMoney): string {
@@ -264,19 +283,19 @@ export interface DocumentOrgLike {
 }
 
 function documentIssuedDate(value?: string | Date | null) {
-  return value ? new Date(value).toLocaleDateString() : new Date().toLocaleDateString();
+  return value ? new Date(value).toLocaleDateString("es-PE") : new Date().toLocaleDateString("es-PE");
 }
 
-function documentBranding(org?: DocumentOrgLike | null, fallbackFooter = "Field service command center document"): FieldDocumentData["branding"] {
+function documentBranding(org?: DocumentOrgLike | null, fallbackFooter = "Construyer · Reparaciones, instalaciones, remodelaciones y obras en Lima"): FieldDocumentData["branding"] {
   return {
-    companyName: org?.name ?? "OpenFieldPro Demo Co.",
+    companyName: org?.name ?? "Construyer",
     logoUrl: org?.logoUrl ?? undefined,
-    brandColor: org?.brandColor ?? "#22C55E",
+    brandColor: org?.brandColor ?? "#1769ff",
     footerText: org?.documentFooter ?? fallbackFooter,
     publicEmail: org?.publicEmail,
     publicPhone: org?.publicPhone,
     publicAddress: org?.publicAddress,
-    removeOpenFieldProAttribution: org?.removeOpenFieldProAttribution ?? false,
+    removeOpenFieldProAttribution: org?.removeOpenFieldProAttribution ?? true,
   };
 }
 
@@ -288,7 +307,7 @@ function documentLineItems(lineItems: DocumentLineItemLike[], fallbackTotalCents
       unitPriceCents: item.unitPrice,
     }));
   }
-  return [{ description: "Service work", quantity: 1, unitPriceCents: fallbackTotalCents }];
+  return [{ description: "Trabajo de servicio", quantity: 1, unitPriceCents: fallbackTotalCents }];
 }
 
 function visibleDocumentLineItems(
@@ -296,7 +315,7 @@ function visibleDocumentLineItems(
   fallbackTotalCents: number,
   options: { showLineItems: boolean },
 ) {
-  if (!options.showLineItems) return [{ description: "Service work", quantity: 1, unitPriceCents: fallbackTotalCents }];
+  if (!options.showLineItems) return [{ description: "Trabajo de servicio", quantity: 1, unitPriceCents: fallbackTotalCents }];
   return documentLineItems(lineItems, fallbackTotalCents);
 }
 
@@ -326,11 +345,11 @@ export function invoiceDocumentData({
     number: invoice.number,
     status: invoice.status,
     issuedAt: documentIssuedDate(invoice.createdAt),
-    dueAt: invoice.dueAt ? new Date(invoice.dueAt).toLocaleDateString() : null,
-    customerName: visibility?.showCustomerInfo === false ? "Customer" : customer?.name ?? "Customer",
+    dueAt: invoice.dueAt ? new Date(invoice.dueAt).toLocaleDateString("es-PE") : null,
+    customerName: visibility?.showCustomerInfo === false ? "Cliente" : customer?.name ?? "Cliente",
     customerEmail: visibility?.showCustomerInfo === false ? null : customer?.email,
     customerPhone: visibility?.showCustomerInfo === false ? null : customer?.phone,
-    jobTitle: visibility?.showJobInfo === false ? "Service work" : job?.title ?? "Service work",
+    jobTitle: visibility?.showJobInfo === false ? "Trabajo de servicio" : job?.title ?? "Trabajo de servicio",
     notes: joinDocumentNotes([job?.description, settings?.invoice.defaultMessage, settings?.invoice.paymentInstructions]),
     lineItems: visibleDocumentLineItems(lineItems, invoice.total, {
       showLineItems: visibility?.showLineItems ?? true,
@@ -394,17 +413,17 @@ export function estimateDocumentData({
     number: estimate.number ?? `${settings?.numbering.estimatePrefix ?? "EST"}-${estimate.id.slice(0, 8).toUpperCase()}`,
     status: estimate.status ?? (estimate.accepted ? "approved" : "pending"),
     issuedAt: documentIssuedDate(estimate.createdAt),
-    dueAt: estimate.expiresAt ? new Date(estimate.expiresAt).toLocaleDateString() : null,
-    customerName: visibility?.showCustomerInfo === false ? "Customer" : customer?.name ?? "Customer",
+    dueAt: estimate.expiresAt ? new Date(estimate.expiresAt).toLocaleDateString("es-PE") : null,
+    customerName: visibility?.showCustomerInfo === false ? "Cliente" : customer?.name ?? "Cliente",
     customerEmail: visibility?.showCustomerInfo === false ? null : customer?.email,
     customerPhone: visibility?.showCustomerInfo === false ? null : customer?.phone,
-    jobTitle: visibility?.showJobInfo === false ? "Service work" : job?.title ?? "Service work",
+    jobTitle: visibility?.showJobInfo === false ? "Trabajo de servicio" : job?.title ?? "Trabajo de servicio",
     notes: joinDocumentNotes([
       job?.description,
-      settings?.estimate.defaultMessage ?? "Estimate is valid pending final service conditions and customer approval.",
-      estimate.acceptedAt ? `Accepted ${new Date(estimate.acceptedAt).toLocaleDateString()}${estimate.acceptedByName ? ` by ${estimate.acceptedByName}` : ""}.` : null,
-      settings?.estimate.signatureRequired ? "Customer signature required for approval." : null,
-      settings?.estimate.depositMode !== "none" ? `Deposit required: ${settings?.estimate.depositValue}${settings?.estimate.depositMode === "percent" ? "%" : " cents"}` : null,
+      settings?.estimate.defaultMessage ?? "Esta cotización es válida sujeta a las condiciones finales del servicio y a la aprobación del cliente.",
+      estimate.acceptedAt ? `Aceptada el ${new Date(estimate.acceptedAt).toLocaleDateString("es-PE")}${estimate.acceptedByName ? ` por ${estimate.acceptedByName}` : ""}.` : null,
+      settings?.estimate.signatureRequired ? "Se requiere la firma del cliente para aprobar." : null,
+      settings?.estimate.depositMode !== "none" ? `Adelanto requerido: ${settings?.estimate.depositMode === "percent" ? `${settings?.estimate.depositValue}%` : formatDocumentCents(settings?.estimate.depositValue ?? 0)}` : null,
     ]),
     lineItems: visibleDocumentLineItems(lineItems, estimate.total, {
       showLineItems: visibility?.showLineItems ?? true,
@@ -418,7 +437,7 @@ export function estimateDocumentData({
     })),
     pricing: documentPricing(estimate.pricing),
     paymentsCents: 0,
-    branding: documentBranding(org, "Estimate generated from OpenFieldPro"),
+    branding: documentBranding(org, "Cotización generada por Construyer"),
     presentation: {
       format: settings?.estimate.format,
       showBusinessInfo: visibility?.showBusinessInfo ?? true,

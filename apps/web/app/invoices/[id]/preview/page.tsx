@@ -23,9 +23,9 @@ export default async function InvoicePreviewPage({
   if (!invoice) {
     return (
       <div>
-        <PageHeader title="Invoice preview unavailable" description={`Invoice ID: ${id}`} />
+        <PageHeader title="Vista previa de la factura no disponible" description={`ID de la factura: ${id}`} />
         <Card>
-          <EmptyState title="No invoice data" description="Verify the invoice ID or check your API connection." />
+          <EmptyState title="Sin datos de la factura" description="Verifica el identificador de la factura o la conexión con la API." />
         </Card>
       </div>
     );
@@ -39,20 +39,20 @@ export default async function InvoicePreviewPage({
     <div>
       <PageHeader
         title={`Preview ${invoice.number}`}
-        description="Customer-facing invoice/receipt document preview."
+        description="Vista previa del documento de factura o recibo para el cliente."
         actions={
           <div className="flex flex-wrap gap-2">
             <Link href={`/invoices/${invoice.id}/document.html`} target="_blank">
-              <Button size="sm" variant="secondary">Open customer view</Button>
+              <Button size="sm" variant="secondary">Abrir vista del cliente</Button>
             </Link>
             <Link href={`/invoices/${invoice.id}`}>
-              <Button size="sm" variant="secondary">Back to invoice</Button>
+              <Button size="sm" variant="secondary">Volver a la factura</Button>
             </Link>
           </div>
         }
       />
       <DocumentPreviewWorkbench
-        documents={[{ id: "invoice", label: "Invoice", html }]}
+        documents={[{ id: "invoice", label: "Factura", html }]}
         fileName={`${invoice.number}.html`}
       />
     </div>

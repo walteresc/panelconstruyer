@@ -20,12 +20,12 @@ type SortDir = "asc" | "desc";
 type StatusFilter = "all" | "lead" | "scheduled" | "in_progress" | "completed" | "canceled";
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
-  { value: "all", label: "All statuses" },
-  { value: "lead", label: "Lead" },
-  { value: "scheduled", label: "Scheduled" },
-  { value: "in_progress", label: "In Progress" },
+  { value: "all", label: "Todos los estados" },
+  { value: "lead", label: "Solicitud" },
+  { value: "scheduled", label: "Programado" },
+  { value: "in_progress", label: "En curso" },
   { value: "completed", label: "Completed" },
-  { value: "canceled", label: "Canceled" },
+  { value: "canceled", label: "Cancelado" },
 ];
 
 export default function JobsPage() {
@@ -145,6 +145,9 @@ export default function JobsPage() {
     );
   };
 
+  // Los hooks deben ir antes de cualquier return anticipado (el estado de carga).
+  const paginated = useMemo(() => filteredSorted.slice(skip, skip + take), [filteredSorted, skip, take]);
+
   // ── Loading ──
   if (loading) {
     return (
@@ -172,8 +175,6 @@ export default function JobsPage() {
   }
 
   // ── No results state ──
-  const paginated = useMemo(() => filteredSorted.slice(skip, skip + take), [filteredSorted, skip, take]);
-
   const noResults =
     (jobs.length > 0 && search.trim() && filteredSorted.length === 0) ||
     (statusFilter !== "all" && filteredSorted.length === 0);
@@ -181,7 +182,7 @@ export default function JobsPage() {
   return (
     <div>
       <PageHeader
-        title="Jobs"
+        title="Trabajos"
         description={
           jobs.length > 0
             ? `${filteredSorted.length} of ${jobs.length} total`
@@ -190,7 +191,7 @@ export default function JobsPage() {
         actions={
           <Link href="/schedule">
             <Button variant="default" size="sm">
-              <span className="text-base mr-1">⊕</span> New Job
+              <span className="text-base mr-1">⊕</span> Nuevo trabajo
             </Button>
           </Link>
         }
@@ -199,7 +200,7 @@ export default function JobsPage() {
       {/* ── Error ── */}
       {error && (
         <Card className="mb-6 border-red/30 bg-red/5">
-          <p className="text-red text-sm">API unreachable ({error}).</p>
+          <p className="text-red text-sm">No se puede conectar con la API ({error}).</p>
         </Card>
       )}
 
@@ -208,7 +209,7 @@ export default function JobsPage() {
         <div className="mb-4 flex flex-col sm:flex-row gap-3">
           <Input
             type="search"
-            placeholder="Search by title, customer name, or status..."
+            placeholder="Buscar por título, cliente o estado..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="max-w-md"
@@ -231,8 +232,8 @@ export default function JobsPage() {
       {jobs.length === 0 && !error ? (
         <Card>
           <EmptyState
-            title="No jobs yet"
-            description="Create your first job from the Schedule page"
+            title="Aún no hay trabajos"
+            description="Crea tu primer trabajo desde la Agenda"
           />
         </Card>
       ) : (
@@ -242,9 +243,9 @@ export default function JobsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <SortHead field="title" label="Title" />
-                  <SortHead field="status" label="Status" />
-                  <SortHead field="customer" label="Customer" />
+                  <SortHead field="title" label="Título" />
+                  <SortHead field="status" label="Estado" />
+                  <SortHead field="customer" label="Cliente" />
                   <TableHead className="text-right">
                     <span
                       className="inline-flex items-center gap-1 cursor-pointer select-none hover:text-fg transition-colors"
@@ -256,7 +257,7 @@ export default function JobsPage() {
                       </span>
                     </span>
                   </TableHead>
-                  <TableHead className="text-right">Detail</TableHead>
+                  <TableHead className="text-right">Detalle</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -264,13 +265,13 @@ export default function JobsPage() {
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-10">
                       <p className="text-sm text-fg-muted">
-                        No jobs match your filters
+                        Ningún trabajo coincide con los filtros
                       </p>
                       <button
                         onClick={() => { setSearch(""); setStatusFilter("all"); }}
                         className="text-xs text-fg-link hover:text-fg mt-1 cursor-pointer bg-transparent border-none"
                       >
-                        Clear search
+                        Limpiar búsqueda
                       </button>
                     </TableCell>
                   </TableRow>
@@ -294,7 +295,7 @@ export default function JobsPage() {
                           href={`/jobs/${j.id}`}
                           className="text-xs text-fg-link hover:text-fg transition-colors"
                         >
-                          View →
+                          Ver →
                         </Link>
                       </TableCell>
                     </TableRow>
@@ -310,12 +311,12 @@ export default function JobsPage() {
               <Card>
                 <div className="text-center py-10">
                   <p className="text-sm text-fg-muted">
-                    No jobs match your filters
+                    Ningún trabajo coincide con los filtros
                   </p>
                   <button                      onClick={() => { setSearch(""); setStatusFilter("all"); }}
                     className="text-xs text-fg-link hover:text-fg mt-1 cursor-pointer bg-transparent border-none"
                   >
-                    Clear search
+                    Limpiar búsqueda
                   </button>
                 </div>
               </Card>

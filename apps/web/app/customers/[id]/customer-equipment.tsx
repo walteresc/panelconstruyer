@@ -27,12 +27,12 @@ interface EquipmentForm {
 const EQUIPMENT_TYPES = ["furnace", "ac_unit", "water_heater", "heat_pump", "boiler", "other"];
 
 const TYPE_LABELS: Record<string, string> = {
-  furnace: "Furnace",
-  ac_unit: "AC Unit",
-  water_heater: "Water Heater",
-  heat_pump: "Heat Pump",
-  boiler: "Boiler",
-  other: "Other",
+  furnace: "Calefactor",
+  ac_unit: "Aire acondicionado",
+  water_heater: "Terma",
+  heat_pump: "Bomba de calor",
+  boiler: "Caldero",
+  other: "Otro",
 };
 
 const initForm: EquipmentForm = {
@@ -61,7 +61,7 @@ export function CustomerEquipment({ customerId }: { customerId: string }) {
       const list = await api.equipment({ customerId });
       setEquipment(list);
     } catch {
-      setError("Failed to load equipment");
+      setError("No se pudieron cargar los equipos");
     }
     setLoading(false);
   }, [customerId]);
@@ -86,7 +86,7 @@ export function CustomerEquipment({ customerId }: { customerId: string }) {
       setForm(initForm);
       await load();
     } catch {
-      setError("Failed to add equipment");
+      setError("No se pudo agregar el equipo");
     }
     setSubmitting(false);
   };
@@ -102,8 +102,8 @@ export function CustomerEquipment({ customerId }: { customerId: string }) {
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
-        <CardTitle>Equipment</CardTitle>
-        <Button size="sm" onClick={() => setAddOpen(true)}>Add Equipment</Button>
+        <CardTitle>Equipos</CardTitle>
+        <Button size="sm" onClick={() => setAddOpen(true)}>Agregar equipo</Button>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -116,7 +116,7 @@ export function CustomerEquipment({ customerId }: { customerId: string }) {
           <p className="text-sm text-red py-4">{error}</p>
         ) : equipment.length === 0 ? (
           <p className="text-sm text-fg-muted py-6 text-center">
-            No equipment tracked for this customer.
+            Este cliente no tiene equipos registrados.
           </p>
         ) : (
           <div className="flex flex-col gap-2">
@@ -135,16 +135,16 @@ export function CustomerEquipment({ customerId }: { customerId: string }) {
                   </div>
                   <div className="flex items-center gap-3 mt-1">
                     {e.serialNumber && (
-                      <span className="text-xs text-fg-dim font-mono">SN: {e.serialNumber}</span>
+                      <span className="text-xs text-fg-dim font-mono">N.° serie: {e.serialNumber}</span>
                     )}
                     {e.installDate && (
                       <span className="text-xs text-fg-dim">
-                        Installed: {new Date(e.installDate).toLocaleDateString()}
+                        Instalado: {new Date(e.installDate).toLocaleDateString("es-PE")}
                       </span>
                     )}
                     {e.warrantyExpiry && (
                       <span className="text-xs text-fg-dim">
-                        Warranty: {new Date(e.warrantyExpiry).toLocaleDateString()}
+                        Garantía: {new Date(e.warrantyExpiry).toLocaleDateString("es-PE")}
                       </span>
                     )}
                   </div>
@@ -155,13 +155,13 @@ export function CustomerEquipment({ customerId }: { customerId: string }) {
                       onClick={() => handleDelete(e.id)}
                       className="text-xs text-red hover:text-red/80 transition-colors cursor-pointer bg-transparent border-none"
                     >
-                      Confirm
+                      Confirmar
                     </button>
                     <button
                       onClick={() => setDeleting(null)}
                       className="text-xs text-fg-muted hover:text-fg transition-colors cursor-pointer bg-transparent border-none"
                     >
-                      Cancel
+                      Cancelar
                     </button>
                   </div>
                 ) : (
@@ -169,7 +169,7 @@ export function CustomerEquipment({ customerId }: { customerId: string }) {
                     onClick={() => setDeleting(e.id)}
                     className="text-xs text-fg-muted hover:text-red transition-colors cursor-pointer bg-transparent border-none shrink-0"
                   >
-                    Delete
+                    Eliminar
                   </button>
                 )}
               </div>
@@ -182,10 +182,10 @@ export function CustomerEquipment({ customerId }: { customerId: string }) {
       {addOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => { if (!submitting) { setAddOpen(false); setForm(initForm); } }}>
           <div className="bg-surface-200 rounded-xl border border-border w-full max-w-lg mx-4 p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold text-fg mb-4">Add Equipment</h3>
+            <h3 className="text-lg font-semibold text-fg mb-4">Agregar equipo</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-fg-muted mb-1.5">Type *</label>
+                <label className="block text-xs font-semibold text-fg-muted mb-1.5">Tipo *</label>
                 <select
                   value={form.type}
                   onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
@@ -198,32 +198,32 @@ export function CustomerEquipment({ customerId }: { customerId: string }) {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-fg-muted mb-1.5">Make</label>
-                  <Input placeholder="Carrier" value={form.make} onChange={(e) => setForm((f) => ({ ...f, make: e.target.value }))} />
+                  <label className="block text-xs font-semibold text-fg-muted mb-1.5">Marca</label>
+                  <Input placeholder="Ej.: Rheem" value={form.make} onChange={(e) => setForm((f) => ({ ...f, make: e.target.value }))} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-fg-muted mb-1.5">Model</label>
-                  <Input placeholder="GSX14" value={form.model} onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))} />
+                  <label className="block text-xs font-semibold text-fg-muted mb-1.5">Modelo</label>
+                  <Input placeholder="Ej.: ABC-123" value={form.model} onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))} />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-fg-muted mb-1.5">Serial Number</label>
+                <label className="block text-xs font-semibold text-fg-muted mb-1.5">Número de serie</label>
                 <Input placeholder="SN-12345" value={form.serialNumber} onChange={(e) => setForm((f) => ({ ...f, serialNumber: e.target.value }))} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-fg-muted mb-1.5">Install Date</label>
+                  <label className="block text-xs font-semibold text-fg-muted mb-1.5">Fecha de instalación</label>
                   <Input type="date" value={form.installDate} onChange={(e) => setForm((f) => ({ ...f, installDate: e.target.value }))} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-fg-muted mb-1.5">Warranty Expiry</label>
+                  <label className="block text-xs font-semibold text-fg-muted mb-1.5">Vencimiento de la garantía</label>
                   <Input type="date" value={form.warrantyExpiry} onChange={(e) => setForm((f) => ({ ...f, warrantyExpiry: e.target.value }))} />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-fg-muted mb-1.5">Notes</label>
+                <label className="block text-xs font-semibold text-fg-muted mb-1.5">Notas</label>
                 <textarea
-                  placeholder="Warranty info, maintenance notes..."
+                  placeholder="Datos de garantía, notas de mantenimiento..."
                   value={form.notes}
                   onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
                   rows={2}
@@ -232,9 +232,9 @@ export function CustomerEquipment({ customerId }: { customerId: string }) {
               </div>
               {error && <p className="text-xs text-red">{error}</p>}
               <div className="flex justify-end gap-2 pt-2">
-                <Button variant="ghost" onClick={() => { setAddOpen(false); setForm(initForm); }} disabled={submitting}>Cancel</Button>
+                <Button variant="ghost" onClick={() => { setAddOpen(false); setForm(initForm); }} disabled={submitting}>Cancelar</Button>
                 <Button onClick={handleAdd} disabled={submitting}>
-                  {submitting ? "Saving..." : "Save"}
+                  {submitting ? "Guardando..." : "Guardar"}
                 </Button>
               </div>
             </div>

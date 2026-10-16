@@ -61,8 +61,8 @@ export async function authRoutes(app: FastifyInstance) {
     reply.header("Cache-Control", "no-store");
     if (!publicRegistrationEnabled()) {
       return reply.code(403).send({
-        error: "public registration is disabled",
-        hint: "An owner can temporarily enable OFP_ALLOW_PUBLIC_REGISTRATION during controlled onboarding.",
+        error: "el registro público está desactivado",
+        hint: "Un propietario puede activar temporalmente OFP_ALLOW_PUBLIC_REGISTRATION durante el alta controlada.",
       });
     }
 
@@ -91,7 +91,7 @@ export async function authRoutes(app: FastifyInstance) {
     });
 
     if (result.conflict) {
-      return reply.code(409).send({ error: "an account with this email already exists" });
+      return reply.code(409).send({ error: "ya existe una cuenta con este correo" });
     }
 
     const token = signUserToken(app, result.user);
@@ -111,7 +111,7 @@ export async function authRoutes(app: FastifyInstance) {
 
     const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
     if (!user || !user.active || !user.passwordHash || !(await verifyPassword(parsed.data.password, user.passwordHash))) {
-      return reply.code(401).send({ error: "invalid credentials" });
+      return reply.code(401).send({ error: "credenciales no válidas" });
     }
     const token = signUserToken(app, user);
     setSessionCookie(reply, token);

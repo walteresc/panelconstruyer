@@ -90,7 +90,7 @@ export async function servicePlanRoutes(app: FastifyInstance) {
       .set(parsed.data)
       .where(and(eq(servicePlans.orgId, orgId), eq(servicePlans.id, id)))
       .returning();
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
     return row;
   });
 
@@ -143,7 +143,7 @@ export async function servicePlanRoutes(app: FastifyInstance) {
       })
       .where(and(eq(customerServicePlans.orgId, orgId), eq(customerServicePlans.id, id)))
       .returning();
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
     return row;
   });
 
@@ -194,7 +194,7 @@ export async function servicePlanRoutes(app: FastifyInstance) {
       })
       .where(and(eq(servicePlanVisits.orgId, orgId), eq(servicePlanVisits.id, id)))
       .returning();
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
     return row;
   });
 }

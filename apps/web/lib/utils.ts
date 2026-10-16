@@ -17,5 +17,5 @@ export function formatRelativeTime(isoString: string): string {
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
   if (days < 7) return `${days}d ago`;
-  return new Date(isoString).toLocaleDateString();
+  return new Date(isoString).toLocaleDateString("es-PE");
 }

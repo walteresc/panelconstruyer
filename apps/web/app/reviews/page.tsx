@@ -27,7 +27,7 @@ interface ReviewList {
 
 function Stars({ rating }: { rating: number }) {
   return (
-    <span className="inline-flex gap-0.5" aria-label={`${rating} out of 5 stars`}>
+    <span className="inline-flex gap-0.5" aria-label={`${rating} de 5 estrellas`}>
       {[1, 2, 3, 4, 5].map((i) => (
         <span key={i} className={`text-sm ${i <= rating ? "text-yellow" : "text-surface-500"}`}>
           ★
@@ -141,21 +141,21 @@ export default function ReviewsPage() {
   return (
     <div>
       <PageHeader
-        title="Reviews"
+        title="Reseñas"
         description={data ? `${data.count} review${data.count !== 1 ? "s" : ""} · ${data.average.toFixed(1)} avg` : ""}
       />
 
       {error && (
         <Card className="mb-6 border-red/30 bg-red/5">
-          <p className="text-red text-sm">API unreachable ({error}).</p>
+          <p className="text-red text-sm">No se puede conectar con la API ({error}).</p>
         </Card>
       )}
 
       {data && data.reviews.length === 0 && !error ? (
         <Card>
           <EmptyState
-            title="No reviews yet"
-            description="Reviews appear here after customers rate completed jobs."
+            title="Aún no hay reseñas"
+            description="Las reseñas aparecerán aquí cuando los clientes califiquen trabajos terminados."
           />
         </Card>
       ) : data ? (
@@ -169,14 +169,14 @@ export default function ReviewsPage() {
                 </div>
                 <div className="flex flex-col gap-0.5">
                   <Stars rating={Math.round(data.average)} />
-                  <span className="text-xs text-fg-muted">{data.count} reviews</span>
+                  <span className="text-xs text-fg-muted">{data.count} reseñas</span>
                 </div>
               </CardContent>
             </Card>
             <div className="flex-1 flex items-center gap-3">
               <Input
                 type="search"
-                placeholder="Search by comment, job, or customer..."
+                placeholder="Buscar por comentario, trabajo o cliente..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="max-w-sm flex-1"
@@ -188,7 +188,7 @@ export default function ReviewsPage() {
                     sort === "date" ? "bg-accent text-white" : "bg-surface-300 text-fg-muted hover:text-fg"
                   }`}
                 >
-                  Date {sort === "date" ? (dir === "asc" ? "↑" : "↓") : ""}
+                  Fecha {sort === "date" ? (dir === "asc" ? "↑" : "↓") : ""}
                 </button>
                 <button
                   onClick={() => handleSort("rating")}
@@ -196,7 +196,7 @@ export default function ReviewsPage() {
                     sort === "rating" ? "bg-accent text-white" : "bg-surface-300 text-fg-muted hover:text-fg"
                   }`}
                 >
-                  Rating {sort === "rating" ? (dir === "asc" ? "↑" : "↓") : ""}
+                  Valoración {sort === "rating" ? (dir === "asc" ? "↑" : "↓") : ""}
                 </button>
               </div>
             </div>
@@ -206,12 +206,12 @@ export default function ReviewsPage() {
           {filteredSorted.length === 0 ? (
             <Card>
               <div className="text-center py-10">
-                <p className="text-sm text-fg-muted">No reviews match your search</p>
+                <p className="text-sm text-fg-muted">Ninguna reseña coincide con la búsqueda</p>
                 <button
                   onClick={() => setSearch("")}
                   className="text-xs text-fg-link hover:text-fg mt-1 cursor-pointer bg-transparent border-none"
                 >
-                  Clear search
+                  Limpiar búsqueda
                 </button>
               </div>
             </Card>
@@ -226,7 +226,7 @@ export default function ReviewsPage() {
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <Stars rating={r.rating} />
                         <span className="text-[11px] text-fg-dim shrink-0">
-                          {new Date(r.createdAt).toLocaleDateString()}
+                          {new Date(r.createdAt).toLocaleDateString("es-PE")}
                         </span>
                       </div>
                       {r.comment && (

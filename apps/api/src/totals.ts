@@ -36,7 +36,9 @@ export function jobMargin(total: number, cost: number): number {
 }
 
 export function formatMoney(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
+  const amount = cents / 100;
+  const digits = Math.abs(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `${amount < 0 ? "-" : ""}S/ ${digits}`;
 }
 
 // ── Discounts and taxes ────────────────────────────────────────────────────

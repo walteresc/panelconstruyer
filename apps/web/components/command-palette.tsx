@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { api } from "@/lib/api";
 import { Input } from "@/components/ui/input";
+import { invoiceStatusLabel } from "@/lib/labels";
 import { Card } from "@/components/ui/card";
 
 export function CommandPalette() {
@@ -55,7 +56,7 @@ export function CommandPalette() {
         setResults(res);
         setHighlightIdx(-1);
       } catch {
-        setError("Search failed. Try again.");
+        setError("La búsqueda falló. Inténtalo de nuevo.");
         setResults(null);
       }
       setLoading(false);
@@ -67,9 +68,9 @@ export function CommandPalette() {
   const flatItems = useCallback(() => {
     if (!results) return [];
     const items: { label: string; href: string; group: string }[] = [];
-    for (const job of results.jobs) items.push({ label: job.title, href: `/jobs/${job.id}`, group: "Jobs" });
-    for (const cust of results.customers) items.push({ label: cust.name, href: `/customers/${cust.id}`, group: "Customers" });
-    for (const inv of results.invoices) items.push({ label: `${inv.number} (${inv.status})`, href: `/invoices/${inv.id}`, group: "Invoices" });
+    for (const job of results.jobs) items.push({ label: job.title, href: `/jobs/${job.id}`, group: "Trabajos" });
+    for (const cust of results.customers) items.push({ label: cust.name, href: `/customers/${cust.id}`, group: "Clientes" });
+    for (const inv of results.invoices) items.push({ label: `${inv.number} (${invoiceStatusLabel(inv.status)})`, href: `/invoices/${inv.id}`, group: "Facturas" });
     return items;
   }, [results]);
 
@@ -116,7 +117,7 @@ export function CommandPalette() {
             <Input
               ref={inputRef}
               type="search"
-              placeholder="Search jobs, customers, invoices..."
+              placeholder="Buscar trabajos, clientes, facturas..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -137,7 +138,7 @@ export function CommandPalette() {
 
             {!loading && !error && query.trim() && totalCount === 0 && (
               <p className="p-6 text-sm text-fg-muted text-center">
-                No results for &ldquo;{query}&rdquo;
+                Sin resultados para &ldquo;{query}&rdquo;
               </p>
             )}
 
@@ -146,7 +147,7 @@ export function CommandPalette() {
                 {results.jobs.length > 0 && (
                   <div>
                     <p className="px-4 py-2 text-[11px] font-semibold text-fg-dim uppercase tracking-wider bg-surface-300/50">
-                      Jobs
+                      Trabajos
                     </p>
                     {results.jobs.map((j) => {
                       const idx = items.findIndex((i) => i.href === `/jobs/${j.id}`);
@@ -169,7 +170,7 @@ export function CommandPalette() {
                 {results.customers.length > 0 && (
                   <div>
                     <p className="px-4 py-2 text-[11px] font-semibold text-fg-dim uppercase tracking-wider bg-surface-300/50">
-                      Customers
+                      Clientes
                     </p>
                     {results.customers.map((c) => {
                       const idx = items.findIndex((i) => i.href === `/customers/${c.id}`);
@@ -191,7 +192,7 @@ export function CommandPalette() {
                 {results.invoices.length > 0 && (
                   <div>
                     <p className="px-4 py-2 text-[11px] font-semibold text-fg-dim uppercase tracking-wider bg-surface-300/50">
-                      Invoices
+                      Facturas
                     </p>
                     {results.invoices.map((inv) => {
                       const idx = items.findIndex((i) => i.href === `/invoices/${inv.id}`);
@@ -215,7 +216,7 @@ export function CommandPalette() {
 
             {!loading && !error && !query.trim() && (
               <p className="p-6 text-sm text-fg-dim text-center">
-                Start typing to search across jobs, customers, and invoices
+                Empieza a escribir para buscar en trabajos, clientes y facturas
               </p>
             )}
           </div>

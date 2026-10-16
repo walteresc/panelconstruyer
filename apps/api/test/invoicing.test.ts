@@ -103,7 +103,7 @@ test("paying with a method the organization does not accept is rejected", () => 
   const rules = resolvePaymentRules({ payments: { allowManualCash: false } });
   assert.throws(
     () => applyPaymentWithRules(10_000, 0, 10_000, "cash", "sent", rules),
-    /not accepted/,
+    /no está habilitado/,
   );
   assert.equal(applyPaymentWithRules(10_000, 0, 10_000, "card", "sent", rules).status, "paid");
 });
@@ -112,7 +112,7 @@ test("overpayment is rejected under payment rules", () => {
   const rules = resolvePaymentRules({});
   assert.throws(
     () => applyPaymentWithRules(10_000, 0, 10_500, "manual", "sent", rules),
-    /exceeds the remaining balance/,
+    /supera el saldo pendiente/,
   );
 });
 
@@ -120,7 +120,7 @@ test("partial payments are rejected when disabled and settled in full when requi
   const rules = resolvePaymentRules({ payments: { allowPartialPayments: false } });
   assert.throws(
     () => applyPaymentWithRules(10_000, 4_000, 2_000, "manual", "sent", rules),
-    /partial payments are not allowed/,
+    /no permite pagos parciales/,
   );
   assert.equal(applyPaymentWithRules(10_000, 4_000, 6_000, "manual", "sent", rules).status, "paid");
 });

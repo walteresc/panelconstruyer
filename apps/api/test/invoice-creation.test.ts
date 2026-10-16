@@ -6,8 +6,8 @@ test("zero-value jobs cannot produce invoices", () => {
   assert.deepEqual(validateInvoiceCreation(0), {
     statusCode: 400,
     body: {
-      error: "job has no billable total",
-      hint: "Add at least one billable line item before creating an invoice.",
+      error: "el trabajo no tiene un total facturable",
+      hint: "Agrega al menos un concepto facturable antes de crear una factura.",
     },
   });
 });
@@ -18,7 +18,7 @@ test("an active invoice blocks a duplicate", () => {
     {
       statusCode: 409,
       body: {
-        error: "job already has an active invoice",
+        error: "el trabajo ya tiene una factura activa",
         invoice: { id: "inv-1", number: "INV-1001", status: "sent" },
       },
     },

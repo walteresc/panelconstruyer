@@ -30,11 +30,11 @@ type SortDir = "asc" | "desc";
 type StatusFilter = "all" | "draft" | "sent" | "paid" | "void";
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
-  { value: "all", label: "All statuses" },
-  { value: "draft", label: "Draft" },
-  { value: "sent", label: "Sent" },
-  { value: "paid", label: "Paid" },
-  { value: "void", label: "Void" },
+  { value: "all", label: "Todos los estados" },
+  { value: "draft", label: "Borrador" },
+  { value: "sent", label: "Enviada" },
+  { value: "paid", label: "Pagada" },
+  { value: "void", label: "Anulada" },
 ];
 
 export default function InvoicesPage() {
@@ -249,7 +249,7 @@ export default function InvoicesPage() {
   return (
     <div>
       <PageHeader
-        title="Invoices"
+        title="Facturas"
         description={
           invoices.length > 0
             ? `${filteredSorted.length} of ${invoices.length} total · ${formatMoney(outstanding)} outstanding`
@@ -257,7 +257,7 @@ export default function InvoicesPage() {
         }
         actions={
           <Button onClick={openCreate} size="sm">
-            ⊕ Create Invoice
+            ⊕ Crear factura
           </Button>
         }
       />
@@ -265,7 +265,7 @@ export default function InvoicesPage() {
       {/* ── Error ── */}
       {error && (
         <Card className="mb-6 border-red/30 bg-red/5">
-          <p className="text-red text-sm">API unreachable ({error}).</p>
+          <p className="text-red text-sm">No se puede conectar con la API ({error}).</p>
         </Card>
       )}
 
@@ -284,7 +284,7 @@ export default function InvoicesPage() {
                 className="p-6"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-semibold text-fg">Create Invoice</h3>
+                  <h3 className="text-base font-semibold text-fg">Crear factura</h3>
                   <button
                     type="button"
                     onClick={() => setShowCreate(false)}
@@ -301,14 +301,14 @@ export default function InvoicesPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-semibold text-fg-muted mb-1.5">
-                      Job *
+                      Trabajo *
                     </label>
                     <select
                       value={createJobId}
                       onChange={(e) => setCreateJobId(e.target.value)}
                       className="h-10 w-full rounded-lg border border-border bg-surface-200 px-3 py-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 cursor-pointer"
                     >
-                      <option value="">Select a job...</option>
+                      <option value="">Selecciona un trabajo...</option>
                       {uninvoicedJobs.map((j) => {
                         const cust = customerMap.get(j.customerId);
                         return (
@@ -319,21 +319,21 @@ export default function InvoicesPage() {
                       })}
                     </select>
                     {uninvoicedJobs.length === 0 && (
-                      <p className="text-xs text-fg-dim mt-1">All jobs already have invoices.</p>
+                      <p className="text-xs text-fg-dim mt-1">Todos los trabajos ya tienen factura.</p>
                     )}
                   </div>
 
                   {discountsEnabled && discounts.length > 0 && (
                     <div>
                       <label className="block text-xs font-semibold text-fg-muted mb-1.5">
-                        Discount
+                        Descuento
                       </label>
                       <select
                         value={createDiscountId}
                         onChange={(e) => setCreateDiscountId(e.target.value)}
                         className="h-10 w-full rounded-lg border border-border bg-surface-200 px-3 py-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 cursor-pointer"
                       >
-                        <option value="">No discount</option>
+                        <option value="">Sin descuento</option>
                         {discounts.map((discount) => (
                           <option key={discount.id} value={discount.id}>
                             {discount.name} · {discount.type === "fixed" ? formatMoney(discount.value) : `${discount.value / 100}%`}
@@ -345,7 +345,7 @@ export default function InvoicesPage() {
 
                   <div>
                     <label className="block text-xs font-semibold text-fg-muted mb-1.5">
-                      Due date (optional)
+                      Fecha de vencimiento (opcional)
                     </label>
                     <Input
                       type="date"
@@ -360,14 +360,14 @@ export default function InvoicesPage() {
                     type="submit"
                     disabled={!createJobId || createSubmitting}
                   >
-                    {createSubmitting ? "Creating..." : "Create Invoice"}
+                    {createSubmitting ? "Creando..." : "Crear factura"}
                   </Button>
                   <Button
                     type="button"
                     variant="secondary"
                     onClick={() => setShowCreate(false)}
                   >
-                    Cancel
+                    Cancelar
                   </Button>
                 </div>
               </form>
@@ -381,7 +381,7 @@ export default function InvoicesPage() {
         <div className="mb-4 flex flex-col sm:flex-row gap-3">
           <Input
             type="search"
-            placeholder="Search by invoice number, customer, or job title..."
+            placeholder="Buscar por número de factura, cliente o título del trabajo..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="max-w-md"
@@ -404,8 +404,8 @@ export default function InvoicesPage() {
       {invoices.length === 0 && !error ? (
         <Card>
           <EmptyState
-            title="No invoices yet"
-            description="Click 'Create Invoice' above to generate one from a job."
+            title="Aún no hay facturas"
+            description="Pulsa «Crear factura» arriba para generar una desde un trabajo."
           />
         </Card>
       ) : (
@@ -415,10 +415,10 @@ export default function InvoicesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <SortHead field="number" label="Number" />
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Job</TableHead>
-                  <SortHead field="status" label="Status" />
+                  <SortHead field="number" label="Número" />
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Trabajo</TableHead>
+                  <SortHead field="status" label="Estado" />
                   <TableHead className="text-right">
                     <span
                       className="inline-flex items-center gap-1 cursor-pointer select-none hover:text-fg transition-colors"
@@ -437,13 +437,13 @@ export default function InvoicesPage() {
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-10">
                       <p className="text-sm text-fg-muted">
-                        No invoices match your filters
+                        Ninguna factura coincide con los filtros
                       </p>
                       <button
                         onClick={() => { setSearch(""); setStatusFilter("all"); }}
                         className="text-xs text-fg-link hover:text-fg mt-1 cursor-pointer bg-transparent border-none"
                       >
-                        Clear search
+                        Limpiar búsqueda
                       </button>
                     </TableCell>
                   </TableRow>
@@ -494,13 +494,13 @@ export default function InvoicesPage() {
               <Card>
                 <div className="text-center py-10">
                   <p className="text-sm text-fg-muted">
-                    No invoices match &ldquo;{search}&rdquo;
+                    Ninguna factura coincide con &ldquo;{search}&rdquo;
                   </p>
                   <button
                     onClick={() => setSearch("")}
                     className="text-xs text-fg-link hover:text-fg mt-1 cursor-pointer bg-transparent border-none"
                   >
-                    Clear search
+                    Limpiar búsqueda
                   </button>
                 </div>
               </Card>
@@ -527,7 +527,7 @@ export default function InvoicesPage() {
                     <div className="space-y-1">
                       {cust && (
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-fg-dim w-16 shrink-0">Customer</span>
+                          <span className="text-xs text-fg-dim w-16 shrink-0">Cliente</span>
                           <Link
                             href={`/customers/${job?.customerId}`}
                             className="text-xs text-fg-link hover:text-fg transition-colors"
@@ -538,7 +538,7 @@ export default function InvoicesPage() {
                       )}
                       {job && (
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-fg-dim w-16 shrink-0">Job</span>
+                          <span className="text-xs text-fg-dim w-16 shrink-0">Trabajo</span>
                           <Link
                             href={`/jobs/${job.id}`}
                             className="text-xs text-fg-link hover:text-fg transition-colors truncate"

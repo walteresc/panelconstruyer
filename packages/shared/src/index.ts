@@ -29,9 +29,11 @@ export type PortalLinkScope = (typeof PORTAL_LINK_SCOPES)[number];
 
 export type Money = number; // cents, integer
 
-/** Render integer cents as a dollar string. Canonical formatter for web/mobile. */
+/** Muestra centavos enteros como soles: S/ 1,234.50. Formateador único para web y móvil. */
 export function formatMoney(cents: Money): string {
-  return `$${(cents / 100).toFixed(2)}`;
+  const amount = cents / 100;
+  const digits = Math.abs(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `${amount < 0 ? "-" : ""}S/ ${digits}`;
 }
 
 export interface CustomerDTO {

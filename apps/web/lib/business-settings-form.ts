@@ -22,7 +22,7 @@ export function validateBusinessHours(hours: {
   endTime: string;
 }): { workDays?: string; endTime?: string } {
   const errors: { workDays?: string; endTime?: string } = {};
-  if (hours.workDays.length === 0) errors.workDays = "Choose at least one work day.";
-  if (hours.endTime <= hours.startTime) errors.endTime = "Closing time must be later than opening time.";
+  if (hours.workDays.length === 0) errors.workDays = "Elige al menos un día laborable.";
+  if (hours.endTime <= hours.startTime) errors.endTime = "La hora de cierre debe ser posterior a la de apertura.";
   return errors;
 }

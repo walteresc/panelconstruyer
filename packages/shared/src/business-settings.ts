@@ -150,7 +150,7 @@ export interface BusinessSettings {
 
 export const DEFAULT_BUSINESS_SETTINGS: BusinessSettings = {
   businessHours: {
-    timezone: "America/New_York",
+    timezone: "America/Lima",
     workDays: ["mon", "tue", "wed", "thu", "fri"],
     startTime: "08:00",
     endTime: "17:00",
@@ -160,8 +160,8 @@ export const DEFAULT_BUSINESS_SETTINGS: BusinessSettings = {
     dueTerm: "net_days",
     netDays: 14,
     format: "email",
-    defaultMessage: "Thank you for your business. Please review the invoice and pay the balance by the due date.",
-    paymentInstructions: "Pay online if enabled, or contact the office to arrange cash, check, or card payment.",
+    defaultMessage: "Gracias por tu preferencia. Revisa la factura y paga el saldo antes de la fecha de vencimiento.",
+    paymentInstructions: "Paga en línea si está habilitado, o comunícate con la oficina para coordinar el pago en efectivo, con cheque o con tarjeta.",
     reminderDays: [3, 7, 14],
     visibility: {
       showBusinessInfo: true,
@@ -180,8 +180,8 @@ export const DEFAULT_BUSINESS_SETTINGS: BusinessSettings = {
     depositMode: "none",
     depositValue: 0,
     format: "email",
-    defaultMessage: "This estimate is valid pending final service conditions and customer approval.",
-    optionLabels: ["Good", "Better", "Best"],
+    defaultMessage: "Esta cotización es válida sujeta a las condiciones finales del servicio y a la aprobación del cliente.",
+    optionLabels: ["Básica", "Intermedia", "Completa"],
     visibility: {
       showBusinessInfo: true,
       showCustomerInfo: true,
@@ -201,26 +201,26 @@ export const DEFAULT_BUSINESS_SETTINGS: BusinessSettings = {
   },
   taxes: {
     taxEnabled: false,
-    taxLabel: "Sales tax",
+    taxLabel: "IGV",
     defaultTaxRateBps: 0,
     taxProfiles: [],
     discountsEnabled: true,
-    defaultDiscountLabel: "Discount",
+    defaultDiscountLabel: "Descuento",
     discounts: [],
   },
   messages: {
-    invoiceEmailSubject: "Invoice {{invoiceNumber}} from {{companyName}}",
-    invoiceEmailBody: "Hi {{customerName}}, your invoice is ready. Balance due: {{balance}}.",
-    estimateEmailSubject: "Estimate from {{companyName}}",
-    estimateEmailBody: "Hi {{customerName}}, please review estimate {{estimateNumber}} and approve the option that works best.",
-    reviewRequestBody: "Thanks for choosing {{companyName}}. If we earned it, please leave us a review.",
-    portalLinkSubject: "Your customer portal link from {{companyName}}",
-    portalLinkBody: "Hi {{customerName}},\n\nHere is your secure customer portal link for {{companyName}}:\n\n{{portalLink}}\n\n{{#portalExpiresAt}}This link expires {{portalExpiresAt}}.\n\n{{/portalExpiresAt}}Use it to review your balance, pay online, see receipts, and view your service plan.",
+    invoiceEmailSubject: "Factura {{invoiceNumber}} de {{companyName}}",
+    invoiceEmailBody: "Hola {{customerName}}, tu factura está lista. Saldo pendiente: {{balance}}.",
+    estimateEmailSubject: "Cotización de {{companyName}}",
+    estimateEmailBody: "Hola {{customerName}}, revisa la cotización {{estimateNumber}} y aprueba la opción que mejor se ajuste a lo que necesitas.",
+    reviewRequestBody: "Gracias por elegir {{companyName}}. Si quedaste conforme, déjanos una reseña.",
+    portalLinkSubject: "Tu enlace del portal de cliente de {{companyName}}",
+    portalLinkBody: "Hola {{customerName}},\n\nEste es tu enlace seguro al portal de cliente de {{companyName}}:\n\n{{portalLink}}\n\n{{#portalExpiresAt}}Este enlace vence el {{portalExpiresAt}}.\n\n{{/portalExpiresAt}}Úsalo para revisar tu saldo, pagar en línea, ver tus recibos y consultar tu plan de mantenimiento.",
   },
   numbering: {
-    invoicePrefix: "INV",
+    invoicePrefix: "FAC",
     invoiceNextNumber: 1000,
-    estimatePrefix: "EST",
+    estimatePrefix: "COT",
     estimateNextNumber: 1000,
   },
   portal: {
@@ -290,9 +290,9 @@ export function mergeBusinessSettings(input: unknown): BusinessSettings {
 function normalizeOptionLabels(value: unknown): [string, string, string] {
   if (!Array.isArray(value)) return DEFAULT_BUSINESS_SETTINGS.estimate.optionLabels;
   return [
-    typeof value[0] === "string" && value[0].trim() ? value[0] : "Good",
-    typeof value[1] === "string" && value[1].trim() ? value[1] : "Better",
-    typeof value[2] === "string" && value[2].trim() ? value[2] : "Best",
+    typeof value[0] === "string" && value[0].trim() ? value[0] : "Básica",
+    typeof value[1] === "string" && value[1].trim() ? value[1] : "Intermedia",
+    typeof value[2] === "string" && value[2].trim() ? value[2] : "Completa",
   ];
 }
 

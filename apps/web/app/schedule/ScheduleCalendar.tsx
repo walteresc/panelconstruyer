@@ -81,10 +81,10 @@ function keyToDate(key: string): Date {
   return new Date(key + "T12:00:00");
 }
 
-const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const WEEKDAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ];
 
 function isActive(j: JobDTO): boolean {
@@ -365,7 +365,7 @@ export default function ScheduleCalendar() {
     const weekKeys = Array.from({ length: 7 }, (_, i) => fmtDateKey(addDays(mon, i)));
 
     const techMap = new Map<string, { name: string; dayMap: Map<string, JobDTO[]> }>();
-    techMap.set("__unassigned", { name: "Unassigned", dayMap: new Map() });
+    techMap.set("__unassigned", { name: "Sin asignar", dayMap: new Map() });
 
     for (const key of weekKeys) {
       const dayJobs = jobsByDate.get(key) ?? [];
@@ -373,7 +373,7 @@ export default function ScheduleCalendar() {
         const tid = j.assignedTo || "__unassigned";
         let entry = techMap.get(tid);
         if (!entry) {
-          entry = { name: usersById.get(tid)?.name ?? "Unknown", dayMap: new Map() };
+          entry = { name: usersById.get(tid)?.name ?? "Desconocido", dayMap: new Map() };
           techMap.set(tid, entry);
         }
         const list = entry.dayMap.get(key) ?? [];
@@ -384,7 +384,7 @@ export default function ScheduleCalendar() {
 
     const result: TechColumn[] = [];
     const unassigned = techMap.get("__unassigned")!;
-    result.push({ userId: "__unassigned", userName: "Unassigned", dayJobMap: unassigned.dayMap });
+    result.push({ userId: "__unassigned", userName: "Sin asignar", dayJobMap: unassigned.dayMap });
     for (const [uid, entry] of techMap) {
       if (uid === "__unassigned") continue;
       result.push({ userId: uid, userName: entry.name, dayJobMap: entry.dayMap });
@@ -407,7 +407,7 @@ export default function ScheduleCalendar() {
       const newIso = changeDate(job.scheduledAt, keyToDate(targetKey));
 
       const idx = undoStack.current.push({
-        jobId, oldIso: job.scheduledAt ?? null, newIso, title: job.title || "Untitled",
+        jobId, oldIso: job.scheduledAt ?? null, newIso, title: job.title || "Sin título",
       }) - 1;
       if (undoStack.current.length > MAX_UNDO) undoStack.current.shift();
 
@@ -417,7 +417,7 @@ export default function ScheduleCalendar() {
       setUpdatingFlash(targetKey);
       updatingJobIds.current.add(jobId);
 
-      setUndoToast({ key: `move-${Date.now()}`, title: job.title || "Untitled" });
+      setUndoToast({ key: `move-${Date.now()}`, title: job.title || "Sin título" });
 
       try {
         await api.patchJob(jobId, { scheduledAt: newIso });
@@ -980,7 +980,7 @@ export default function ScheduleCalendar() {
     return (
       <>
         <div className="sched-job-chip-title">
-          {isRecurring && <span className="sched-recurring-badge" title="Recurring">🔄</span>}
+          {isRecurring && <span className="sched-recurring-badge" title="Recurrente">🔄</span>}
           {j.title}
         </div>
         <div className="sched-job-chip-customer">{customersById.get(j.customerId)?.name}</div>
@@ -999,7 +999,7 @@ export default function ScheduleCalendar() {
                   assignMenuPos.current = { x: rect.left, y: rect.bottom + 4 };
                   setAssignMenuJobId(j.id);
                 }}
-                title="Assign technician"
+                title="Asignar especialista"
               >
                 +
               </span>
@@ -1021,7 +1021,7 @@ export default function ScheduleCalendar() {
             <span
               className={`badge badge-${j.status} sched-job-chip-badge sched-status-clickable`}
               onClick={(e) => cycleStatus(j.id, e)}
-              title="Click to cycle status"
+              title="Clic para cambiar el estado"
             >{j.status.replace("_", " ")}</span>
           </span>
         </div>
@@ -1080,64 +1080,64 @@ export default function ScheduleCalendar() {
   return (
     <div className="fade-in">
       <div className="sched-header">
-        <h1 className="page-title" style={{ marginBottom: 0 }}>Schedule</h1>
+        <h1 className="page-title" style={{ marginBottom: 0 }}>Agenda</h1>
         <div className="sched-header-right">
           <span className="card" style={{ padding: "8px 16px", fontSize: 14 }}>
-            {activeCount} active jobs
+            {activeCount} trabajos activos
           </span>
           <div className="sched-view-toggle">
             <button
               className={`sched-view-btn ${view === "week" ? "sched-view-btn-active" : ""}`}
               onClick={() => { setView("week"); setCursor(startOfWeek(today)); }}
-            >Week</button>
+            >Semana</button>
             <button
               className={`sched-view-btn ${view === "day" ? "sched-view-btn-active" : ""}`}
               onClick={() => { setView("day"); setCursor(new Date(today)); }}
-            >Day</button>
+            >Día</button>
             <button
               className={`sched-view-btn ${view === "month" ? "sched-view-btn-active" : ""}`}
               onClick={() => { setView("month"); setCursor(startOfMonth(today)); }}
-            >Month</button>
+            >Mes</button>
             <button
               className={`sched-view-btn ${view === "workweek" ? "sched-view-btn-active" : ""}`}
               onClick={() => { setView("workweek"); setCursor(startOfWeek(today)); }}
-            >Mon–Fri</button>
+            >Lun–Vie</button>
             <button
               className={`sched-view-btn ${view === "tech" ? "sched-view-btn-active" : ""}`}
               onClick={() => { setView("tech"); setCursor(startOfWeek(today)); }}
-            >Tech</button>
+            >Especialista</button>
           </div>
         </div>
       </div>
 
       <div className="sched-nav">
         <div className="sched-nav-left">
-          <button className="btn btn-sm btn-ghost" onClick={goPrev} title="Previous">← Prev</button>
-          <button className="btn btn-sm btn-ghost" onClick={goToday}>Today</button>
-          <button className="btn btn-sm btn-ghost" onClick={goNext} title="Next">Next →</button>
+          <button className="btn btn-sm btn-ghost" onClick={goPrev} title="Anterior">← Ant.</button>
+          <button className="btn btn-sm btn-ghost" onClick={goToday}>Hoy</button>
+          <button className="btn btn-sm btn-ghost" onClick={goNext} title="Siguiente">Siguiente →</button>
         </div>
         <div className="sched-nav-label">{headerLabel}</div>
         <div style={{ display: "flex", gap: 6 }}>
           <button
             className={`btn btn-sm btn-ghost ${selectMode ? "sched-select-mode-active" : ""}`}
             onClick={() => { setSelectMode(!selectMode); setSelectedJobIds(new Set()); }}
-            title="Multi-select mode"
+            title="Selección múltiple"
           >☐ {selectedJobIds.size > 0 ? selectedJobIds.size : ""}</button>
           <button
             className={`btn btn-sm btn-ghost ${showFilters ? "sched-filter-btn-active" : ""}`}
             onClick={() => setShowFilters(!showFilters)}
-            title="Filter by tech/status"
+            title="Filtrar por especialista o estado"
           >🔽 {activeFilterCount > 0 ? activeFilterCount : ""}</button>
           <button
             className={`btn btn-sm btn-ghost ${showUnscheduled ? "sched-unscheduled-btn-active" : ""}`}
             onClick={() => setShowUnscheduled(!showUnscheduled)}
-            title="Toggle unscheduled jobs panel"
+            title="Mostrar u ocultar el panel de trabajos sin programar"
           >📋 {unscheduledJobs.length}</button>
           <button
             className="btn btn-sm btn-ghost sched-shortcuts-btn"
             onClick={() => setShowShortcuts(!showShortcuts)}
-            title="Keyboard shortcuts"
-            aria-label="Keyboard shortcuts"
+            title="Atajos de teclado"
+            aria-label="Atajos de teclado"
           >?</button>
         </div>
       </div>
@@ -1149,24 +1149,24 @@ export default function ScheduleCalendar() {
           ref={searchInputRef}
           className="sched-search-input"
           type="text"
-          placeholder="Search by title, customer, or date…"
+          placeholder="Buscar por título, cliente o fecha…"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         {searchQuery && (
-          <button className="sched-search-clear" onClick={() => setSearchQuery("")} title="Clear">✕</button>
+          <button className="sched-search-clear" onClick={() => setSearchQuery("")} title="Limpiar">✕</button>
         )}
       </div>
 
       {/* undo toast */}
       {undoToast && (
         <div key={undoToast.key} className="sched-undo-toast fade-in">
-          <span className="sched-undo-toast-title">Rescheduled &ldquo;{undoToast.title}&rdquo;</span>
+          <span className="sched-undo-toast-title">Reprogramado &ldquo;{undoToast.title}&rdquo;</span>
           <button
             className="sched-undo-toast-btn"
             onClick={() => { setUndoToast(null); undoMove(); }}
           >
-            Undo &nbsp;<kbd className="sched-kbd sched-kbd-sm">Ctrl+Z</kbd>
+            Deshacer &nbsp;<kbd className="sched-kbd sched-kbd-sm">Ctrl+Z</kbd>
           </button>
         </div>
       )}
@@ -1175,13 +1175,13 @@ export default function ScheduleCalendar() {
       {showFilters && (
         <div className="sched-filters fade-in">
           <div className="sched-filters-header">
-            <span className="sched-filters-title">Filters</span>
+            <span className="sched-filters-title">Filtros</span>
             {activeFilterCount > 0 && (
-              <button className="btn btn-sm btn-ghost" onClick={clearFilters}>Clear all</button>
+              <button className="btn btn-sm btn-ghost" onClick={clearFilters}>Limpiar todo</button>
             )}
           </div>
           <div className="sched-filters-section">
-            <div className="sched-filters-section-title">Technicians</div>
+            <div className="sched-filters-section-title">Especialistas</div>
             {techUsers.map((u) => (
               <label key={u.id} className="sched-filter-label">
                 <input
@@ -1195,7 +1195,7 @@ export default function ScheduleCalendar() {
             ))}
           </div>
           <div className="sched-filters-section">
-            <div className="sched-filters-section-title">Status</div>
+            <div className="sched-filters-section-title">Estado</div>
             {(["scheduled", "in_progress", "completed"] as JobStatus[]).map((s) => (
               <label key={s} className="sched-filter-label">
                 <input
@@ -1213,10 +1213,10 @@ export default function ScheduleCalendar() {
       {/* bulk action bar */}
       {selectMode && selectedJobIds.size > 0 && (
         <div className="sched-bulk-bar fade-in">
-          <span className="sched-bulk-label">{selectedJobIds.size} selected</span>
-          <button className="btn btn-sm btn-ghost" onClick={() => setSelectedJobIds(new Set())}>Clear</button>
+          <span className="sched-bulk-label">{selectedJobIds.size} seleccionados</span>
+          <button className="btn btn-sm btn-ghost" onClick={() => setSelectedJobIds(new Set())}>Limpiar</button>
           <span className="sched-bulk-divider" />
-          <span className="sched-bulk-hint">Drop on a day cell to reschedule all</span>
+          <span className="sched-bulk-hint">Suelta en un día para reprogramar todos</span>
         </div>
       )}
 
@@ -1226,12 +1226,12 @@ export default function ScheduleCalendar() {
         {showUnscheduled && !loading && !error && !showEmptyResult && (
           <div className="sched-unscheduled-panel fade-in">
             <div className="sched-unscheduled-header">
-              <span className="sched-unscheduled-title">Unscheduled</span>
+              <span className="sched-unscheduled-title">Sin programar</span>
               <span className="sched-unscheduled-count">{unscheduledJobs.length}</span>
             </div>
             <div className="sched-unscheduled-list">
               {unscheduledJobs.length === 0 ? (
-                <div className="sched-unscheduled-empty">All jobs scheduled 🎉</div>
+                <div className="sched-unscheduled-empty">Todos los trabajos están programados 🎉</div>
               ) : (
                 unscheduledJobs.map((j) => (
                   <span
@@ -1250,18 +1250,18 @@ export default function ScheduleCalendar() {
         <div className="sched-calendar-area">
           {error ? (
             <div className="error-banner" style={{ marginTop: 16 }}>
-              API unreachable ({error}). Start it with <code>pnpm dev:api</code>.
+              No se puede conectar con la API ({error}). Intenta de nuevo en unos minutos.
             </div>
           ) : loading ? (
             <div className="empty-state">
               <div className="sched-spinner" />
-              Loading schedule…
+              Cargando agenda…
             </div>
           ) : showEmptyResult ? (
             <div className="empty-state">
               <div style={{ fontSize: 40, marginBottom: 8 }}>🔎</div>
-              <div>No jobs match &ldquo;{searchQuery.trim()}&rdquo;</div>
-              <div style={{ fontSize: 13, marginTop: 4 }}>Try a different title, customer name, or date.</div>
+              <div>Ningún trabajo coincide con &ldquo;{searchQuery.trim()}&rdquo;</div>
+              <div style={{ fontSize: 13, marginTop: 4 }}>Prueba con otro título, cliente o fecha.</div>
             </div>
           ) : (
             <>
@@ -1273,7 +1273,7 @@ export default function ScheduleCalendar() {
                   <div className={dayCellClasses(day)} data-day-key={day.key}>
                     {hourly && hourly.untimed.length > 0 && (
                       <div className="sched-day-untimed">
-                        <div className="sched-day-untimed-label">All day</div>
+                        <div className="sched-day-untimed-label">Todo el día</div>
                         <div className="sched-day-untimed-jobs">
                           {hourly.untimed.map((j) => (
                             <span key={j.id} {...chipDragProps(j)}>
@@ -1322,7 +1322,7 @@ export default function ScheduleCalendar() {
                                       }}
                                     >
                                       <div className="sched-day-block-time">
-                                        {new Date(j.scheduledAt!).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                                        {new Date(j.scheduledAt!).toLocaleTimeString("es-PE", { hour: "numeric", minute: "2-digit" })}
                                       </div>
                                       {chipBody(j)}
                                       {/* resize handle */}
@@ -1469,12 +1469,12 @@ export default function ScheduleCalendar() {
                           <div className="appt-title">{j.title}</div>
                           <div className="appt-customer">{customersById.get(j.customerId)?.name}</div>
                           <div className="appt-assignee">
-                            {usersById.get(j.assignedTo ?? "")?.name ?? "Unassigned"}
+                            {usersById.get(j.assignedTo ?? "")?.name ?? "Sin asignar"}
                           </div>
                           <div className="appt-time">{formatMoney(j.total)}</div>
                           {j.scheduledAt && (
                             <div className="appt-time">
-                              {new Date(j.scheduledAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                              {new Date(j.scheduledAt).toLocaleTimeString("es-PE", { hour: "numeric", minute: "2-digit" })}
                             </div>
                           )}
                         </div>
@@ -1495,13 +1495,13 @@ export default function ScheduleCalendar() {
           className="sched-assign-menu fade-in"
           style={{ position: "fixed", left: assignMenuPos.current.x, top: assignMenuPos.current.y, zIndex: 10002 }}
         >
-          <div className="sched-assign-menu-item sched-assign-menu-label">Assign to</div>
+          <div className="sched-assign-menu-item sched-assign-menu-label">Asignar a</div>
           <button
             className="sched-assign-menu-item"
             onClick={() => assignTech(assignMenuJobId, null)}
           >
             <span className="sched-tech-dot sched-tech-dot-empty" style={{ width: 10, height: 10 }} />
-            Unassigned
+            Sin asignar
           </button>
           {techUsers.map((u) => (
             <button
@@ -1526,20 +1526,20 @@ export default function ScheduleCalendar() {
             {ctxMenuJob.title}
           </div>
           <button className="sched-ctx-menu-item" onClick={() => { assignTech(ctxMenuJobId, null); setCtxMenuJobId(null); }}>
-            Assign tech…
+            Asignar especialista…
           </button>
           <button className="sched-ctx-menu-item" onClick={() => { moveJob(ctxMenuJobId, ctxMenuJob.scheduledAt ? fmtDateKey(new Date(ctxMenuJob.scheduledAt)) : "", fmtDateKey(today)); setCtxMenuJobId(null); }}>
-            Move to today
+            Mover a hoy
           </button>
           <button className="sched-ctx-menu-item" onClick={() => { cycleStatus(ctxMenuJobId); setCtxMenuJobId(null); }}>
-            Cycle status
+            Cambiar estado
           </button>
           <div className="sched-ctx-menu-divider" />
           <a className="sched-ctx-menu-item" href={`/customers/${ctxMenuJob.customerId}`} target="_blank" rel="noopener">
-            Open customer ↗
+            Abrir cliente ↗
           </a>
           <button className="sched-ctx-menu-item" onClick={() => { setDetailJobId(ctxMenuJobId); setCtxMenuJobId(null); }}>
-            View details
+            Ver detalles
           </button>
         </div>
       )}
@@ -1568,7 +1568,7 @@ export default function ScheduleCalendar() {
                     <span
                       onClick={() => { setEditTitle(detailJob.title); setEditing(true); }}
                       style={{ cursor: "text", borderBottom: "1px dashed var(--muted)" }}
-                      title="Click to edit"
+                      title="Clic para editar"
                     >
                       {detailJob.title}
                     </span>
@@ -1579,17 +1579,17 @@ export default function ScheduleCalendar() {
               <div className="sched-modal-body">
                 <div className="sched-detail-grid">
                   <div className="sched-detail-field">
-                    <div className="sched-detail-label">Status</div>
+                    <div className="sched-detail-label">Estado</div>
                     <button
                       className={`badge badge-${detailJob.status} sched-status-clickable`}
                       onClick={() => cycleStatus(detailJobId)}
-                      title="Click to cycle"
+                      title="Clic para cambiar"
                     >
                       {detailJob.status.replace("_", " ")} ↻
                     </button>
                   </div>
                   <div className="sched-detail-field">
-                    <div className="sched-detail-label">Technician</div>
+                    <div className="sched-detail-label">Especialista</div>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       {techUser ? (
                         <>
@@ -1605,28 +1605,28 @@ export default function ScheduleCalendar() {
                             assignMenuPos.current = { x: rect.left, y: rect.bottom + 4 };
                           }
                           setAssignMenuJobId(detailJobId);
-                        }}>+ Assign</button>
+                        }}>+ Asignar</button>
                       )}
                     </div>
                   </div>
                   <div className="sched-detail-field">
-                    <div className="sched-detail-label">Customer</div>
+                    <div className="sched-detail-label">Cliente</div>
                     <a href={`/customers/${detailJob.customerId}`} target="_blank" rel="noopener" style={{ color: "var(--acc)", fontWeight: 600 }}>
-                      {cust?.name ?? "Unknown"} ↗
+                      {cust?.name ?? "Desconocido"} ↗
                     </a>
                     {cust?.phone && <div style={{ fontSize: 12, color: "var(--mut)" }}>{cust.phone}</div>}
                     {cust?.email && <div style={{ fontSize: 12, color: "var(--mut)" }}>{cust.email}</div>}
                   </div>
                   <div className="sched-detail-field">
-                    <div className="sched-detail-label">Time</div>
+                    <div className="sched-detail-label">Hora</div>
                     <div>
                       {detailJob.scheduledAt
-                        ? new Date(detailJob.scheduledAt).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
-                        : "Unscheduled"}
+                        ? new Date(detailJob.scheduledAt).toLocaleString("es-PE", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
+                        : "Sin programar"}
                     </div>
                   </div>
                   <div className="sched-detail-field">
-                    <div className="sched-detail-label">Amount</div>
+                    <div className="sched-detail-label">Monto</div>
                     <div style={{ fontWeight: 600 }}>{formatMoney(detailJob.total)}</div>
                   </div>
                 </div>
@@ -1663,7 +1663,7 @@ export default function ScheduleCalendar() {
           <div className="sched-tooltip-name">{hoveredCustomer.name}</div>
           {hoveredCustomer.email && <div className="sched-tooltip-row">{hoveredCustomer.email}</div>}
           {hoveredCustomer.phone && <div className="sched-tooltip-row">{hoveredCustomer.phone}</div>}
-          <div className="sched-tooltip-hint">Click for details →</div>
+          <div className="sched-tooltip-hint">Clic para ver detalles →</div>
         </div>
       )}
 
@@ -1673,52 +1673,52 @@ export default function ScheduleCalendar() {
           <div className="sched-modal-backdrop" onClick={() => setShowShortcuts(false)} />
           <div className="sched-modal fade-in">
             <div className="sched-modal-header">
-              <span className="sched-modal-title">Keyboard Shortcuts</span>
+              <span className="sched-modal-title">Atajos de teclado</span>
               <button className="btn btn-sm btn-ghost" onClick={() => setShowShortcuts(false)}>✕</button>
             </div>
             <div className="sched-modal-body">
               <div className="sched-kb-section">
-                <div className="sched-kb-section-title">Navigation</div>
+                <div className="sched-kb-section-title">Navegación</div>
                 <div className="sched-kb-row">
                   <kbd className="sched-kbd">←</kbd>
                   <kbd className="sched-kbd">→</kbd>
-                  <span>Previous / next period</span>
+                  <span>Periodo anterior / siguiente</span>
                 </div>
                 <div className="sched-kb-row">
                   <kbd className="sched-kbd">T</kbd>
-                  <span>Jump to today</span>
+                  <span>Ir a hoy</span>
                 </div>
               </div>
               <div className="sched-kb-section">
-                <div className="sched-kb-section-title">View Switching</div>
+                <div className="sched-kb-section-title">Cambio de vista</div>
                 <div className="sched-kb-row">
                   <kbd className="sched-kbd">W</kbd>
-                  <span>Week view</span>
+                  <span>Vista semanal</span>
                 </div>
                 <div className="sched-kb-row">
                   <kbd className="sched-kbd">D</kbd>
-                  <span>Day view</span>
+                  <span>Vista diaria</span>
                 </div>
                 <div className="sched-kb-row">
                   <kbd className="sched-kbd">M</kbd>
-                  <span>Month view</span>
+                  <span>Vista mensual</span>
                 </div>
                 <div className="sched-kb-row">
                   <kbd className="sched-kbd">F</kbd>
-                  <span>Mon–Fri (work week) view</span>
+                  <span>Vista de lunes a viernes</span>
                 </div>
                 <div className="sched-kb-row">
                   <kbd className="sched-kbd">E</kbd>
-                  <span>Employee (tech) view</span>
+                  <span>Vista por especialista</span>
                 </div>
               </div>
               <div className="sched-kb-section">
-                <div className="sched-kb-section-title">Editing</div>
+                <div className="sched-kb-section-title">Edición</div>
                 <div className="sched-kb-row">
                   <kbd className="sched-kbd">Ctrl</kbd>
                   <span>+</span>
                   <kbd className="sched-kbd">Z</kbd>
-                  <span>Undo last reschedule</span>
+                  <span>Deshacer la última reprogramación</span>
                 </div>
               </div>
               <div className="sched-kb-section">
@@ -1729,58 +1729,58 @@ export default function ScheduleCalendar() {
                   <kbd className="sched-kbd">Ctrl</kbd>
                   <span>+</span>
                   <kbd className="sched-kbd">K</kbd>
-                  <span>Focus search</span>
+                  <span>Ir a la búsqueda</span>
                 </div>
                 <div className="sched-kb-row">
                   <kbd className="sched-kbd">S</kbd>
-                  <span>Toggle multi-select mode</span>
+                  <span>Activar selección múltiple</span>
                 </div>
                 <div className="sched-kb-row">
                   <kbd className="sched-kbd">U</kbd>
-                  <span>Toggle unscheduled panel</span>
+                  <span>Mostrar u ocultar trabajos sin programar</span>
                 </div>
                 <div className="sched-kb-row">
                   <kbd className="sched-kbd">G</kbd>
-                  <span>Toggle filter sidebar</span>
+                  <span>Mostrar u ocultar filtros</span>
                 </div>
                 <div className="sched-kb-row">
                   <kbd className="sched-kbd">?</kbd>
-                  <span>Show / hide this dialog</span>
+                  <span>Mostrar u ocultar esta ayuda</span>
                 </div>
                 <div className="sched-kb-row">
                   <kbd className="sched-kbd">Esc</kbd>
-                  <span>Close panels</span>
+                  <span>Cerrar paneles</span>
                 </div>
               </div>
               <div className="sched-kb-section">
-                <div className="sched-kb-section-title">Interactions</div>
+                <div className="sched-kb-section-title">Interacciones</div>
                 <div className="sched-kb-row">
-                  <span style={{ minWidth: 100 }}>Drag &amp; drop</span>
-                  <span>Reschedule a job to another day</span>
+                  <span style={{ minWidth: 100 }}>Arrastrar y soltar</span>
+                  <span>Reprogramar un trabajo a otro día</span>
                 </div>
                 <div className="sched-kb-row">
-                  <span style={{ minWidth: 100 }}>Click a chip</span>
-                  <span>Open job detail modal</span>
+                  <span style={{ minWidth: 100 }}>Clic en una etiqueta</span>
+                  <span>Abrir el detalle del trabajo</span>
                 </div>
                 <div className="sched-kb-row">
-                  <span style={{ minWidth: 100 }}>Click status badge</span>
-                  <span>Cycle job status</span>
+                  <span style={{ minWidth: 100 }}>Clic en el estado</span>
+                  <span>Cambiar el estado del trabajo</span>
                 </div>
                 <div className="sched-kb-row">
-                  <span style={{ minWidth: 100 }}>Right-click chip</span>
-                  <span>Context menu (assign, move, open)</span>
+                  <span style={{ minWidth: 100 }}>Clic derecho en la etiqueta</span>
+                  <span>Menú contextual (asignar, mover, abrir)</span>
                 </div>
                 <div className="sched-kb-row">
-                  <span style={{ minWidth: 100 }}>Shift+click</span>
-                  <span>Multi-select range</span>
+                  <span style={{ minWidth: 100 }}>Mayús+clic</span>
+                  <span>Seleccionar un rango</span>
                 </div>
                 <div className="sched-kb-row">
-                  <span style={{ minWidth: 100 }}>Drag block edge</span>
-                  <span>Resize job duration (day view)</span>
+                  <span style={{ minWidth: 100 }}>Arrastrar el borde del bloque</span>
+                  <span>Cambiar la duración (vista diaria)</span>
                 </div>
                 <div className="sched-kb-row">
-                  <span style={{ minWidth: 100 }}>Hover a chip</span>
-                  <span>Show customer preview card</span>
+                  <span style={{ minWidth: 100 }}>Pasar el cursor por una etiqueta</span>
+                  <span>Mostrar la ficha del cliente</span>
                 </div>
               </div>
             </div>

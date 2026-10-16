@@ -76,7 +76,7 @@ function conflictResponse(conflict: {
   endsAt: Date;
 }) {
   return {
-    error: "technician has an overlapping appointment",
+    error: "el especialista tiene una visita que se cruza",
     conflict: {
       appointmentId: conflict.id,
       jobId: conflict.jobId,
@@ -117,12 +117,12 @@ export async function appointmentRoutes(app: FastifyInstance) {
       .select({ id: jobs.id })
       .from(jobs)
       .where(and(eq(jobs.orgId, orgId), eq(jobs.id, rest.jobId)));
-    if (!job) return reply.code(404).send({ error: "job not found" });
+    if (!job) return reply.code(404).send({ error: "trabajo no encontrado" });
 
     if (rest.technicianId && !(await technicianIsAssignable(orgId, rest.technicianId))) {
       return reply
         .code(400)
-        .send({ error: "technician must be an active technician or owner in this organization" });
+        .send({ error: "el especialista debe ser un especialista activo o propietario de esta empresa" });
     }
 
     if (rest.technicianId) {
@@ -158,7 +158,7 @@ export async function appointmentRoutes(app: FastifyInstance) {
     safeEmitActivity(
       orgId,
       "appointment.scheduled",
-      `Scheduled appointment for ${window.startsAt.toLocaleString()}`,
+      `Visita programada para ${window.startsAt.toLocaleString("es-PE")}`,
       { jobId: rest.jobId },
     );
     return reply.code(201).send(row);
@@ -174,13 +174,13 @@ export async function appointmentRoutes(app: FastifyInstance) {
       .select()
       .from(appointments)
       .where(and(eq(appointments.orgId, orgId), eq(appointments.id, id)));
-    if (!current) return reply.code(404).send({ error: "not found" });
+    if (!current) return reply.code(404).send({ error: "no encontrado" });
 
     const { technicianId, startsAt, endsAt } = parsed.data;
     if (technicianId && !(await technicianIsAssignable(orgId, technicianId))) {
       return reply
         .code(400)
-        .send({ error: "technician must be an active technician or owner in this organization" });
+        .send({ error: "el especialista debe ser un especialista activo o propietario de esta empresa" });
     }
 
     const window = resolveAppointmentWindow(current, { startsAt, endsAt });
@@ -207,7 +207,7 @@ export async function appointmentRoutes(app: FastifyInstance) {
       })
       .where(and(eq(appointments.orgId, orgId), eq(appointments.id, id)))
       .returning();
-    if (!row) return reply.code(404).send({ error: "not found" });
+    if (!row) return reply.code(404).send({ error: "no encontrado" });
 
     // Reassignment and rescheduling must update the work order used by jobs,
     // reports, mobile sync, and customer-facing status views.
@@ -232,7 +232,7 @@ export async function appointmentRoutes(app: FastifyInstance) {
           ? technicianId
             ? "Appointment assigned to a technician"
             : "Appointment returned to the unassigned queue"
-          : `Appointment rescheduled for ${window.startsAt.toLocaleString()}`,
+          : `Visita reprogramada para ${window.startsAt.toLocaleString("es-PE")}`,
         { jobId: current.jobId },
       );
     }

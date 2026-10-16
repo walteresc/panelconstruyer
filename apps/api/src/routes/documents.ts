@@ -42,7 +42,7 @@ export async function documentRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     const result = await regenerateDocument(orgId, "invoice", id);
     if ("error" in result) return reply.code(result.statusCode).send({ error: result.error });
-    safeEmitActivity(orgId, "invoice.document_regenerated", `Regenerated invoice PDF for ${result.row.filename}`);
+    safeEmitActivity(orgId, "invoice.document_regenerated", `PDF de factura regenerado: ${result.row.filename}`);
     return { document: documentView(result.row) as StoredDocument };
   });
 
@@ -51,7 +51,7 @@ export async function documentRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     const result = await regenerateDocument(orgId, "estimate", id);
     if ("error" in result) return reply.code(result.statusCode).send({ error: result.error });
-    safeEmitActivity(orgId, "estimate.document_regenerated", `Regenerated estimate PDF for ${result.row.filename}`);
+    safeEmitActivity(orgId, "estimate.document_regenerated", `PDF de cotización regenerado: ${result.row.filename}`);
     return { document: documentView(result.row) as StoredDocument };
   });
 }

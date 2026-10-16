@@ -55,6 +55,7 @@ services:
       dockerfile: apps/api/Dockerfile
     environment:
       NODE_ENV: production
+      TZ: America/Lima
       API_PORT: 3001
       DATABASE_URL: postgres://ofp:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/ofp
       REDIS_URL: redis://redis:6379
@@ -66,6 +67,13 @@ services:
       OFP_ALLOW_PUBLIC_REGISTRATION: ${OFP_ALLOW_PUBLIC_REGISTRATION:-false}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      # Correo saliente (cotizaciones, facturas, enlaces del portal). Vacío = no se envían.
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
       OFP_UPLOAD_DIR: /uploads
       OFP_UPLOAD_MAX_BYTES: ${OFP_UPLOAD_MAX_BYTES:-26214400}
       OFP_HEALTH_PROBE_TIMEOUT_MS: ${OFP_HEALTH_PROBE_TIMEOUT_MS:-2000}
@@ -92,7 +100,10 @@ services:
       dockerfile: apps/web/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:?Set the public HTTPS origin; the client appends /api}
+        NEXT_PUBLIC_SOURCE_URL: ${NEXT_PUBLIC_SOURCE_URL:-}
+        CONSTRUYER_SITE_URL: ${CONSTRUYER_SITE_URL:-https://construyer.com}
     environment:
+      TZ: America/Lima
       OFP_SPONSOR_ENABLED: ${OFP_SPONSOR_ENABLED:-false}
       OFP_SPONSOR_NAME: ${OFP_SPONSOR_NAME:-}
       OFP_SPONSOR_MESSAGE: ${OFP_SPONSOR_MESSAGE:-}
@@ -114,6 +125,7 @@ services:
       dockerfile: apps/worker/Dockerfile
     environment:
       NODE_ENV: production
+      TZ: America/Lima
       DATABASE_URL: postgres://ofp:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/ofp
       REDIS_URL: redis://redis:6379
       NTFY_URL: ${NTFY_URL:-}
@@ -133,14 +145,14 @@ services:
   caddy:
     image: caddy:2-alpine
     environment:
-      OFP_SITE_ADDRESS: ${OFP_SITE_ADDRESS:?Set the production domain, for example openfieldpro.example.com}
+      OFP_SITE_ADDRESS: ${OFP_SITE_ADDRESS:?Set the production domain, for example app.construyer.com}
+      PUBLIC_SITE_ADDRESS: ${PUBLIC_SITE_ADDRESS:-public.localhost}
     ports:
       - "80:80"
       - "443:443"
       - "443:443/udp"
     volumes:
       - ./Caddyfile.prod:/etc/caddy/Caddyfile:ro
-      - ../landing:/srv/landing:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:

@@ -18,10 +18,10 @@ export function DocumentActions({ html, fileName }: { html: string; fileName: st
   return (
     <div className="flex flex-wrap gap-2">
       <Button size="sm" onClick={() => window.print()}>
-        Print / Save as PDF
+        Imprimir / Guardar como PDF
       </Button>
       <Button size="sm" variant="secondary" onClick={downloadHtml}>
-        Download HTML
+        Descargar HTML
       </Button>
     </div>
   );

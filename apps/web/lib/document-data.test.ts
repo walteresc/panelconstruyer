@@ -48,10 +48,10 @@ test("invoice document uses configured message and hides customer info when disa
   });
 
   assert.match(html, /Configured invoice message/);
-  assert.match(html, /<img class="logo"[^>]+marcos-logo\.png[^>]+Marco&#039;s Appliance Repair Company logo/);
+  assert.match(html, /<img class="logo"[^>]+marcos-logo\.png[^>]+Logo de Marco&#039;s Appliance Repair Company/);
   assert.match(html, /Configured payment instructions/);
-  assert.match(html, /\$189\.00/);
-  assert.match(html, />Hidden<\/td>/);
+  assert.match(html, /S\/ 189\.00/);
+  assert.match(html, />Oculto<\/td>/);
   assert.doesNotMatch(html, /Private Customer/);
   assert.doesNotMatch(html, /private@example\.test/);
 });
@@ -71,7 +71,7 @@ test("estimate document renders Good, Better, Best and marks the approved option
   });
 
   assert.match(html, /Good/);
-  assert.match(html, /<h2>Better<\/h2><span>Approved<\/span>/);
+  assert.match(html, /<h2>Better<\/h2><span>Aprobada<\/span>/);
   assert.match(html, /Best/);
-  assert.match(html, /\$300\.00/);
+  assert.match(html, /S\/ 300\.00/);
 });

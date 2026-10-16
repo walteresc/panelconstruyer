@@ -14,7 +14,7 @@ export function SponsorSlot() {
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-border bg-surface-300 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-fg-dim">
-              Sponsor
+              Auspiciador
             </span>
             <span className="text-sm font-semibold text-fg">{sponsor.name}</span>
           </div>
@@ -27,7 +27,7 @@ export function SponsorSlot() {
           referrerPolicy="no-referrer"
           className="shrink-0 rounded-lg border border-border bg-surface-200 px-3 py-2 text-center text-xs font-semibold text-fg-link no-underline hover:bg-surface-300"
         >
-          Visit sponsor
+          Visitar al auspiciador
         </a>
       </div>
     </aside>

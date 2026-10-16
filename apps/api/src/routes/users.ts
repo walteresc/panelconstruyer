@@ -29,7 +29,7 @@ export async function userRoutes(app: FastifyInstance) {
       await req.jwtVerify();
       claims = req.user as JwtClaims;
     } catch {
-      return reply.code(401).send({ error: "authentication required" });
+      return reply.code(401).send({ error: "se requiere iniciar sesión" });
     }
     const { id } = req.params as { id: string };
     const parsed = patchUserSchema.safeParse(req.body);
@@ -55,7 +55,7 @@ export async function userRoutes(app: FastifyInstance) {
         .from(users)
         .where(and(eq(users.orgId, orgId), eq(users.id, id)))
         .limit(1);
-      if (!target) return { status: 404 as const, body: { error: "not found" } };
+      if (!target) return { status: 404 as const, body: { error: "no encontrado" } };
 
       const [{ value: ownerTotal }] = await tx
         .select({ value: count() })
@@ -94,7 +94,7 @@ export async function userRoutes(app: FastifyInstance) {
       await req.jwtVerify();
       claims = req.user as JwtClaims;
     } catch {
-      return reply.code(401).send({ error: "authentication required" });
+      return reply.code(401).send({ error: "se requiere iniciar sesión" });
     }
     const { id } = req.params as { id: string };
 
@@ -106,7 +106,7 @@ export async function userRoutes(app: FastifyInstance) {
         .from(users)
         .where(and(eq(users.orgId, orgId), eq(users.id, id)))
         .limit(1);
-      if (!target) return { status: 404 as const, body: { error: "not found" } };
+      if (!target) return { status: 404 as const, body: { error: "no encontrado" } };
 
       const [{ value: ownerTotal }] = await tx
         .select({ value: count() })

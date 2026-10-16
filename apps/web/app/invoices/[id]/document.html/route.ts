@@ -14,7 +14,7 @@ export async function GET(
   ]);
 
   if (!invoice) {
-    return Response.json({ error: "invoice not found" }, { status: 404 });
+    return Response.json({ error: "factura no encontrada" }, { status: 404 });
   }
 
   const job = jobs.find((row) => row.id === invoice.jobId) ?? null;

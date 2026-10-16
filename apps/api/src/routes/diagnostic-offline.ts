@@ -350,7 +350,7 @@ export async function diagnosticOfflineRoutes(app: FastifyInstance) {
     const orgId = await resolveOrgId(req);
     const { jobId } = req.params as { jobId: string };
     const payload = await loadPackage(orgId, jobId);
-    if (!payload) return reply.code(404).send({ error: "job not found" });
+    if (!payload) return reply.code(404).send({ error: "trabajo no encontrado" });
     return payload;
   });
 

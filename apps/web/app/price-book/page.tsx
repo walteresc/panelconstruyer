@@ -16,7 +16,7 @@ interface Service {
   category: string;
 }
 
-const CATEGORIES = ["HVAC", "Plumbing", "Electrical", "General", "Other"];
+const CATEGORIES = ["Gasfitería", "Electricidad", "Pintura", "Drywall", "Albañilería", "Impermeabilización", "Pisos", "Remodelación", "General", "Otro"];
 
 function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -127,7 +127,7 @@ export default function PriceBookPage() {
   if (!mounted) {
     return (
       <div>
-        <PageHeader title="Price Book" description="Loading..." />
+        <PageHeader title="Lista de precios" description="Cargando..." />
       </div>
     );
   }
@@ -135,11 +135,11 @@ export default function PriceBookPage() {
   return (
     <div>
       <PageHeader
-        title="Price Book"
-        description={`${services.length} service${services.length !== 1 ? "s" : ""} across ${CATEGORIES.filter((c) => services.some((s) => s.category === c)).length} categories`}
+        title="Lista de precios"
+        description={`${services.length} servicio${services.length !== 1 ? "s" : ""} en ${CATEGORIES.filter((c) => services.some((s) => s.category === c)).length} categorías`}
         actions={
           <Button onClick={openNew} size="sm">
-            ⊕ Add Service
+            ⊕ Agregar servicio
           </Button>
         }
       />
@@ -148,7 +148,7 @@ export default function PriceBookPage() {
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <Input
           type="search"
-          placeholder="Search services..."
+          placeholder="Buscar servicios..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="max-w-xs flex-1"
@@ -158,7 +158,7 @@ export default function PriceBookPage() {
           onChange={(e) => setCategoryFilter(e.target.value)}
           className="h-10 rounded-lg border border-border bg-surface-200 px-3 py-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 cursor-pointer"
         >
-          <option value="all">All categories</option>
+          <option value="all">Todas las categorías</option>
           {CATEGORIES.map((c) => (
             <option key={c} value={c}>
               {c}
@@ -172,17 +172,17 @@ export default function PriceBookPage() {
         <Card className="mb-4 border-accent/30">
           <CardContent className="p-4">
             <h4 className="text-sm font-semibold text-fg mb-3">
-              {editing ? "Edit Service" : "New Service"}
+              {editing ? "Editar servicio" : "Nuevo servicio"}
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
               <Input
-                placeholder="Service name"
+                placeholder="Nombre del servicio"
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 autoFocus
               />
               <Input
-                placeholder="Price ($)"
+                placeholder="Precio (S/)"
                 type="number"
                 step="0.01"
                 min="0"
@@ -192,7 +192,7 @@ export default function PriceBookPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
               <Input
-                placeholder="Description (optional)"
+                placeholder="Descripción (opcional)"
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               />
@@ -210,7 +210,7 @@ export default function PriceBookPage() {
             </div>
             <div className="flex gap-2">
               <Button onClick={handleSave} disabled={!form.name.trim() || !form.price}>
-                {editing ? "Save Changes" : "Add Service"}
+                {editing ? "Guardar cambios" : "Agregar servicio"}
               </Button>
               <Button
                 variant="secondary"
@@ -219,7 +219,7 @@ export default function PriceBookPage() {
                   setEditing(null);
                 }}
               >
-                Cancel
+                Cancelar
               </Button>
             </div>
           </CardContent>
@@ -230,19 +230,19 @@ export default function PriceBookPage() {
       {services.length === 0 ? (
         <Card>
           <EmptyState
-            title="No services yet"
-            description="Add your first service to build your price book."
+            title="Aún no hay servicios"
+            description="Agrega tu primer servicio para armar tu lista de precios."
           />
         </Card>
       ) : filtered.length === 0 ? (
         <Card>
           <div className="text-center py-10">
-            <p className="text-sm text-fg-muted">No services match your filters</p>
+            <p className="text-sm text-fg-muted">Ningún servicio coincide con los filtros</p>
             <button
               onClick={() => { setSearch(""); setCategoryFilter("all"); }}
               className="text-xs text-fg-link hover:text-fg mt-1 cursor-pointer bg-transparent border-none"
             >
-              Clear filters
+              Limpiar filtros
             </button>
           </div>
         </Card>
@@ -271,13 +271,13 @@ export default function PriceBookPage() {
                       onClick={() => openEdit(s)}
                       className="text-xs px-2 py-1 rounded bg-surface-300 text-fg-muted hover:text-fg hover:bg-surface-400 transition-colors cursor-pointer border-none"
                     >
-                      Edit
+                      Editar
                     </button>
                     <button
                       onClick={() => handleDelete(s.id)}
                       className="text-xs px-2 py-1 rounded bg-surface-300 text-red hover:bg-red/10 transition-colors cursor-pointer border-none"
                     >
-                      Delete
+                      Eliminar
                     </button>
                   </div>
                 </div>

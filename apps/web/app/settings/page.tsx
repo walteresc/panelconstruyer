@@ -18,23 +18,23 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 type Tab = "company" | "hours" | "areas" | "invoice" | "estimate" | "payments" | "taxes" | "messages" | "numbering" | "portal" | "team";
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: "company", label: "Company" },
-  { id: "hours", label: "Business Hours" },
-  { id: "areas", label: "Service Areas" },
-  { id: "invoice", label: "Invoices" },
-  { id: "estimate", label: "Estimates" },
-  { id: "payments", label: "Payments" },
-  { id: "taxes", label: "Taxes & Discounts" },
-  { id: "messages", label: "Messages" },
-  { id: "numbering", label: "Numbering" },
+  { id: "company", label: "Empresa" },
+  { id: "hours", label: "Horario de atención" },
+  { id: "areas", label: "Zonas de servicio" },
+  { id: "invoice", label: "Facturas" },
+  { id: "estimate", label: "Cotizaciones" },
+  { id: "payments", label: "Pagos" },
+  { id: "taxes", label: "Impuestos y descuentos" },
+  { id: "messages", label: "Mensajes" },
+  { id: "numbering", label: "Numeración" },
   { id: "portal", label: "Portal" },
-  { id: "team", label: "Team" },
+  { id: "team", label: "Equipo" },
 ];
 
 const TAB_GROUPS: { label: string; tabs: Tab[] }[] = [
-  { label: "Business", tabs: ["company", "hours", "areas", "team"] },
-  { label: "Sales & payments", tabs: ["invoice", "estimate", "payments", "taxes"] },
-  { label: "Customer experience", tabs: ["messages", "numbering", "portal"] },
+  { label: "Negocio", tabs: ["company", "hours", "areas", "team"] },
+  { label: "Ventas y pagos", tabs: ["invoice", "estimate", "payments", "taxes"] },
+  { label: "Experiencia del cliente", tabs: ["messages", "numbering", "portal"] },
 ];
 
 interface User {
@@ -43,6 +43,12 @@ interface User {
   email: string;
   role: string;
 }
+
+const DUE_TERM_LABELS: Record<string, string> = {
+  on_receipt: "al recibir",
+  work_start: "al iniciar el trabajo",
+  work_completion: "al terminar el trabajo",
+};
 
 export default function SettingsPage() {
   const [tab, setTab] = useState<Tab>("company");
@@ -54,7 +60,7 @@ export default function SettingsPage() {
   const [dirty, setDirty] = useState(false);
 
   const selectTab = (next: Tab) => {
-    if (next === "team" && dirty && !window.confirm("Discard unsaved business settings?")) return;
+    if (next === "team" && dirty && !window.confirm("¿Descartar los cambios sin guardar?")) return;
     setTab(next);
     const url = new URL(window.location.href);
     url.searchParams.set("section", next);
@@ -64,13 +70,13 @@ export default function SettingsPage() {
   return (
     <div>
       <PageHeader
-        title="Settings"
-        description="Configure the business rules that drive invoices, estimates, payments, documents, the customer portal, and team access."
+        title="Configuración"
+        description="Configura las reglas que rigen las facturas, cotizaciones, pagos, documentos, el portal del cliente y el acceso del equipo."
       />
 
       <div className="grid gap-6 xl:grid-cols-[220px_minmax(0,1fr)]">
         <aside className="rounded-xl border border-border bg-surface-200 p-2">
-          <nav aria-label="Business settings" className="grid gap-4 sm:grid-cols-3 xl:grid-cols-1">
+          <nav aria-label="Configuración del negocio" className="grid gap-4 sm:grid-cols-3 xl:grid-cols-1">
             {TAB_GROUPS.map((group) => (
               <div key={group.label}>
                 <p className="px-2 py-1 text-xs font-bold uppercase tracking-wide text-fg-dim">{group.label}</p>
@@ -95,9 +101,9 @@ export default function SettingsPage() {
               </div>
             ))}
             <div>
-              <p className="px-2 py-1 text-xs font-bold uppercase tracking-wide text-fg-dim">Connections</p>
+              <p className="px-2 py-1 text-xs font-bold uppercase tracking-wide text-fg-dim">Conexiones</p>
               <Link className="block min-h-10 rounded-lg px-3 py-2 text-sm font-medium text-fg-muted hover:bg-surface-300 hover:text-fg" href="/integrations">
-                Integrations
+                Integraciones
               </Link>
             </div>
           </nav>
@@ -128,7 +134,7 @@ function BusinessSettingsTab({ tab, onDirtyChange }: { tab: Exclude<Tab, "team">
         setForm(row);
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Could not load organization settings");
+        if (!cancelled) setError(err instanceof Error ? err.message : "No se pudo cargar la configuración de la empresa");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -162,11 +168,11 @@ function BusinessSettingsTab({ tab, onDirtyChange }: { tab: Exclude<Tab, "team">
 
   const uploadLogo = async (file: File) => {
     if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
-      setError("Choose a PNG, JPEG, or WebP logo image.");
+      setError("Elige un logo en formato PNG, JPEG o WebP.");
       return false;
     }
     if (file.size > 2 * 1024 * 1024) {
-      setError("Choose a logo smaller than 2 MB.");
+      setError("Elige un logo menor a 2 MB.");
       return false;
     }
     setLogoBusy(true);
@@ -176,10 +182,10 @@ function BusinessSettingsTab({ tab, onDirtyChange }: { tab: Exclude<Tab, "team">
       const row = await api.uploadOrgLogo(file);
       setOrg((current) => current ? { ...current, logoUrl: row.logoUrl } : row);
       setForm((current) => current ? { ...current, logoUrl: row.logoUrl } : row);
-      setMessage("Company logo uploaded and added to customer documents.");
+      setMessage("Logo cargado y agregado a los documentos del cliente.");
       return true;
     } catch {
-      setError("The logo could not be uploaded. Check the image and try again.");
+      setError("No se pudo cargar el logo. Revisa la imagen e inténtalo de nuevo.");
       return false;
     } finally {
       setLogoBusy(false);
@@ -194,9 +200,9 @@ function BusinessSettingsTab({ tab, onDirtyChange }: { tab: Exclude<Tab, "team">
       const row = await api.deleteOrgLogo();
       setOrg((current) => current ? { ...current, logoUrl: null } : row);
       setForm((current) => current ? { ...current, logoUrl: null } : row);
-      setMessage("Company logo removed. Customer documents will use the branded initials.");
+      setMessage("Logo eliminado. Los documentos usarán las iniciales de la empresa.");
     } catch {
-      setError("The logo could not be removed. Please try again.");
+      setError("No se pudo eliminar el logo. Inténtalo de nuevo.");
     } finally {
       setLogoBusy(false);
     }
@@ -207,7 +213,7 @@ function BusinessSettingsTab({ tab, onDirtyChange }: { tab: Exclude<Tab, "team">
     const nextFieldErrors = validateBusinessHours(form.businessSettings.businessHours);
     setFieldErrors(nextFieldErrors);
     if (Object.keys(nextFieldErrors).length > 0) {
-      setError("Fix the highlighted business hours before saving.");
+      setError("Corrige los horarios marcados antes de guardar.");
       return;
     }
     setSaving(true);
@@ -228,9 +234,9 @@ function BusinessSettingsTab({ tab, onDirtyChange }: { tab: Exclude<Tab, "team">
       });
       setOrg(row);
       setForm(row);
-      setMessage("Business settings saved.");
+      setMessage("Configuración guardada.");
     } catch (err) {
-      setError("Could not save settings. Your changes are still here; check the fields and try again.");
+      setError("No se pudo guardar. Tus cambios siguen aquí; revisa los campos e inténtalo de nuevo.");
     } finally {
       setSaving(false);
     }
@@ -239,7 +245,7 @@ function BusinessSettingsTab({ tab, onDirtyChange }: { tab: Exclude<Tab, "team">
   if (loading) {
     return (
       <Card>
-        <CardHeader><CardTitle>Loading settings</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Cargando configuración</CardTitle></CardHeader>
         <CardContent><Skeleton className="h-6 w-64" /></CardContent>
       </Card>
     );
@@ -248,7 +254,7 @@ function BusinessSettingsTab({ tab, onDirtyChange }: { tab: Exclude<Tab, "team">
   if (!org || !form) {
     return (
       <Card className="border-red/30 bg-red/5">
-        <CardContent className="p-4"><p className="text-sm text-red">{error ?? "Could not load organization settings."}</p></CardContent>
+        <CardContent className="p-4"><p className="text-sm text-red">{error ?? "No se pudo cargar la configuración de la empresa."}</p></CardContent>
       </Card>
     );
   }
@@ -276,8 +282,8 @@ function BusinessSettingsTab({ tab, onDirtyChange }: { tab: Exclude<Tab, "team">
           {(message || error) && <p aria-live="polite" role={error ? "alert" : "status"} className={`mt-4 text-sm ${error ? "text-red" : "text-green"}`}>{error ?? message}</p>}
 
           <div className="mt-6 flex gap-2">
-            <Button onClick={save} disabled={saving || !dirty}>{saving ? "Saving…" : "Save settings"}</Button>
-            <Button variant="secondary" onClick={() => { setForm(org); setError(null); setMessage(null); setFieldErrors({}); }} disabled={saving || !dirty}>Reset</Button>
+            <Button onClick={save} disabled={saving || !dirty}>{saving ? "Guardando…" : "Guardar configuración"}</Button>
+            <Button variant="secondary" onClick={() => { setForm(org); setError(null); setMessage(null); setFieldErrors({}); }} disabled={saving || !dirty}>Restablecer</Button>
           </div>
         </CardContent>
       </Card>
@@ -317,33 +323,33 @@ function CompanySection({ form, updateOrg, updateSettings, logoBusy, onUploadLog
       <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-surface-200 p-4 md:col-span-2">
         {localLogo || form.logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={localLogo ?? form.logoUrl ?? ""} alt={`${form.name} logo preview`} className="h-20 w-20 rounded-xl border border-border bg-white object-contain p-2" />
+          <img src={localLogo ?? form.logoUrl ?? ""} alt={`Vista previa del logo de ${form.name}`} className="h-20 w-20 rounded-xl border border-border bg-white object-contain p-2" />
         ) : (
           <div className="grid h-20 w-20 place-items-center rounded-xl text-xl font-black text-white" style={{ backgroundColor: form.brandColor }}>{form.name.slice(0, 2).toUpperCase()}</div>
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-fg">Company logo</p>
-          <p className="mt-1 text-xs text-fg-muted">PNG, JPEG, or WebP up to 2 MB. It appears on invoices and estimates automatically.</p>
+          <p className="text-sm font-semibold text-fg">Logo de la empresa</p>
+          <p className="mt-1 text-xs text-fg-muted">PNG, JPEG o WebP de hasta 2 MB. Aparece automáticamente en facturas y cotizaciones.</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <label className="inline-flex min-h-9 cursor-pointer items-center rounded-lg bg-accent px-3 text-sm font-semibold text-white hover:opacity-90">
-              {logoBusy ? "Uploading…" : form.logoUrl ? "Replace logo" : "Upload logo"}
+              {logoBusy ? "Cargando…" : form.logoUrl ? "Reemplazar logo" : "Cargar logo"}
               <input className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" onChange={chooseLogo} disabled={logoBusy} />
             </label>
-            {form.logoUrl ? <Button type="button" size="sm" variant="secondary" onClick={onRemoveLogo} disabled={logoBusy}>Remove logo</Button> : null}
+            {form.logoUrl ? <Button type="button" size="sm" variant="secondary" onClick={onRemoveLogo} disabled={logoBusy}>Quitar logo</Button> : null}
           </div>
         </div>
       </div>
-      <TextField label="Company name" name="organization" autoComplete="organization" value={form.name} onChange={(value) => updateOrg("name", value)} />
-      <TextField label="Timezone" name="timezone" value={form.timezone} onChange={(value) => {
+      <TextField label="Nombre de la empresa" name="organization" autoComplete="organization" value={form.name} onChange={(value) => updateOrg("name", value)} />
+      <TextField label="Zona horaria" name="timezone" value={form.timezone} onChange={(value) => {
         updateOrg("timezone", value);
         updateSettings({ ...settings, businessHours: { ...settings.businessHours, timezone: value } });
       }} />
       <label className="grid gap-1.5 text-sm text-fg-muted">
-        Brand color
+        Color de marca
         <div className="flex gap-2">
           <Input name="brandColor" value={form.brandColor} onChange={(event) => updateOrg("brandColor", event.target.value)} />
           <input
-            aria-label="Brand color picker"
+            aria-label="Selector del color de marca"
             type="color"
             value={form.brandColor}
             onChange={(event) => updateOrg("brandColor", event.target.value)}
@@ -352,13 +358,13 @@ function CompanySection({ form, updateOrg, updateSettings, logoBusy, onUploadLog
         </div>
       </label>
       <div>
-        <TextField label="Hosted logo URL (optional)" name="logoUrl" type="url" autoComplete="url" value={form.logoUrl ?? ""} onChange={(value) => updateOrg("logoUrl", value || null)} placeholder="https://example.com/logo.png" />
-        <p className="mt-1 text-xs text-fg-dim">You can paste an existing hosted image instead of uploading a file.</p>
+        <TextField label="URL del logo (opcional)" name="logoUrl" type="url" autoComplete="url" value={form.logoUrl ?? ""} onChange={(value) => updateOrg("logoUrl", value || null)} placeholder="https://example.com/logo.png" />
+        <p className="mt-1 text-xs text-fg-dim">Puedes pegar la dirección de una imagen existente en lugar de cargar un archivo.</p>
       </div>
-      <TextField label="Public email" name="email" type="email" autoComplete="email" value={form.publicEmail ?? ""} onChange={(value) => updateOrg("publicEmail", value || null)} />
-      <TextField label="Public phone" name="tel" type="tel" autoComplete="tel" value={form.publicPhone ?? ""} onChange={(value) => updateOrg("publicPhone", value || null)} />
+      <TextField label="Correo público" name="email" type="email" autoComplete="email" value={form.publicEmail ?? ""} onChange={(value) => updateOrg("publicEmail", value || null)} />
+      <TextField label="Teléfono público" name="tel" type="tel" autoComplete="tel" value={form.publicPhone ?? ""} onChange={(value) => updateOrg("publicPhone", value || null)} />
       <div className="md:col-span-2">
-        <TextField label="Public address" name="street-address" autoComplete="street-address" value={form.publicAddress ?? ""} onChange={(value) => updateOrg("publicAddress", value || null)} />
+        <TextField label="Dirección pública" name="street-address" autoComplete="street-address" value={form.publicAddress ?? ""} onChange={(value) => updateOrg("publicAddress", value || null)} />
       </div>
       <label className="flex items-center gap-2 text-sm text-fg-muted md:col-span-2">
         <input
@@ -366,15 +372,15 @@ function CompanySection({ form, updateOrg, updateSettings, logoBusy, onUploadLog
           checked={form.removeOpenFieldProAttribution}
           onChange={(event) => updateOrg("removeOpenFieldProAttribution", event.target.checked)}
         />
-        Remove OpenFieldPro attribution on customer-facing documents
+        Quitar la marca «OpenFieldPro» de los documentos para el cliente
       </label>
     </div>
   );
 }
 
 const WORK_DAYS = [
-  ["sun", "Sun"], ["mon", "Mon"], ["tue", "Tue"], ["wed", "Wed"],
-  ["thu", "Thu"], ["fri", "Fri"], ["sat", "Sat"],
+  ["sun", "Dom"], ["mon", "Lun"], ["tue", "Mar"], ["wed", "Mié"],
+  ["thu", "Jue"], ["fri", "Vie"], ["sat", "Sáb"],
 ] as const;
 
 function BusinessHoursSection({ settings, updateSettings, errors }: SettingsProps & { errors: ReturnType<typeof validateBusinessHours> }) {
@@ -384,8 +390,8 @@ function BusinessHoursSection({ settings, updateSettings, errors }: SettingsProp
   return (
     <div className="grid gap-6">
       <fieldset>
-        <legend className="text-sm font-medium text-fg">Work days</legend>
-        <p className="mt-1 text-sm text-fg-muted">Choose the days customers can normally schedule service.</p>
+        <legend className="text-sm font-medium text-fg">Días laborables</legend>
+        <p className="mt-1 text-sm text-fg-muted">Elige los días en los que los clientes pueden programar un servicio.</p>
         <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-7">
           {WORK_DAYS.map(([value, label]) => (
             <label key={value} className={`grid min-h-11 cursor-pointer place-items-center rounded-lg border px-2 text-sm font-medium ${hours.workDays.includes(value) ? "border-accent bg-accent-muted text-accent" : "border-border bg-surface-200 text-fg-muted"}`}>
@@ -404,16 +410,16 @@ function BusinessHoursSection({ settings, updateSettings, errors }: SettingsProp
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="grid gap-1.5 text-sm text-fg-muted">
-          Opening time
+          Hora de apertura
           <Input name="openingTime" type="time" value={hours.startTime} onChange={(event) => updateHours({ startTime: event.target.value })} />
         </label>
         <label className="grid gap-1.5 text-sm text-fg-muted">
-          Closing time
+          Hora de cierre
           <Input aria-invalid={Boolean(errors.endTime)} aria-describedby={errors.endTime ? "closing-time-error" : undefined} name="closingTime" type="time" value={hours.endTime} onChange={(event) => updateHours({ endTime: event.target.value })} />
           {errors.endTime && <span id="closing-time-error" className="text-sm text-red">{errors.endTime}</span>}
         </label>
       </div>
-      <p className="rounded-lg border border-border bg-surface-200 p-3 text-sm text-fg-muted">Times use <strong className="text-fg">{hours.timezone}</strong>, synchronized with the Company timezone.</p>
+      <p className="rounded-lg border border-border bg-surface-200 p-3 text-sm text-fg-muted">Las horas usan <strong className="text-fg">{hours.timezone}</strong>, sincronizada con la zona horaria de la empresa.</p>
     </div>
   );
 }
@@ -428,22 +434,22 @@ function ServiceAreasSection({ settings, updateSettings }: SettingsProps) {
 
   return (
     <div>
-      <p className="text-sm text-fg-muted">Add ZIP codes, cities, counties, or named territories. Separate several entries with commas.</p>
+      <p className="text-sm text-fg-muted">Agrega distritos o zonas. Separa varios con comas.</p>
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
         <Input
-          aria-label="Service area"
+          aria-label="Zona de servicio"
           name="serviceArea"
-          placeholder="50309 or Des Moines"
+          placeholder="Miraflores o San Isidro"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); addAreas(); } }}
         />
-        <Button type="button" variant="secondary" disabled={!draft.trim() || settings.serviceAreas.length >= 50} onClick={addAreas}>Add area</Button>
+        <Button type="button" variant="secondary" disabled={!draft.trim() || settings.serviceAreas.length >= 50} onClick={addAreas}>Agregar zona</Button>
       </div>
       {settings.serviceAreas.length === 0 ? (
-        <div className="mt-5 rounded-xl border border-dashed border-border p-6 text-center text-sm text-fg-muted">No service areas added. Add the places your team serves.</div>
+        <div className="mt-5 rounded-xl border border-dashed border-border p-6 text-center text-sm text-fg-muted">No hay zonas agregadas. Agrega los lugares que atiendes.</div>
       ) : (
-        <ul className="mt-5 flex flex-wrap gap-2" aria-label="Configured service areas">
+        <ul className="mt-5 flex flex-wrap gap-2" aria-label="Zonas configuradas">
           {settings.serviceAreas.map((area) => (
             <li key={area} className="flex items-center gap-2 rounded-lg border border-border bg-surface-200 px-3 py-2 text-sm text-fg">
               <span className="break-words">{area}</span>
@@ -459,7 +465,7 @@ function ServiceAreasSection({ settings, updateSettings }: SettingsProps) {
           ))}
         </ul>
       )}
-      <p className="mt-3 text-xs text-fg-dim">{settings.serviceAreas.length} of 50 areas</p>
+      <p className="mt-3 text-xs text-fg-dim">{settings.serviceAreas.length} de 50 zonas</p>
     </div>
   );
 }
@@ -467,32 +473,32 @@ function ServiceAreasSection({ settings, updateSettings }: SettingsProps) {
 function InvoiceSection({ settings, updateSettings }: SettingsProps) {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <p className="rounded-lg border border-border bg-surface-200 px-3 py-2 text-xs text-fg-muted md:col-span-2">Your company logo and name are always included. Change the logo under Company settings.</p>
-      <SelectField label="Due term" value={settings.invoice.dueTerm} onChange={(value) => updateSettings({ ...settings, invoice: { ...settings.invoice, dueTerm: value as BusinessSettingsDTO["invoice"]["dueTerm"] } })}>
-        <option value="on_receipt">Due on receipt</option>
-        <option value="work_start">Due at start of work</option>
-        <option value="work_completion">Due on completion</option>
-        <option value="net_days">Net days</option>
+      <p className="rounded-lg border border-border bg-surface-200 px-3 py-2 text-xs text-fg-muted md:col-span-2">El logo y el nombre de tu empresa siempre se incluyen. Cambia el logo en la configuración de la empresa.</p>
+      <SelectField label="Plazo de pago" value={settings.invoice.dueTerm} onChange={(value) => updateSettings({ ...settings, invoice: { ...settings.invoice, dueTerm: value as BusinessSettingsDTO["invoice"]["dueTerm"] } })}>
+        <option value="on_receipt">Al recibir</option>
+        <option value="work_start">Al iniciar el trabajo</option>
+        <option value="work_completion">Al terminar el trabajo</option>
+        <option value="net_days">Días de plazo</option>
       </SelectField>
-      <NumberField label="Net days" value={settings.invoice.netDays} onChange={(value) => updateSettings({ ...settings, invoice: { ...settings.invoice, netDays: value } })} />
-      <SelectField label="Customer view format" value={settings.invoice.format} onChange={(value) => updateSettings({ ...settings, invoice: { ...settings.invoice, format: value as BusinessSettingsDTO["invoice"]["format"] } })}>
-        <option value="email">Email optimized</option>
-        <option value="envelope">Envelope / print optimized</option>
+      <NumberField label="Días de plazo" value={settings.invoice.netDays} onChange={(value) => updateSettings({ ...settings, invoice: { ...settings.invoice, netDays: value } })} />
+      <SelectField label="Formato para el cliente" value={settings.invoice.format} onChange={(value) => updateSettings({ ...settings, invoice: { ...settings.invoice, format: value as BusinessSettingsDTO["invoice"]["format"] } })}>
+        <option value="email">Optimizado para correo</option>
+        <option value="envelope">Optimizado para imprimir</option>
       </SelectField>
-      <TextField label="Reminder days" value={settings.invoice.reminderDays.join(", ")} onChange={(value) => updateSettings({ ...settings, invoice: { ...settings.invoice, reminderDays: splitCsv(value).map((item) => Number(item)).filter(Number.isFinite) } })} />
-      <TextArea label="Default invoice message" value={settings.invoice.defaultMessage} onChange={(value) => updateSettings({ ...settings, invoice: { ...settings.invoice, defaultMessage: value } })} />
-      <TextArea label="Payment instructions" value={settings.invoice.paymentInstructions} onChange={(value) => updateSettings({ ...settings, invoice: { ...settings.invoice, paymentInstructions: value } })} />
+      <TextField label="Días de recordatorio" value={settings.invoice.reminderDays.join(", ")} onChange={(value) => updateSettings({ ...settings, invoice: { ...settings.invoice, reminderDays: splitCsv(value).map((item) => Number(item)).filter(Number.isFinite) } })} />
+      <TextArea label="Mensaje predeterminado de la factura" value={settings.invoice.defaultMessage} onChange={(value) => updateSettings({ ...settings, invoice: { ...settings.invoice, defaultMessage: value } })} />
+      <TextArea label="Instrucciones de pago" value={settings.invoice.paymentInstructions} onChange={(value) => updateSettings({ ...settings, invoice: { ...settings.invoice, paymentInstructions: value } })} />
       <VisibilityGroup
-        title="Customer invoice view"
+        title="Vista de la factura para el cliente"
         values={settings.invoice.visibility}
         labels={{
-          showBusinessInfo: "Business contact details",
-          showCustomerInfo: "Customer info",
-          showJobInfo: "Job info",
-          showLineItems: "Line items",
-          showLineItemPrices: "Line-item prices",
-          showPayments: "Payments",
-          showBalance: "Balance",
+          showBusinessInfo: "Datos de contacto del negocio",
+          showCustomerInfo: "Datos del cliente",
+          showJobInfo: "Datos del trabajo",
+          showLineItems: "Conceptos",
+          showLineItemPrices: "Precios de los conceptos",
+          showPayments: "Pagos",
+          showBalance: "Saldo",
         }}
         onChange={(visibility) => updateSettings({ ...settings, invoice: { ...settings.invoice, visibility } })}
       />
@@ -503,21 +509,21 @@ function InvoiceSection({ settings, updateSettings }: SettingsProps) {
 function EstimateSection({ settings, updateSettings }: SettingsProps) {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <p className="rounded-lg border border-border bg-surface-200 px-3 py-2 text-xs text-fg-muted md:col-span-2">Your company logo and name are always included. Change the logo under Company settings.</p>
-      <NumberField label="Default expiration days" value={settings.estimate.expirationDays} onChange={(value) => updateSettings({ ...settings, estimate: { ...settings.estimate, expirationDays: value } })} />
-      <SelectField label="Approval mode" value={settings.estimate.approvalMode} onChange={(value) => updateSettings({ ...settings, estimate: { ...settings.estimate, approvalMode: value as BusinessSettingsDTO["estimate"]["approvalMode"] } })}>
-        <option value="single_option">Single option approval</option>
-        <option value="multiple_options">Multiple option approval</option>
+      <p className="rounded-lg border border-border bg-surface-200 px-3 py-2 text-xs text-fg-muted md:col-span-2">El logo y el nombre de tu empresa siempre se incluyen. Cambia el logo en la configuración de la empresa.</p>
+      <NumberField label="Días de vigencia predeterminados" value={settings.estimate.expirationDays} onChange={(value) => updateSettings({ ...settings, estimate: { ...settings.estimate, expirationDays: value } })} />
+      <SelectField label="Modo de aprobación" value={settings.estimate.approvalMode} onChange={(value) => updateSettings({ ...settings, estimate: { ...settings.estimate, approvalMode: value as BusinessSettingsDTO["estimate"]["approvalMode"] } })}>
+        <option value="single_option">Aprobación de una sola opción</option>
+        <option value="multiple_options">Aprobación de varias opciones</option>
       </SelectField>
-      <SelectField label="Deposit mode" value={settings.estimate.depositMode} onChange={(value) => updateSettings({ ...settings, estimate: { ...settings.estimate, depositMode: value as BusinessSettingsDTO["estimate"]["depositMode"] } })}>
-        <option value="none">No deposit</option>
-        <option value="fixed">Fixed amount</option>
-        <option value="percent">Percent</option>
+      <SelectField label="Modo de adelanto" value={settings.estimate.depositMode} onChange={(value) => updateSettings({ ...settings, estimate: { ...settings.estimate, depositMode: value as BusinessSettingsDTO["estimate"]["depositMode"] } })}>
+        <option value="none">Sin adelanto</option>
+        <option value="fixed">Monto fijo</option>
+        <option value="percent">Porcentaje</option>
       </SelectField>
-      <NumberField label="Deposit value" value={settings.estimate.depositValue} onChange={(value) => updateSettings({ ...settings, estimate: { ...settings.estimate, depositValue: value } })} />
-      <TextField label="Option labels" value={settings.estimate.optionLabels.join(", ")} onChange={(value) => {
+      <NumberField label="Valor del adelanto" value={settings.estimate.depositValue} onChange={(value) => updateSettings({ ...settings, estimate: { ...settings.estimate, depositValue: value } })} />
+      <TextField label="Nombres de las opciones" value={settings.estimate.optionLabels.join(", ")} onChange={(value) => {
         const labels = splitCsv(value);
-        updateSettings({ ...settings, estimate: { ...settings.estimate, optionLabels: [labels[0] || "Good", labels[1] || "Better", labels[2] || "Best"] } });
+        updateSettings({ ...settings, estimate: { ...settings.estimate, optionLabels: [labels[0] || "Básica", labels[1] || "Intermedia", labels[2] || "Completa"] } });
       }} />
       <label className="flex items-center gap-2 text-sm text-fg-muted">
         <input
@@ -525,19 +531,19 @@ function EstimateSection({ settings, updateSettings }: SettingsProps) {
           checked={settings.estimate.signatureRequired}
           onChange={(event) => updateSettings({ ...settings, estimate: { ...settings.estimate, signatureRequired: event.target.checked } })}
         />
-        Require customer signature
+        Exigir firma del cliente
       </label>
-      <TextArea label="Default estimate message" value={settings.estimate.defaultMessage} onChange={(value) => updateSettings({ ...settings, estimate: { ...settings.estimate, defaultMessage: value } })} />
+      <TextArea label="Mensaje predeterminado de la cotización" value={settings.estimate.defaultMessage} onChange={(value) => updateSettings({ ...settings, estimate: { ...settings.estimate, defaultMessage: value } })} />
       <VisibilityGroup
-        title="Customer estimate view"
+        title="Vista de la cotización para el cliente"
         values={settings.estimate.visibility}
         labels={{
-          showBusinessInfo: "Business contact details",
-          showCustomerInfo: "Customer info",
-          showJobInfo: "Job info",
-          showLineItems: "Line items",
-          showLineItemPrices: "Line-item prices",
-          showOptionSummary: "Good / Better / Best summary",
+          showBusinessInfo: "Datos de contacto del negocio",
+          showCustomerInfo: "Datos del cliente",
+          showJobInfo: "Datos del trabajo",
+          showLineItems: "Conceptos",
+          showLineItemPrices: "Precios de los conceptos",
+          showOptionSummary: "Resumen de opciones",
         }}
         onChange={(visibility) => updateSettings({ ...settings, estimate: { ...settings.estimate, visibility } })}
       />
@@ -550,10 +556,10 @@ function PaymentsSection({ settings, updateSettings }: SettingsProps) {
     updateSettings({ ...settings, payments: { ...settings.payments, [key]: value } });
   const payments = settings.payments;
   const methodRows = [
-    { id: "online" as const, label: "Pay online", enabled: payments.onlinePaymentsEnabled },
-    { id: "cash" as const, label: "Cash", enabled: payments.allowManualCash },
+    { id: "online" as const, label: "Pagar en línea", enabled: payments.onlinePaymentsEnabled },
+    { id: "cash" as const, label: "Efectivo", enabled: payments.allowManualCash },
     { id: "check" as const, label: "Check", enabled: payments.allowManualCheck },
-    { id: "card" as const, label: "Card", enabled: payments.allowManualCard },
+    { id: "card" as const, label: "Tarjeta", enabled: payments.allowManualCard },
   ];
   const enabledMethods = methodRows.filter((row) => row.enabled).map((row) => row.label);
   const noneEnabled = enabledMethods.length === 0;
@@ -563,12 +569,12 @@ function PaymentsSection({ settings, updateSettings }: SettingsProps) {
       <CheckboxGrid
         values={settings.payments}
         labels={{
-          onlinePaymentsEnabled: "Online payments enabled",
-          allowManualCash: "Cash payments",
-          allowManualCheck: "Check payments",
-          allowManualCard: "Manual card payments",
-          allowPartialPayments: "Partial payments",
-          tipsEnabled: "Tips",
+          onlinePaymentsEnabled: "Pagos en línea habilitados",
+          allowManualCash: "Pagos en efectivo",
+          allowManualCheck: "Pagos con cheque",
+          allowManualCard: "Pagos con tarjeta registrados manualmente",
+          allowPartialPayments: "Pagos parciales",
+          tipsEnabled: "Propinas",
         }}
         onChange={set}
       />
@@ -578,11 +584,11 @@ function PaymentsSection({ settings, updateSettings }: SettingsProps) {
         aria-live="polite"
         className={`rounded-xl border p-4 ${noneEnabled ? "border-red/30 bg-red/5" : "border-border bg-surface-200"}`}
       >
-        <p className="text-sm font-semibold text-fg">Customer-facing methods</p>
+        <p className="text-sm font-semibold text-fg">Métodos visibles para el cliente</p>
         <p className="mt-1 text-sm text-fg-muted">
           {noneEnabled
-            ? "No payment methods are enabled for customers. Enable online payments or at least one manual method so invoices can be settled."
-            : `Customers can pay by ${enabledMethods.join(", ")}.`}
+            ? "No hay métodos de pago habilitados para los clientes. Habilita los pagos en línea o al menos un método manual para poder cobrar las facturas."
+            : `Los clientes pueden pagar con ${enabledMethods.join(", ")}.`}
         </p>
         <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {methodRows.map((row) => (
@@ -598,9 +604,9 @@ function PaymentsSection({ settings, updateSettings }: SettingsProps) {
 
       {!payments.allowPartialPayments && (
         <div role="alert" className="rounded-xl border border-yellow/40 bg-yellow/10 p-4">
-          <p className="text-sm font-semibold text-fg">Partial payments are disabled</p>
+          <p className="text-sm font-semibold text-fg">Los pagos parciales están desactivados</p>
           <p className="mt-1 text-sm text-fg-muted">
-            Customers must pay the full balance at once. If you collect deposits or accept progress payments, enable partial payments.
+            Los clientes deben pagar el saldo completo. Si cobras adelantos o pagos por avance, habilita los pagos parciales.
           </p>
         </div>
       )}
@@ -620,7 +626,7 @@ function TaxesSection({ settings, updateSettings }: SettingsProps) {
       ...taxes,
       taxProfiles: [
         ...profiles,
-        { id, name: "New tax profile", rateBps: 0, isDefault: profiles.length === 0 },
+        { id, name: "Nuevo perfil de impuesto", rateBps: 0, isDefault: profiles.length === 0 },
       ],
     });
   };
@@ -634,7 +640,7 @@ function TaxesSection({ settings, updateSettings }: SettingsProps) {
 
   const addDiscount = () => {
     const id = `dc-${Math.random().toString(36).slice(2, 10)}`;
-    setTaxes({ ...taxes, discounts: [...discounts, { id, name: "New discount", type: "fixed", value: 0 }] });
+    setTaxes({ ...taxes, discounts: [...discounts, { id, name: "Nuevo descuento", type: "fixed", value: 0 }] });
   };
   const patchDiscount = (id: string, patch: Partial<BusinessSettingsDTO["taxes"]["discounts"][number]>) =>
     setTaxes({ ...taxes, discounts: discounts.map((discount) => (discount.id === id ? { ...discount, ...patch } : discount)) });
@@ -645,75 +651,75 @@ function TaxesSection({ settings, updateSettings }: SettingsProps) {
       <div className="flex flex-wrap items-center gap-4">
         <label className="flex items-center gap-2 text-sm text-fg-muted">
           <input checked={taxes.taxEnabled} onChange={(event) => setTaxes({ ...taxes, taxEnabled: event.target.checked })} type="checkbox" />
-          Enable taxes
+          Habilitar impuestos
         </label>
         <label className="flex items-center gap-2 text-sm text-fg-muted">
           <input checked={taxes.discountsEnabled} onChange={(event) => setTaxes({ ...taxes, discountsEnabled: event.target.checked })} type="checkbox" />
-          Enable discounts
+          Habilitar descuentos
         </label>
       </div>
 
       <section className="rounded-xl border border-border bg-surface-100 p-4">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-fg">Tax profiles</h3>
-            <p className="text-xs text-fg-muted">Named rates applied to estimates and invoices. The default profile is used when none is selected.</p>
+            <h3 className="text-sm font-semibold text-fg">Perfiles de impuestos</h3>
+            <p className="text-xs text-fg-muted">Tasas con nombre que se aplican a cotizaciones y facturas. Se usa el perfil predeterminado cuando no eliges otro.</p>
           </div>
-          <Button type="button" size="sm" variant="secondary" onClick={addProfile}>Add profile</Button>
+          <Button type="button" size="sm" variant="secondary" onClick={addProfile}>Agregar perfil</Button>
         </div>
         {profiles.length === 0 ? (
-          <p className="text-xs text-fg-muted">No profiles yet — add one to charge tax. The legacy single-rate field below still applies when no profile exists.</p>
+          <p className="text-xs text-fg-muted">Aún no hay perfiles: agrega uno para cobrar impuestos. Si no existe ninguno, se usa la tasa única de abajo.</p>
         ) : (
           <div className="grid gap-2">
             {profiles.map((profile) => (
               <div key={profile.id} className="grid grid-cols-[auto_1fr_auto_auto] items-end gap-3 rounded-lg bg-surface-200 p-3">
-                <label className="flex items-center gap-1.5 pb-2 text-xs text-fg-muted" title="Use as the default profile">
+                <label className="flex items-center gap-1.5 pb-2 text-xs text-fg-muted" title="Usar como perfil predeterminado">
                   <input
                     type="radio"
                     name="default-tax-profile"
                     checked={profile.isDefault}
                     onChange={() => setTaxes({ ...taxes, taxProfiles: profiles.map((p) => ({ ...p, isDefault: p.id === profile.id })) })}
                   />
-                  Default
+                  Predeterminado
                 </label>
-                <TextField label="Name" value={profile.name} onChange={(value) => patchProfile(profile.id, { name: value })} />
-                <NumberField label="Rate %" value={Math.round((profile.rateBps / 100) * 100) / 100} onChange={(value) => patchProfile(profile.id, { rateBps: Math.max(0, Math.min(10_000, Math.round(value * 100))) })} />
-                <Button type="button" size="sm" variant="danger" onClick={() => removeProfile(profile.id)}>Remove</Button>
+                <TextField label="Nombre" value={profile.name} onChange={(value) => patchProfile(profile.id, { name: value })} />
+                <NumberField label="Tasa %" value={Math.round((profile.rateBps / 100) * 100) / 100} onChange={(value) => patchProfile(profile.id, { rateBps: Math.max(0, Math.min(10_000, Math.round(value * 100))) })} />
+                <Button type="button" size="sm" variant="danger" onClick={() => removeProfile(profile.id)}>Quitar</Button>
               </div>
             ))}
           </div>
         )}
         <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
-          <TextField label="Fallback tax label" value={taxes.taxLabel} onChange={(value) => setTaxes({ ...taxes, taxLabel: value })} />
-          <NumberField label="Fallback rate (basis points)" value={taxes.defaultTaxRateBps} onChange={(value) => setTaxes({ ...taxes, defaultTaxRateBps: Math.max(0, Math.min(10_000, Math.round(value))) })} />
+          <TextField label="Nombre del impuesto por defecto" value={taxes.taxLabel} onChange={(value) => setTaxes({ ...taxes, taxLabel: value })} />
+          <NumberField label="Tasa por defecto (puntos básicos)" value={taxes.defaultTaxRateBps} onChange={(value) => setTaxes({ ...taxes, defaultTaxRateBps: Math.max(0, Math.min(10_000, Math.round(value))) })} />
         </div>
       </section>
 
       <section className="rounded-xl border border-border bg-surface-100 p-4">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-fg">Saved discounts</h3>
-            <p className="text-xs text-fg-muted">Reusable fixed or percentage discounts selectable on estimates and invoices.</p>
+            <h3 className="text-sm font-semibold text-fg">Descuentos guardados</h3>
+            <p className="text-xs text-fg-muted">Descuentos fijos o porcentuales reutilizables en cotizaciones y facturas.</p>
           </div>
-          <Button type="button" size="sm" variant="secondary" onClick={addDiscount}>Add discount</Button>
+          <Button type="button" size="sm" variant="secondary" onClick={addDiscount}>Agregar descuento</Button>
         </div>
         {discounts.length === 0 ? (
-          <p className="text-xs text-fg-muted">No saved discounts yet — add one to offer it from the estimate and invoice editors.</p>
+          <p className="text-xs text-fg-muted">Aún no hay descuentos guardados: agrega uno para ofrecerlo en las cotizaciones y facturas.</p>
         ) : (
           <div className="grid gap-2">
             {discounts.map((discount) => (
               <div key={discount.id} className="grid grid-cols-[1fr_auto_auto_auto] items-end gap-3 rounded-lg bg-surface-200 p-3">
-                <TextField label="Name" value={discount.name} onChange={(value) => patchDiscount(discount.id, { name: value })} />
-                <SelectField label="Type" value={discount.type} onChange={(value) => patchDiscount(discount.id, { type: value as "fixed" | "percent", value: 0 })}>
-                  <option value="fixed">Fixed amount</option>
-                  <option value="percent">Percent off</option>
+                <TextField label="Nombre" value={discount.name} onChange={(value) => patchDiscount(discount.id, { name: value })} />
+                <SelectField label="Tipo" value={discount.type} onChange={(value) => patchDiscount(discount.id, { type: value as "fixed" | "percent", value: 0 })}>
+                  <option value="fixed">Monto fijo</option>
+                  <option value="percent">Porcentaje de descuento</option>
                 </SelectField>
                 {discount.type === "fixed" ? (
-                  <NumberField label="Amount $" value={Math.round(discount.value) / 100} onChange={(value) => patchDiscount(discount.id, { value: Math.max(0, Math.round(value * 100)) })} />
+                  <NumberField label="Monto S/" value={Math.round(discount.value) / 100} onChange={(value) => patchDiscount(discount.id, { value: Math.max(0, Math.round(value * 100)) })} />
                 ) : (
-                  <NumberField label="Percent %" value={Math.round(discount.value) / 100} onChange={(value) => patchDiscount(discount.id, { value: Math.max(0, Math.min(10_000, Math.round(value * 100))) })} />
+                  <NumberField label="Porcentaje %" value={Math.round(discount.value) / 100} onChange={(value) => patchDiscount(discount.id, { value: Math.max(0, Math.min(10_000, Math.round(value * 100))) })} />
                 )}
-                <Button type="button" size="sm" variant="danger" onClick={() => removeDiscount(discount.id)}>Remove</Button>
+                <Button type="button" size="sm" variant="danger" onClick={() => removeDiscount(discount.id)}>Quitar</Button>
               </div>
             ))}
           </div>
@@ -726,10 +732,10 @@ function TaxesSection({ settings, updateSettings }: SettingsProps) {
 function NumberingSection({ settings, updateSettings }: SettingsProps) {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <TextField label="Invoice prefix" value={settings.numbering.invoicePrefix} onChange={(value) => updateSettings({ ...settings, numbering: { ...settings.numbering, invoicePrefix: value } })} />
-      <NumberField label="Next invoice number" value={settings.numbering.invoiceNextNumber} onChange={(value) => updateSettings({ ...settings, numbering: { ...settings.numbering, invoiceNextNumber: value } })} />
-      <TextField label="Estimate prefix" value={settings.numbering.estimatePrefix} onChange={(value) => updateSettings({ ...settings, numbering: { ...settings.numbering, estimatePrefix: value } })} />
-      <NumberField label="Next estimate number" value={settings.numbering.estimateNextNumber} onChange={(value) => updateSettings({ ...settings, numbering: { ...settings.numbering, estimateNextNumber: value } })} />
+      <TextField label="Prefijo de factura" value={settings.numbering.invoicePrefix} onChange={(value) => updateSettings({ ...settings, numbering: { ...settings.numbering, invoicePrefix: value } })} />
+      <NumberField label="Siguiente número de factura" value={settings.numbering.invoiceNextNumber} onChange={(value) => updateSettings({ ...settings, numbering: { ...settings.numbering, invoiceNextNumber: value } })} />
+      <TextField label="Prefijo de cotización" value={settings.numbering.estimatePrefix} onChange={(value) => updateSettings({ ...settings, numbering: { ...settings.numbering, estimatePrefix: value } })} />
+      <NumberField label="Siguiente número de cotización" value={settings.numbering.estimateNextNumber} onChange={(value) => updateSettings({ ...settings, numbering: { ...settings.numbering, estimateNextNumber: value } })} />
     </div>
   );
 }
@@ -741,11 +747,11 @@ function PortalSection({ settings, updateSettings }: SettingsProps) {
     <CheckboxGrid
       values={settings.portal}
       labels={{
-        enabled: "Customer portal enabled",
-        showSponsorSlot: "Show sponsor slot when allowed",
-        allowEstimateApproval: "Allow estimate approval",
-        allowInvoicePayment: "Allow invoice payment",
-        allowServiceHistory: "Show service history",
+        enabled: "Portal del cliente habilitado",
+        showSponsorSlot: "Mostrar espacio de auspicio cuando esté permitido",
+        allowEstimateApproval: "Permitir aprobar cotizaciones",
+        allowInvoicePayment: "Permitir pagar facturas",
+        allowServiceHistory: "Mostrar historial de servicios",
       }}
       onChange={set}
     />
@@ -753,9 +759,9 @@ function PortalSection({ settings, updateSettings }: SettingsProps) {
 }
 
 const ROLE_SUMMARY: { role: string; label: string; description: string }[] = [
-  { role: "owner", label: "Owner", description: "Full access: settings, team, finances, and every workflow." },
-  { role: "dispatcher", label: "Dispatcher", description: "Runs the schedule, dispatch board, jobs, and customer records." },
-  { role: "technician", label: "Technician", description: "Sees and closes out the jobs assigned to them." },
+  { role: "owner", label: "Propietario", description: "Acceso total: configuración, equipo, finanzas y todos los flujos." },
+  { role: "dispatcher", label: "Coordinador", description: "Gestiona la agenda, el despacho, los trabajos y los clientes." },
+  { role: "technician", label: "Especialista", description: "Ve y cierra los trabajos que tiene asignados." },
 ];
 
 /** Pulls { error, hint } out of an ApiError body for inline display. */
@@ -788,7 +794,7 @@ function TeamTab() {
         setUsers(rows);
         setMe(self);
       })
-      .catch(() => { if (!cancelled) setError("Failed to load the team."); })
+      .catch(() => { if (!cancelled) setError("No se pudo cargar el equipo."); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
@@ -798,13 +804,13 @@ function TeamTab() {
   const isLastOwner = (u: User) => u.role === "owner" && activeOwners.length === 1;
 
   const roleDisabledReason = (u: User) => {
-    if (u.id === me?.id) return "You cannot change your own role. Ask another owner.";
-    if (isLastOwner(u)) return "The final owner cannot be demoted. Promote another team member first.";
+    if (u.id === me?.id) return "No puedes cambiar tu propio rol. Pídelo a otro propietario.";
+    if (isLastOwner(u)) return "No se puede degradar al último propietario. Asigna ese rol a otra persona primero.";
     return undefined;
   };
   const deleteDisabledReason = (u: User) => {
-    if (u.id === me?.id) return "You cannot remove your own account. Another owner must do it.";
-    if (isLastOwner(u)) return "The final owner cannot be removed. Promote another team member first.";
+    if (u.id === me?.id) return "No puedes eliminar tu propia cuenta. Debe hacerlo otro propietario.";
+    if (isLastOwner(u)) return "No se puede eliminar al último propietario. Asigna ese rol a otra persona primero.";
     return undefined;
   };
 
@@ -841,8 +847,8 @@ function TeamTab() {
     <div className="grid gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>Roles & permissions</CardTitle>
-          <p className="text-sm text-fg-muted">Only owners can change roles or remove team members. The final owner can never be demoted or removed, and you cannot change your own role.</p>
+          <CardTitle>Roles y permisos</CardTitle>
+          <p className="text-sm text-fg-muted">Solo los propietarios pueden cambiar roles o quitar integrantes. El último propietario nunca puede ser degradado ni eliminado, y no puedes cambiar tu propio rol.</p>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-3">
           {ROLE_SUMMARY.map((role) => (
@@ -857,7 +863,7 @@ function TeamTab() {
       <Card className="overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Role</TableHead><TableHead className="w-24">Actions</TableHead></TableRow>
+            <TableRow><TableHead>Nombre</TableHead><TableHead>Correo</TableHead><TableHead>Rol</TableHead><TableHead className="w-24">Acciones</TableHead></TableRow>
           </TableHeader>
           <TableBody>
             {users.map((u) => {
@@ -868,7 +874,7 @@ function TeamTab() {
                 <TableRow key={u.id}>
                   <TableCell className="font-medium text-fg">
                     {u.name}
-                    {isSelf ? <span className="ml-2 rounded-full bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent">You</span> : null}
+                    {isSelf ? <span className="ml-2 rounded-full bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent">Tú</span> : null}
                   </TableCell>
                   <TableCell className="text-fg-muted">{u.email}</TableCell>
                   <TableCell>
@@ -877,20 +883,20 @@ function TeamTab() {
                       onChange={(e) => handleRoleChange(u.id, e.target.value)}
                       disabled={savingId === u.id || Boolean(roleReason)}
                       title={roleReason}
-                      aria-label={`Role for ${u.name}`}
+                      aria-label={`Rol de ${u.name}`}
                       className="h-8 rounded-md border border-border bg-surface-300 px-2 text-xs text-fg disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      <option value="owner">Owner</option>
-                      <option value="dispatcher">Dispatcher</option>
-                      <option value="technician">Technician</option>
+                      <option value="owner">Propietario</option>
+                      <option value="dispatcher">Coordinador</option>
+                      <option value="technician">Especialista</option>
                     </select>
                     {roleReason ? <p className="mt-1 max-w-56 text-xs text-fg-dim">{roleReason}</p> : null}
                   </TableCell>
                   <TableCell>
                     {confirmDelete === u.id ? (
                       <div className="flex gap-2">
-                        <button onClick={() => handleDelete(u.id)} className="border-none bg-transparent text-xs text-red">Confirm</button>
-                        <button onClick={() => setConfirmDelete(null)} className="border-none bg-transparent text-xs text-fg-muted">Cancel</button>
+                        <button onClick={() => handleDelete(u.id)} className="border-none bg-transparent text-xs text-red">Confirmar</button>
+                        <button onClick={() => setConfirmDelete(null)} className="border-none bg-transparent text-xs text-fg-muted">Cancelar</button>
                       </div>
                     ) : (
                       <button
@@ -899,7 +905,7 @@ function TeamTab() {
                         title={deleteReason}
                         className="border-none bg-transparent text-xs text-fg-muted hover:text-red disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        Delete
+                        Eliminar
                       </button>
                     )}
                   </TableCell>
@@ -933,20 +939,20 @@ function SettingsPreview({ form, tab }: { form: OrgSettingsDTO; tab: Exclude<Tab
         createdAt: new Date().toISOString(),
         payments: [{ amount: 10_000 }],
       },
-      customer: { name: "Taylor Morgan", email: "taylor@example.test", phone: "(515) 555-0142" },
-      job: { title: "Refrigerator cooling repair", description: "Replaced the failed evaporator fan and confirmed normal cabinet temperature." },
+      customer: { name: "Carlos Rojas", email: "taylor@example.test", phone: "(515) 555-0142" },
+      job: { title: "Reparación de fuga de agua", description: "Se reparó la tubería dañada y se verificó que no hay filtraciones." },
       lineItems: [
-        { description: "Diagnostic visit", quantity: 1, unitPrice: 12_900 },
-        { description: "Evaporator fan motor", quantity: 1, unitPrice: 21_900 },
-        { description: "Installation labor", quantity: 1, unitPrice: 7_900 },
+        { description: "Visita de diagnóstico", quantity: 1, unitPrice: 12_900 },
+        { description: "Tubería y accesorios", quantity: 1, unitPrice: 21_900 },
+        { description: "Mano de obra", quantity: 1, unitPrice: 7_900 },
       ],
       org: form,
     });
     const optionLabels = form.businessSettings.estimate.optionLabels;
     const estimateOptions = [
-      { id: "good", label: optionLabels[0] || "Good", lineItems: [{ description: "Repair failed fan motor", quantity: 1, unitPrice: 34_800 }] },
-      { id: "better", label: optionLabels[1] || "Better", lineItems: [{ description: "Fan motor repair plus maintenance", quantity: 1, unitPrice: 42_700 }] },
-      { id: "best", label: optionLabels[2] || "Best", lineItems: [{ description: "Premium repair with extended coverage", quantity: 1, unitPrice: 58_900 }] },
+      { id: "good", label: optionLabels[0] || "Básica", lineItems: [{ description: "Reparación de la tubería dañada", quantity: 1, unitPrice: 34_800 }] },
+      { id: "better", label: optionLabels[1] || "Intermedia", lineItems: [{ description: "Reparación más mantenimiento", quantity: 1, unitPrice: 42_700 }] },
+      { id: "best", label: optionLabels[2] || "Completa", lineItems: [{ description: "Reparación completa con acabados", quantity: 1, unitPrice: 58_900 }] },
     ];
     const estimateBase = {
       id: "settings-preview-estimate",
@@ -963,15 +969,15 @@ function SettingsPreview({ form, tab }: { form: OrgSettingsDTO; tab: Exclude<Tab
       label: option.label,
       html: estimateDocumentHtml({
         estimate: { ...estimateBase, selectedOptionId: option.id },
-        customer: { name: "Taylor Morgan", email: "taylor@example.test", phone: "(515) 555-0142" },
-        job: { title: "Refrigerator cooling repair", description: "Choose the repair scope that fits the customer’s needs." },
+        customer: { name: "Carlos Rojas", email: "taylor@example.test", phone: "(515) 555-0142" },
+        job: { title: "Reparación de fuga de agua", description: "Elige el alcance que se ajusta a lo que necesita el cliente." },
         lineItems: estimateOptions[0].lineItems,
         org: form,
       }),
     }));
     const documents: DocumentPreviewItem[] = [
-      { id: "invoice", label: "Invoice", html: invoiceHtml },
-      { id: "estimate", label: "Estimate", html: estimateVariants[0].html, variants: estimateVariants },
+      { id: "invoice", label: "Factura", html: invoiceHtml },
+      { id: "estimate", label: "Cotización", html: estimateVariants[0].html, variants: estimateVariants },
     ];
     return <DocumentPreviewWorkbench documents={documents} initialDocumentId={tab} compact fileName={`${tab}-preview.html`} />;
   }
@@ -979,46 +985,46 @@ function SettingsPreview({ form, tab }: { form: OrgSettingsDTO; tab: Exclude<Tab
   const workDays = WORK_DAYS.filter(([value]) => form.businessSettings.businessHours.workDays.includes(value)).map(([, label]) => label).join(", ");
   return (
     <Card>
-      <CardHeader><CardTitle>{tab === "hours" || tab === "areas" ? "Operations summary" : "Customer-facing preview"}</CardTitle></CardHeader>
+      <CardHeader><CardTitle>{tab === "hours" || tab === "areas" ? "Resumen de operaciones" : "Vista previa para el cliente"}</CardTitle></CardHeader>
       <CardContent>
         <div className="rounded-2xl border border-border bg-surface-200 p-5">
           <div className="flex items-center gap-3 border-b border-border pb-4">
             <div className="h-10 w-10 rounded-xl" style={{ background: form.brandColor }} />
             <div>
               <p className="text-sm font-bold text-fg">{form.name}</p>
-              <p className="text-xs text-fg-muted">{form.publicPhone || "No phone"} · {form.publicEmail || "No email"}</p>
+              <p className="text-xs text-fg-muted">{form.publicPhone || "Sin teléfono"} · {form.publicEmail || "Sin correo"}</p>
             </div>
           </div>
           {tab === "hours" ? (
             <div className="mt-4 grid gap-2 text-sm text-fg-muted">
-              <p><strong className="text-fg">Work days:</strong> {workDays || "None selected"}</p>
-              <p><strong className="text-fg">Hours:</strong> {form.businessSettings.businessHours.startTime}–{form.businessSettings.businessHours.endTime}</p>
-              <p><strong className="text-fg">Timezone:</strong> {form.businessSettings.businessHours.timezone}</p>
+              <p><strong className="text-fg">Días laborables:</strong> {workDays || "Ninguno seleccionado"}</p>
+              <p><strong className="text-fg">Horario:</strong> {form.businessSettings.businessHours.startTime}–{form.businessSettings.businessHours.endTime}</p>
+              <p><strong className="text-fg">Zona horaria:</strong> {form.businessSettings.businessHours.timezone}</p>
             </div>
           ) : tab === "areas" ? (
             <div className="mt-4 text-sm text-fg-muted">
-              <p><strong className="text-fg">{form.businessSettings.serviceAreas.length}</strong> configured service areas</p>
-              <p className="mt-2 break-words">{form.businessSettings.serviceAreas.join(", ") || "No service areas added yet."}</p>
+              <p><strong className="text-fg">{form.businessSettings.serviceAreas.length}</strong> zonas de servicio configuradas</p>
+              <p className="mt-2 break-words">{form.businessSettings.serviceAreas.join(", ") || "Aún no hay zonas de servicio."}</p>
             </div>
           ) : tab === "payments" ? (
             <div className="mt-4 grid gap-2 text-sm text-fg-muted">
-              <p><strong className="text-fg">Online payments:</strong> {form.businessSettings.payments.onlinePaymentsEnabled ? "enabled" : "disabled"}</p>
-              <p><strong className="text-fg">Manual methods:</strong> {[
-                form.businessSettings.payments.allowManualCash ? "Cash" : null,
+              <p><strong className="text-fg">Pagos en línea:</strong> {form.businessSettings.payments.onlinePaymentsEnabled ? "enabled" : "disabled"}</p>
+              <p><strong className="text-fg">Métodos manuales:</strong> {[
+                form.businessSettings.payments.allowManualCash ? "Efectivo" : null,
                 form.businessSettings.payments.allowManualCheck ? "Check" : null,
-                form.businessSettings.payments.allowManualCard ? "Card" : null,
-              ].filter(Boolean).join(", ") || "none enabled"}</p>
-              <p><strong className="text-fg">Partial payments:</strong> {form.businessSettings.payments.allowPartialPayments ? "allowed" : "blocked — full balance required"}</p>
-              <p><strong className="text-fg">Tips:</strong> {form.businessSettings.payments.tipsEnabled ? "enabled" : "disabled"}</p>
+                form.businessSettings.payments.allowManualCard ? "Tarjeta" : null,
+              ].filter(Boolean).join(", ") || "ninguno habilitado"}</p>
+              <p><strong className="text-fg">Pagos parciales:</strong> {form.businessSettings.payments.allowPartialPayments ? "allowed" : "bloqueados: se exige el saldo completo"}</p>
+              <p><strong className="text-fg">Propinas:</strong> {form.businessSettings.payments.tipsEnabled ? "enabled" : "disabled"}</p>
             </div>
           ) : (
             <div className="mt-4 grid gap-2 text-xs text-fg-muted">
-              <p>Invoice terms: {form.businessSettings.invoice.dueTerm === "net_days" ? `Net ${form.businessSettings.invoice.netDays}` : form.businessSettings.invoice.dueTerm.replaceAll("_", " ")}</p>
-              <p>Invoice number: {form.businessSettings.numbering.invoicePrefix}-{form.businessSettings.numbering.invoiceNextNumber}</p>
-              <p>Estimate: expires in {form.businessSettings.estimate.expirationDays} days · {form.businessSettings.estimate.approvalMode.replaceAll("_", " ")}</p>
-              <p>Payments: {form.businessSettings.payments.onlinePaymentsEnabled ? "online enabled" : "manual only"} · partial {form.businessSettings.payments.allowPartialPayments ? "allowed" : "blocked"}</p>
-              <p>Tax: {form.businessSettings.taxes.taxEnabled ? `${form.businessSettings.taxes.taxLabel} ${form.businessSettings.taxes.defaultTaxRateBps / 100}%` : "disabled"}</p>
-              <p>Portal: {form.businessSettings.portal.enabled ? "enabled" : "disabled"} · sponsor slot {form.businessSettings.portal.showSponsorSlot ? "allowed" : "hidden"}</p>
+              <p>Plazo de la factura: {form.businessSettings.invoice.dueTerm === "net_days" ? `${form.businessSettings.invoice.netDays} días` : (DUE_TERM_LABELS[form.businessSettings.invoice.dueTerm] ?? form.businessSettings.invoice.dueTerm)}</p>
+              <p>Número de factura: {form.businessSettings.numbering.invoicePrefix}-{form.businessSettings.numbering.invoiceNextNumber}</p>
+              <p>Cotización: vence en {form.businessSettings.estimate.expirationDays} días · {(form.businessSettings.estimate.approvalMode === "single_option" ? "una sola opción" : "varias opciones")}</p>
+              <p>Pagos: {form.businessSettings.payments.onlinePaymentsEnabled ? "en línea habilitados" : "solo manuales"} · parciales {form.businessSettings.payments.allowPartialPayments ? "allowed" : "blocked"}</p>
+              <p>Impuesto: {form.businessSettings.taxes.taxEnabled ? `${form.businessSettings.taxes.taxLabel} ${form.businessSettings.taxes.defaultTaxRateBps / 100}%` : "disabled"}</p>
+              <p>Portal: {form.businessSettings.portal.enabled ? "enabled" : "disabled"} · espacio de auspicio {form.businessSettings.portal.showSponsorSlot ? "allowed" : "hidden"}</p>
             </div>
           )}
         </div>

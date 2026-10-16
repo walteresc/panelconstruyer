@@ -338,8 +338,8 @@ export async function reportRoutes(app: FastifyInstance) {
       }
       default:
         return reply.code(400).send({
-          error: "unknown report",
-          hint: "report must be one of: ar-aging, estimate-conversion, revenue-trend, technician-scorecards",
+          error: "reporte desconocido",
+          hint: "el reporte debe ser uno de: ar-aging, estimate-conversion, revenue-trend, technician-scorecards",
         });
     }
   });

@@ -46,7 +46,7 @@ test("resolveTaxRate falls back to the legacy single rate without profiles", () 
   const resolved = resolveTaxRate(s);
   assert.equal(resolved.profileId, null);
   assert.equal(resolved.rateBps, 800);
-  assert.equal(resolved.label, "Sales tax");
+  assert.equal(resolved.label, "IGV");
 });
 
 test("resolveTaxRate returns zero when taxes are disabled", () => {

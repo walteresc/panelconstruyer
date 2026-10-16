@@ -8,14 +8,14 @@ export type InvoiceCreationBlock =
   | {
       statusCode: 400;
       body: {
-        error: "job has no billable total";
-        hint: "Add at least one billable line item before creating an invoice.";
+        error: "el trabajo no tiene un total facturable";
+        hint: "Agrega al menos un concepto facturable antes de crear una factura.";
       };
     }
   | {
       statusCode: 409;
       body: {
-        error: "job already has an active invoice";
+        error: "el trabajo ya tiene una factura activa";
         invoice: ExistingInvoiceSummary;
       };
     };
@@ -28,8 +28,8 @@ export function validateInvoiceCreation(
     return {
       statusCode: 400,
       body: {
-        error: "job has no billable total",
-        hint: "Add at least one billable line item before creating an invoice.",
+        error: "el trabajo no tiene un total facturable",
+        hint: "Agrega al menos un concepto facturable antes de crear una factura.",
       },
     };
   }
@@ -38,7 +38,7 @@ export function validateInvoiceCreation(
     return {
       statusCode: 409,
       body: {
-        error: "job already has an active invoice",
+        error: "el trabajo ya tiene una factura activa",
         invoice: existingInvoice,
       },
     };
