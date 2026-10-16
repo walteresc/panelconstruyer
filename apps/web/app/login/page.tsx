@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/lib/api";
+import { BrandLogo } from "@/components/brand-logo";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -33,9 +34,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-surface-100 p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-sm font-black text-white">
-            OF
-          </div>
+          <BrandLogo className="mb-3" />
           <CardTitle>Sign in</CardTitle>
           <CardDescription>Access your OpenFieldPro workspace.</CardDescription>
         </CardHeader>

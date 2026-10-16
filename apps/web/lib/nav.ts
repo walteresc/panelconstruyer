@@ -1,5 +1,5 @@
-// Shared navigation and auth helpers used by Sidebar, MobileNav, and CommandPalette.
-// OpenFieldPro is an open-source field-service operations platform with appliance-service workflows.
+// Navegación compartida por la barra lateral, el menú móvil y la paleta de comandos.
+// Construyer: panel interno de operaciones (solicitudes, trabajos, agenda, cotizaciones y facturas).
 
 export interface NavLink {
   href: string;
@@ -14,43 +14,40 @@ export interface NavSection {
 
 export const NAV_SECTIONS: NavSection[] = [
   {
-    label: "Field",
+    label: "Campo",
     links: [
-      { href: "/", label: "Today", icon: "◈" },
-      { href: "/jobs/new", label: "New Job", icon: "＋" },
-      { href: "/jobs", label: "Jobs", icon: "⊞" },
-      { href: "/diagnostics", label: "Diagnostics", icon: "⌁" },
+      { href: "/", label: "Hoy", icon: "◈" },
+      { href: "/jobs/new", label: "Nuevo trabajo", icon: "＋" },
+      { href: "/jobs", label: "Trabajos", icon: "⊞" },
     ],
   },
   {
-    label: "Operations",
+    label: "Operaciones",
     links: [
-      { href: "/dispatch", label: "Dispatch Board", icon: "⇄" },
-      { href: "/schedule", label: "Schedule", icon: "◐" },
-      { href: "/closeout", label: "Job Closeout", icon: "✓" },
-      { href: "/pipeline", label: "Pipeline", icon: "⊟" },
-      { href: "/customers", label: "Customers & Equipment", icon: "⊕" },
-      { href: "/estimates", label: "Estimates", icon: "◷" },
-      { href: "/invoices", label: "Invoices & Payments", icon: "◎" },
-      { href: "/service-plans", label: "Service Plans", icon: "◌" },
-      { href: "/documents", label: "Documents", icon: "▤" },
-      { href: "/price-book", label: "Price Book", icon: "⊡" },
+      { href: "/dispatch", label: "Despacho", icon: "⇄" },
+      { href: "/schedule", label: "Agenda", icon: "◐" },
+      { href: "/closeout", label: "Cierre de trabajos", icon: "✓" },
+      { href: "/pipeline", label: "Embudo", icon: "⊟" },
+      { href: "/customers", label: "Clientes y equipos", icon: "⊕" },
+      { href: "/estimates", label: "Cotizaciones", icon: "◷" },
+      { href: "/invoices", label: "Facturas y pagos", icon: "◎" },
+      { href: "/service-plans", label: "Planes de mantenimiento", icon: "◌" },
+      { href: "/documents", label: "Documentos", icon: "▤" },
+      { href: "/price-book", label: "Lista de precios", icon: "⊡" },
     ],
   },
   {
-    label: "Quality",
+    label: "Calidad",
     links: [
-      { href: "/diagnostic-library", label: "Diagnostic Library", icon: "⌘" },
-      { href: "/coverage", label: "Coverage & Quality", icon: "◇" },
-      { href: "/reviews", label: "Reviews", icon: "★" },
-      { href: "/reports", label: "Reports", icon: "◫" },
+      { href: "/reviews", label: "Reseñas", icon: "★" },
+      { href: "/reports", label: "Reportes", icon: "◫" },
     ],
   },
   {
-    label: "System",
+    label: "Sistema",
     links: [
-      { href: "/integrations", label: "Integrations", icon: "⧉" },
-      { href: "/settings", label: "Settings", icon: "⚙" },
+      { href: "/integrations", label: "Integraciones", icon: "⧉" },
+      { href: "/settings", label: "Configuración", icon: "⚙" },
     ],
   },
 ];

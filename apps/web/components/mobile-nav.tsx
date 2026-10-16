@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "@/components/brand-logo";
 import { NAV_SECTIONS, activeNavHref } from "@/lib/nav";
 import { useTheme } from "@/components/theme-provider";
 import { useSessionUser } from "@/lib/use-session-user";
@@ -63,11 +64,7 @@ export function MobileNav() {
       >
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-5">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent text-xs font-black text-white">OF</span>
-            <div>
-              <span className="block text-sm font-semibold text-fg">OpenFieldPro</span>
-              <span className="block text-[10px] text-fg-dim">Open field-service operations</span>
-            </div>
+            <BrandLogo subtitle="Operaciones" />
           </div>
           <button onClick={() => setOpen(false)} className="p-1 text-fg-muted hover:text-fg" aria-label="Close navigation menu">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">

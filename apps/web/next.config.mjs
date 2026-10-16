@@ -3,6 +3,7 @@ import path from "path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const apiOrigin = new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001").origin;
+const publicSite = (process.env.CONSTRUYER_SITE_URL ?? "https://construyer.com").replace(/\/$/, "");
 const developmentSockets = process.env.NODE_ENV === "production" ? "" : " ws://127.0.0.1:* ws://localhost:*";
 const developmentEval = process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'";
 const contentSecurityPolicy = [
@@ -23,6 +24,19 @@ const nextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
   outputFileTracingRoot: path.join(__dirname, "../../"),
   transpilePackages: ["@ofp/shared"],
+  // Módulos del producto base que no se usan en Construyer (diagnóstico de electrodomésticos, página comercial).
+  // La solicitud de servicio pública vive en la web de Construyer.
+  async redirects() {
+    return [
+      { source: "/diagnostics/:path*", destination: "/", permanent: false },
+      { source: "/diagnostic-library/:path*", destination: "/", permanent: false },
+      { source: "/coverage", destination: "/", permanent: false },
+      { source: "/welcome", destination: "/login", permanent: false },
+      { source: "/documents/preview", destination: "/documents", permanent: false },
+      { source: "/book", destination: `${publicSite}/cotizar/`, permanent: false },
+    ];
+  },
+
   async headers() {
     return [{
       source: "/(.*)",
