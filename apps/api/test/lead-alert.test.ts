@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildLeadAlertText } from "../src/lead-alert.js";
+import { buildLeadAlertText, buildLeadEmailText } from "../src/lead-alert.js";
 
 test("el aviso incluye referencia, servicio y enlace, pero no datos de contacto", () => {
   const text = buildLeadAlertText(
@@ -17,4 +17,20 @@ test("el aviso incluye referencia, servicio y enlace, pero no datos de contacto"
 test("sin URL del panel no agrega enlace", () => {
   const text = buildLeadAlertText({ reference: "C-1", jobId: "j", title: "t", customerName: "n" }, undefined);
   assert.doesNotMatch(text, /Ver:/);
+});
+
+test("el teléfono solo va en el aviso si se activa el interruptor, y nunca el correo", () => {
+  const alert = { reference: "C-1", jobId: "j", title: "t", customerName: "Ana", phone: "987654321", email: "ana@correo.com" };
+  assert.doesNotMatch(buildLeadAlertText(alert, undefined, false), /987654321/);
+  const withContact = buildLeadAlertText(alert, undefined, true);
+  assert.match(withContact, /Tel: 987654321/);
+  assert.doesNotMatch(withContact, /ana@correo\.com/);
+});
+
+test("el correo al dueño lleva todos los datos de la solicitud", () => {
+  const text = buildLeadEmailText(
+    { reference: "C-1", jobId: "j", title: "pintura · La Punta", customerName: "Ana", phone: "987654321", email: "ana@correo.com", details: "Pintar habitación", photos: 2 },
+    "https://app.construyer.com",
+  );
+  for (const part of ["987654321", "ana@correo.com", "Pintar habitación", "Fotos adjuntas: 2", "/jobs/j"]) assert.ok(text.includes(part), part);
 });

@@ -200,6 +200,9 @@ export async function publicRoutes(app: FastifyInstance) {
             title: `${q.category} · ${q.district}`,
             customerName: q.name,
             when: q.when === "date" ? q.date : WHEN_LABELS[q.when],
+            phone: q.phone,
+            email: q.email || undefined,
+            details: description,
           };
         } else if (part.type === "file") {
           if (!jobId) {
@@ -222,7 +225,7 @@ export async function publicRoutes(app: FastifyInstance) {
     }
 
     if (!jobId) return reply.code(400).send({ error: "falta el campo payload" });
-    if (alertData) void sendLeadAlert(alertData);
+    if (alertData) void sendLeadAlert({ ...alertData, photos: saved });
     return reply.code(201).send({ reference, photos: saved });
   });
 
@@ -245,7 +248,15 @@ export async function publicRoutes(app: FastifyInstance) {
       })
       .returning({ id: jobs.id });
     const reference = referenceOf(job.id);
-    void sendLeadAlert({ reference, jobId: job.id, title: "Mensaje de contacto (web)", customerName: m.name });
+    void sendLeadAlert({
+      reference,
+      jobId: job.id,
+      title: "Mensaje de contacto (web)",
+      customerName: m.name,
+      phone: m.phone,
+      email: m.email || undefined,
+      details: m.message,
+    });
     return reply.code(201).send({ ok: true, reference });
   });
 }
