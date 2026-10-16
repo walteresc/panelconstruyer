@@ -5,6 +5,7 @@ import { and, asc, eq } from "drizzle-orm";
 import { db, orgs, customers, jobs, properties } from "@ofp/db";
 import { createFixedWindowRateLimit, requestIpKey } from "../rate-limit.js";
 import { getOrgLogo, savePhoto } from "../uploads.js";
+import { sendLeadAlert, type LeadAlert } from "../lead-alert.js";
 
 const bookBody = z.object({
   name: z.string().trim().min(1).max(200),
@@ -139,6 +140,7 @@ export async function publicRoutes(app: FastifyInstance) {
     let jobId: string | null = null;
     let reference = "";
     let saved = 0;
+    let alertData: LeadAlert | null = null;
     try {
       for await (const part of req.parts()) {
         if (part.type === "field") {
@@ -192,6 +194,13 @@ export async function publicRoutes(app: FastifyInstance) {
           });
           jobId = created.id;
           reference = referenceOf(created.id);
+          alertData = {
+            reference,
+            jobId: created.id,
+            title: `${q.category} · ${q.district}`,
+            customerName: q.name,
+            when: q.when === "date" ? q.date : WHEN_LABELS[q.when],
+          };
         } else if (part.type === "file") {
           if (!jobId) {
             part.file.resume();
@@ -213,6 +222,7 @@ export async function publicRoutes(app: FastifyInstance) {
     }
 
     if (!jobId) return reply.code(400).send({ error: "falta el campo payload" });
+    if (alertData) void sendLeadAlert(alertData);
     return reply.code(201).send({ reference, photos: saved });
   });
 
@@ -234,6 +244,8 @@ export async function publicRoutes(app: FastifyInstance) {
         status: "lead",
       })
       .returning({ id: jobs.id });
-    return reply.code(201).send({ ok: true, reference: referenceOf(job.id) });
+    const reference = referenceOf(job.id);
+    void sendLeadAlert({ reference, jobId: job.id, title: "Mensaje de contacto (web)", customerName: m.name });
+    return reply.code(201).send({ ok: true, reference });
   });
 }
