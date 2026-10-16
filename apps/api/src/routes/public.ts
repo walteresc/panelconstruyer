@@ -1,9 +1,10 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
+import multipart from "@fastify/multipart";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
-import { db, orgs, customers, jobs } from "@ofp/db";
+import { and, asc, eq } from "drizzle-orm";
+import { db, orgs, customers, jobs, properties } from "@ofp/db";
 import { createFixedWindowRateLimit, requestIpKey } from "../rate-limit.js";
-import { getOrgLogo } from "../uploads.js";
+import { getOrgLogo, savePhoto } from "../uploads.js";
 
 const bookBody = z.object({
   name: z.string().trim().min(1).max(200),
@@ -22,7 +23,76 @@ const bookingRateLimit = createFixedWindowRateLimit({
   },
 });
 
+// ── Formularios de la web pública (construyer.com) ───────────────────────────
+// Instalación de una sola empresa: la solicitud entra en OFP_PUBLIC_ORG_ID o, si no
+// está definido, en la primera organización creada.
+const MAX_REQUEST_PHOTOS = 6;
+
+const WHEN_LABELS: Record<string, string> = {
+  asap: "Lo antes posible",
+  today: "Hoy",
+  tomorrow: "Mañana",
+  week: "Esta semana",
+  flexible: "Fecha flexible / aún no lo sabe",
+};
+
+const quoteRequestBody = z
+  .object({
+    category: z.string().trim().min(1).max(80),
+    description: z.string().trim().min(1).max(5_000),
+    district: z.string().trim().min(1).max(120),
+    address: z.string().trim().max(300).optional().default(""),
+    when: z.enum(["asap", "today", "tomorrow", "week", "flexible", "date"]),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    name: z.string().trim().min(1).max(200),
+    phone: z.string().trim().min(6).max(50),
+    email: z.string().trim().email().max(320).optional().or(z.literal("")),
+  })
+  .refine((v) => v.when !== "date" || Boolean(v.date), { path: ["date"], message: "falta la fecha" });
+
+const contactBody = z.object({
+  name: z.string().trim().min(1).max(200),
+  phone: z.string().trim().min(6).max(50),
+  email: z.string().trim().email().max(320).optional().or(z.literal("")),
+  message: z.string().trim().min(1).max(5_000),
+});
+
+const publicFormRateLimit = createFixedWindowRateLimit({
+  max: 10,
+  windowMs: 60 * 60 * 1000,
+  key: (request: FastifyRequest) => `form:${requestIpKey(request)}`,
+});
+
+async function resolvePublicOrgId(): Promise<string | null> {
+  const configured = process.env.OFP_PUBLIC_ORG_ID?.trim();
+  if (configured) return configured;
+  const [first] = await db.select({ id: orgs.id }).from(orgs).orderBy(asc(orgs.createdAt)).limit(1);
+  return first?.id ?? null;
+}
+
+/** Reutiliza al cliente que ya escribió con el mismo teléfono; si no existe, lo crea. */
+async function upsertLeadCustomer(
+  orgId: string,
+  data: { name: string; phone: string; email?: string },
+) {
+  const email = data.email ? data.email.toLowerCase() : undefined;
+  const [existing] = await db
+    .select()
+    .from(customers)
+    .where(and(eq(customers.orgId, orgId), eq(customers.phone, data.phone)))
+    .limit(1);
+  if (existing) return existing;
+  const [created] = await db.insert(customers).values({ orgId, name: data.name, phone: data.phone, email }).returning();
+  return created;
+}
+
+const referenceOf = (jobId: string) => `C-${jobId.slice(0, 8).toUpperCase()}`;
+
 export async function publicRoutes(app: FastifyInstance) {
+  await app.register(multipart, {
+    limits: { files: MAX_REQUEST_PHOTOS, fields: 4, fileSize: 10 * 1024 * 1024 },
+  });
+
   app.get("/:orgId/logo", async (req, reply) => {
     const { orgId } = req.params as { orgId: string };
     const logo = await getOrgLogo(orgId);
@@ -58,5 +128,112 @@ export async function publicRoutes(app: FastifyInstance) {
     });
 
     return reply.code(201).send({ ok: true, requestId: job.id });
+  });
+
+  // Cotizador de la web: multipart con el campo `payload` (JSON, debe ir primero) y hasta 6 `photos`.
+  app.post("/requests", { preHandler: publicFormRateLimit }, async (req, reply) => {
+    if (!req.isMultipart()) return reply.code(400).send({ error: "se esperaba multipart/form-data" });
+    const orgId = await resolvePublicOrgId();
+    if (!orgId) return reply.code(503).send({ error: "el sistema aún no está configurado" });
+
+    let jobId: string | null = null;
+    let reference = "";
+    let saved = 0;
+    try {
+      for await (const part of req.parts()) {
+        if (part.type === "field") {
+          if (part.fieldname !== "payload" || jobId) continue;
+          let raw: unknown;
+          try {
+            raw = JSON.parse(String(part.value));
+          } catch {
+            return reply.code(400).send({ error: "payload inválido" });
+          }
+          const parsed = quoteRequestBody.safeParse(raw);
+          if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() });
+          const q = parsed.data;
+
+          const when = q.when === "date" ? `Fecha elegida: ${q.date}` : WHEN_LABELS[q.when];
+          const description = [
+            `Categoría: ${q.category}`,
+            `Distrito: ${q.district}`,
+            q.address ? `Dirección o referencia: ${q.address}` : null,
+            `Cuándo lo necesita: ${when}`,
+            "",
+            q.description,
+            "",
+            "Origen: formulario de cotización de construyer.com",
+          ]
+            .filter((line) => line !== null)
+            .join("\n");
+
+          const customer = await upsertLeadCustomer(orgId, { name: q.name, phone: q.phone, email: q.email || undefined });
+          const created = await db.transaction(async (tx) => {
+            let propertyId: string | undefined;
+            if (q.address) {
+              const [property] = await tx
+                .insert(properties)
+                .values({ orgId, customerId: customer.id, address: `${q.address}, ${q.district}` })
+                .returning({ id: properties.id });
+              propertyId = property.id;
+            }
+            const [job] = await tx
+              .insert(jobs)
+              .values({
+                orgId,
+                customerId: customer.id,
+                propertyId,
+                title: `${q.category} · ${q.district}`.slice(0, 250),
+                description,
+                status: "lead",
+              })
+              .returning({ id: jobs.id });
+            return job;
+          });
+          jobId = created.id;
+          reference = referenceOf(created.id);
+        } else if (part.type === "file") {
+          if (!jobId) {
+            part.file.resume();
+            return reply.code(400).send({ error: "el campo payload debe enviarse antes que las fotos" });
+          }
+          try {
+            await savePhoto(orgId, jobId, { stream: part.file, filenameHint: part.filename ?? null });
+            saved += 1;
+          } catch (err) {
+            // Una foto inválida o demasiado grande no descarta la solicitud.
+            req.log.warn({ err }, "foto de solicitud pública omitida");
+            part.file.resume();
+          }
+        }
+      }
+    } catch (err) {
+      req.log.error({ err }, "solicitud pública falló");
+      if (!jobId) return reply.code(400).send({ error: "no se pudo leer la solicitud" });
+    }
+
+    if (!jobId) return reply.code(400).send({ error: "falta el campo payload" });
+    return reply.code(201).send({ reference, photos: saved });
+  });
+
+  app.post("/contact", { preHandler: publicFormRateLimit }, async (req, reply) => {
+    const parsed = contactBody.safeParse(req.body);
+    if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() });
+    const orgId = await resolvePublicOrgId();
+    if (!orgId) return reply.code(503).send({ error: "el sistema aún no está configurado" });
+
+    const m = parsed.data;
+    const customer = await upsertLeadCustomer(orgId, { name: m.name, phone: m.phone, email: m.email || undefined });
+    const [job] = await db
+      .insert(jobs)
+      .values({
+        orgId,
+        customerId: customer.id,
+        title: "Mensaje de contacto (web)",
+        description: `${m.message}\n\nOrigen: formulario de contacto de construyer.com`,
+        status: "lead",
+      })
+      .returning({ id: jobs.id });
+    return reply.code(201).send({ ok: true, reference: referenceOf(job.id) });
   });
 }
