@@ -203,6 +203,9 @@ export async function publicRoutes(app: FastifyInstance) {
             phone: q.phone,
             email: q.email || undefined,
             details: description,
+            category: q.category,
+            district: q.district,
+            summary: q.description,
           };
         } else if (part.type === "file") {
           if (!jobId) {
@@ -256,6 +259,7 @@ export async function publicRoutes(app: FastifyInstance) {
       phone: m.phone,
       email: m.email || undefined,
       details: m.message,
+      summary: m.message,
     });
     return reply.code(201).send({ ok: true, reference });
   });

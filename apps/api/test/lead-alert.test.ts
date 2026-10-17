@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildLeadAlertText, buildLeadEmailText, whatsappLink } from "../src/lead-alert.js";
+import { buildLeadAlertText, buildLeadEmailText, whatsappLink, whatsappMessage } from "../src/lead-alert.js";
 
 test("el aviso incluye referencia, servicio y enlace, pero no datos de contacto", () => {
   const text = buildLeadAlertText(
@@ -49,9 +49,20 @@ test("el aviso trae el enlace de respuesta solo con el interruptor activo", () =
   assert.doesNotMatch(buildLeadAlertText(alert, undefined, false), /wa\.me/);
 });
 
-test("el aviso puede omitir el enlace de respuesta (ntfy ya trae el botón)", () => {
+test("con botones (ntfy) el texto no repite los enlaces", () => {
   const alert = { reference: "C-1", jobId: "j", title: "t", customerName: "Ana", phone: "987654321" };
-  const text = buildLeadAlertText(alert, undefined, true, false);
+  const text = buildLeadAlertText(alert, "https://app.construyer.com", true, true);
   assert.match(text, /Tel: 987654321/);
-  assert.doesNotMatch(text, /wa\.me/);
+  assert.doesNotMatch(text, /wa\.me|Ver:|Responder:/);
+});
+
+test("el mensaje de WhatsApp cita lo que escribió el cliente, sin depender del código", () => {
+  const base = { reference: "C-1", jobId: "j", title: "t", customerName: "Ana", category: "pintura", district: "La Punta", summary: "Pintar\nhabitación   completa" };
+  assert.equal(
+    whatsappMessage(base),
+    "Hola Ana, te escribimos de Construyer. Recibimos tu solicitud de pintura en La Punta: «Pintar habitación completa». ¿Te parece si coordinamos los detalles?",
+  );
+  assert.match(whatsappMessage({ ...base, summary: "x".repeat(300) }), /x{157}…»/);
+  assert.match(whatsappMessage({ reference: "C-1", jobId: "j", title: "t", customerName: "Ana", summary: "Consulta" }), /Recibimos tu mensaje: «Consulta»/);
+  assert.match(whatsappMessage({ reference: "C-9", jobId: "j", title: "t", customerName: "Ana" }), /\(C-9\)/);
 });

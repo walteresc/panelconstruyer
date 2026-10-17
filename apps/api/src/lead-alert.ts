@@ -21,6 +21,20 @@ export interface LeadAlert {
   /** Texto completo de la solicitud (solo va en el correo). */
   details?: string;
   photos?: number;
+  /** Lo que el cliente escribió sobre su problema; se cita en el mensaje de WhatsApp. */
+  summary?: string;
+  category?: string;
+  district?: string;
+}
+
+/** Primer mensaje para el cliente: cita su pedido en lugar de solo el código. */
+export function whatsappMessage(alert: LeadAlert): string {
+  const quote = (alert.summary ?? "").replace(/\s+/g, " ").trim();
+  const short = quote.length > 160 ? `${quote.slice(0, 157).trimEnd()}…` : quote;
+  const what = alert.category && alert.district ? `tu solicitud de ${alert.category} en ${alert.district}` : "tu mensaje";
+  const intro = `Hola ${alert.customerName}, te escribimos de Construyer.`;
+  if (!short) return `${intro} Recibimos ${what} (${alert.reference}). ¿Coordinamos los detalles?`;
+  return `${intro} Recibimos ${what}: «${short}». ¿Te parece si coordinamos los detalles?`;
 }
 
 /** Enlace wa.me para escribirle al cliente; acepta celulares peruanos de 9 dígitos o con código de país. */
@@ -28,18 +42,18 @@ export function whatsappLink(alert: LeadAlert): string | null {
   let digits = (alert.phone ?? "").replace(/\D/g, "");
   if (digits.length === 9 && digits.startsWith("9")) digits = `51${digits}`;
   if (digits.length < 10) return null;
-  const text = `Hola ${alert.customerName}, te escribimos de Construyer por tu solicitud ${alert.reference}.`;
-  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(whatsappMessage(alert))}`;
 }
 
-export function buildLeadAlertText(alert: LeadAlert, panelUrl: string | undefined, includeContact = false, replyLink = true): string {
+/** `hasButtons`: el canal (ntfy) ya trae botones para responder y abrir el panel, así que no se repiten los enlaces. */
+export function buildLeadAlertText(alert: LeadAlert, panelUrl: string | undefined, includeContact = false, hasButtons = false): string {
   const lines = [
     `Nueva solicitud ${alert.reference}`,
     `${alert.title} — ${alert.customerName}`,
     alert.when ? `Cuándo: ${alert.when}` : null,
     includeContact && alert.phone ? `Tel: ${alert.phone}` : null,
-    includeContact && replyLink && whatsappLink(alert) ? `Responder: ${whatsappLink(alert)}` : null,
-    panelUrl ? `Ver: ${panelUrl.replace(/\/$/, "")}/jobs/${alert.jobId}` : null,
+    includeContact && !hasButtons && whatsappLink(alert) ? `Responder: ${whatsappLink(alert)}` : null,
+    !hasButtons && panelUrl ? `Ver: ${panelUrl.replace(/\/$/, "")}/jobs/${alert.jobId}` : null,
   ];
   return lines.filter((line): line is string => line !== null).join("\n");
 }
@@ -101,13 +115,19 @@ export async function sendLeadAlert(alert: LeadAlert, env: NodeJS.ProcessEnv = p
   }
 
   if (env.NTFY_URL) {
-    // Al tocar el aviso se abre el trabajo en el panel; con el interruptor activo, un botón abre WhatsApp con el cliente.
+    // Tocar el aviso abre el trabajo en el panel; además hay botones para abrirlo y (con el interruptor) para escribirle al cliente.
+    const includeContact = env.LEAD_ALERT_INCLUDE_CONTACT === "true";
+    const panel = env.PUBLIC_WEB_URL ? `${env.PUBLIC_WEB_URL.replace(/\/$/, "")}/jobs/${alert.jobId}` : null;
+    const wa = includeContact ? whatsappLink(alert) : null;
     const headers: Record<string, string> = { Title: "Nueva solicitud" };
-    if (env.PUBLIC_WEB_URL) headers.Click = `${env.PUBLIC_WEB_URL.replace(/\/$/, "")}/jobs/${alert.jobId}`;
-    const wa = env.LEAD_ALERT_INCLUDE_CONTACT === "true" ? whatsappLink(alert) : null;
-    if (wa) headers.Actions = `view, Responder por WhatsApp, ${wa}, clear=true`;
-    // Con el botón de WhatsApp el enlace largo sobra en el texto.
-    const ntfyText = wa ? buildLeadAlertText(alert, env.PUBLIC_WEB_URL, true, false) : text;
+    const actions: string[] = [];
+    if (panel) {
+      headers.Click = panel;
+      actions.push(`view, Abrir en el panel, ${panel}`);
+    }
+    if (wa) actions.push(`view, Responder por WhatsApp, ${wa}`);
+    if (actions.length > 0) headers.Actions = actions.join("; ");
+    const ntfyText = buildLeadAlertText(alert, env.PUBLIC_WEB_URL, includeContact, actions.length > 0);
     tasks.push(post(env.NTFY_URL, { method: "POST", headers, body: ntfyText }));
   }
 
