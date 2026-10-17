@@ -58,6 +58,25 @@ export function whatsappLink(alert: LeadAlert): string | null {
   return `https://wa.me/${digits}?text=${encodeURIComponent(whatsappMessage(alert))}`;
 }
 
+/** Escapa los caracteres con significado en Markdown para que el texto del cliente no rompa el formato. */
+function escapeMarkdown(text: string): string {
+  return text.replace(/([\\`*_{}[\]()#+!|<>~])/g, "\\$1");
+}
+
+/** Aviso para ntfy (Markdown): títulos en negrita y un dato por línea. El título de la notificación lleva la referencia. */
+export function buildLeadAlertMarkdown(alert: LeadAlert, includeContact = false): string {
+  const item = (label: string, value: string | undefined | null) => (value ? `- **${label}:** ${escapeMarkdown(value)}` : null);
+  const lines = [
+    alert.category ? item("Servicio", alert.category) : item("Tipo", alert.title),
+    item("Zona", alert.district),
+    item("Cliente", alert.customerName),
+    item("Pidió", alert.summary ? `«${truncate(alert.summary, 220)}»` : null),
+    item("Cuándo", alert.when),
+    includeContact ? item("Teléfono", alert.phone) : null,
+  ];
+  return lines.filter((line): line is string => line !== null).join("\n");
+}
+
 /** `hasButtons`: el canal (ntfy) ya trae botones para responder y abrir el panel, así que no se repiten los enlaces. */
 export function buildLeadAlertText(alert: LeadAlert, panelUrl: string | undefined, includeContact = false, hasButtons = false): string {
   const lines = [
@@ -141,7 +160,9 @@ export async function sendLeadAlert(alert: LeadAlert, env: NodeJS.ProcessEnv = p
     }
     if (wa) actions.push(`view, Responder por WhatsApp, ${wa}`);
     if (actions.length > 0) headers.Actions = actions.join("; ");
-    const ntfyText = buildLeadAlertText(alert, env.PUBLIC_WEB_URL, includeContact, actions.length > 0);
+    headers.Title = `Nueva solicitud ${alert.reference}`;
+    headers.Markdown = "yes";
+    const ntfyText = buildLeadAlertMarkdown(alert, includeContact);
     tasks.push(post(env.NTFY_URL, { method: "POST", headers, body: ntfyText }));
   }
 

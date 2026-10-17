@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildLeadAlertText, buildLeadEmailText, whatsappLink, whatsappMessage } from "../src/lead-alert.js";
+import { buildLeadAlertMarkdown, buildLeadAlertText, buildLeadEmailText, whatsappLink, whatsappMessage } from "../src/lead-alert.js";
 
 test("el aviso incluye referencia, servicio y enlace, pero no datos de contacto", () => {
   const text = buildLeadAlertText(
@@ -82,4 +82,16 @@ test("el aviso muestra lo que escribió el cliente, resumido", () => {
   assert.match(buildLeadAlertText(alert, undefined), /Pidió: «Fuga de agua bajo el lavadero»/);
   assert.match(buildLeadAlertText({ ...alert, summary: "y".repeat(500) }, undefined), /Pidió: «y{219}…»/);
   assert.doesNotMatch(buildLeadAlertText({ ...alert, summary: undefined }, undefined), /Pidió/);
+});
+
+test("el aviso de ntfy usa Markdown: títulos en negrita, un dato por línea y texto del cliente escapado", () => {
+  const md = buildLeadAlertMarkdown(
+    { reference: "C-1", jobId: "j", title: "t", customerName: "Ana", category: "Pintura", district: "La Punta", summary: "Pintar *todo* [ya]", when: "Hoy", phone: "987654321" },
+    true,
+  );
+  assert.equal(
+    md,
+    ["- **Servicio:** Pintura", "- **Zona:** La Punta", "- **Cliente:** Ana", "- **Pidió:** «Pintar \\*todo\\* \\[ya\\]»", "- **Cuándo:** Hoy", "- **Teléfono:** 987654321"].join("\n"),
+  );
+  assert.doesNotMatch(buildLeadAlertMarkdown({ reference: "C-1", jobId: "j", title: "t", customerName: "Ana", phone: "987654321" }, false), /Teléfono/);
 });
