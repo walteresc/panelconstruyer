@@ -27,6 +27,11 @@ export interface LeadAlert {
   district?: string;
 }
 
+function truncate(text: string, max: number): string {
+  const clean = text.replace(/\s+/g, " ").trim();
+  return clean.length > max ? `${clean.slice(0, max - 1).trimEnd()}…` : clean;
+}
+
 /** Primer mensaje para el cliente: cita su pedido en lugar de solo el código. */
 export function whatsappMessage(alert: LeadAlert): string {
   const quote = (alert.summary ?? "").replace(/\s+/g, " ").trim();
@@ -50,6 +55,7 @@ export function buildLeadAlertText(alert: LeadAlert, panelUrl: string | undefine
   const lines = [
     `Nueva solicitud ${alert.reference}`,
     `${alert.title} — ${alert.customerName}`,
+    alert.summary ? `Pidió: «${truncate(alert.summary, 220)}»` : null,
     alert.when ? `Cuándo: ${alert.when}` : null,
     includeContact && alert.phone ? `Tel: ${alert.phone}` : null,
     includeContact && !hasButtons && whatsappLink(alert) ? `Responder: ${whatsappLink(alert)}` : null,

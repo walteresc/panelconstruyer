@@ -66,3 +66,10 @@ test("el mensaje de WhatsApp cita lo que escribió el cliente, sin depender del 
   assert.match(whatsappMessage({ reference: "C-1", jobId: "j", title: "t", customerName: "Ana", summary: "Consulta" }), /Recibimos tu mensaje: «Consulta»/);
   assert.match(whatsappMessage({ reference: "C-9", jobId: "j", title: "t", customerName: "Ana" }), /\(C-9\)/);
 });
+
+test("el aviso muestra lo que escribió el cliente, resumido", () => {
+  const alert = { reference: "C-1", jobId: "j", title: "t", customerName: "Ana", summary: "Fuga de agua\nbajo el lavadero" };
+  assert.match(buildLeadAlertText(alert, undefined), /Pidió: «Fuga de agua bajo el lavadero»/);
+  assert.match(buildLeadAlertText({ ...alert, summary: "y".repeat(500) }, undefined), /Pidió: «y{219}…»/);
+  assert.doesNotMatch(buildLeadAlertText({ ...alert, summary: undefined }, undefined), /Pidió/);
+});
