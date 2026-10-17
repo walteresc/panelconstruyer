@@ -250,7 +250,7 @@ export default function ReportsPage() {
                   <div className="flex flex-col gap-1">
                     <RatingStars rating={data.rating.average} />
                     <p className="text-xs text-fg-muted">
-                      Basado en {data.rating.count} review{data.rating.count !== 1 ? "s" : ""}
+                      Basado en {data.rating.count} reseña{data.rating.count !== 1 ? "s" : ""}
                     </p>
                   </div>
                 </div>

@@ -773,7 +773,7 @@ export default function InvoiceDetailPage() {
                   <CardDescription>
                     {invoice.lineItems.length === 0
                       ? "Sin conceptos"
-                      : `${invoice.lineItems.length} item${invoice.lineItems.length !== 1 ? "s" : ""}`}
+                      : `${invoice.lineItems.length} concepto${invoice.lineItems.length !== 1 ? "s" : ""}`}
                     {invoice.status === "draft" ? "· Editable mientras es borrador" : "· Se bloquea al enviarla"}
                   </CardDescription>
                 </CardHeader>
@@ -862,7 +862,7 @@ export default function InvoiceDetailPage() {
                   <CardDescription>
                     {invoice.payments.length === 0
                       ? "Aún no hay pagos"
-                      : `${invoice.payments.length} payment${invoice.payments.length !== 1 ? "s" : ""}`}
+                      : `${invoice.payments.length} pago${invoice.payments.length !== 1 ? "s" : ""}`}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

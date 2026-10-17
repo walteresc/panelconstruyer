@@ -227,7 +227,7 @@ export default function SchedulePage() {
     <div>
       <PageHeader
         title="Agenda"
-        description={`${appointments.length} appointment${appointments.length !== 1 ? "s" : ""}${search.trim() ? ` · ${filtered.length} match` : ""}`}
+        description={`${appointments.length} visita${appointments.length !== 1 ? "s" : ""}${search.trim() ? ` · ${filtered.length} coincidencia${filtered.length !== 1 ? "s" : ""}` : ""}`}
         actions={
           <div className="flex gap-2">
             <Link href="/jobs/new"><Button variant="secondary" size="sm">Nuevo trabajo</Button></Link>

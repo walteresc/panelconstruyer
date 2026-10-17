@@ -142,7 +142,7 @@ export default function ReviewsPage() {
     <div>
       <PageHeader
         title="Reseñas"
-        description={data ? `${data.count} review${data.count !== 1 ? "s" : ""} · ${data.average.toFixed(1)} avg` : ""}
+        description={data ? `${data.count} reseña${data.count !== 1 ? "s" : ""} · promedio ${data.average.toFixed(1)}` : ""}
       />
 
       {error && (

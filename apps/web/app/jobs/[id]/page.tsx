@@ -8,6 +8,7 @@ import { JobStatusBadge, InvoiceStatusBadge } from "@/components/status-badge";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { CustomerContact } from "@/components/customer-contact";
+import { ScheduleJob } from "@/components/schedule-job";
 
 interface Appointment {
   id: string;
@@ -189,11 +190,11 @@ export default async function JobDetailPage({
             <Card>
               <CardHeader>
                 <CardTitle>Visitas</CardTitle>
-                <CardDescription>{jobAppointments.length ? `${jobAppointments.length} appointment${jobAppointments.length === 1 ? "" : "s"}` : "Aún sin programar"}</CardDescription>
+                <CardDescription>{jobAppointments.length ? `${jobAppointments.length} visita${jobAppointments.length === 1 ? "" : "s"}` : "Aún sin programar"}</CardDescription>
               </CardHeader>
               <CardContent>
                 {jobAppointments.length === 0 ? (
-                  <Link href="/schedule"><Button variant="secondary" size="sm" className="w-full">Programar este trabajo</Button></Link>
+                  <ScheduleJob jobId={job.id} requestedDate={/Fecha elegida:\s*(\d{4}-\d{2}-\d{2})/.exec(job.description ?? "")?.[1]} />
                 ) : (
                   <div className="space-y-2">
                     {jobAppointments.map((appointment) => (
@@ -210,7 +211,7 @@ export default async function JobDetailPage({
             <Card>
               <CardHeader>
                 <CardTitle>Facturas</CardTitle>
-                <CardDescription>{jobInvoices.length ? `${jobInvoices.length} invoice${jobInvoices.length === 1 ? "" : "s"}` : "Aún no hay facturas"}</CardDescription>
+                <CardDescription>{jobInvoices.length ? `${jobInvoices.length} factura${jobInvoices.length === 1 ? "" : "s"}` : "Aún no hay facturas"}</CardDescription>
               </CardHeader>
               <CardContent>
                 {jobInvoices.length === 0 ? (
@@ -234,7 +235,7 @@ export default async function JobDetailPage({
             <Card>
               <CardHeader>
                 <CardTitle>Conceptos</CardTitle>
-                <CardDescription>{lineItems.length ? `${lineItems.length} item${lineItems.length === 1 ? "" : "s"}` : "Aún no hay conceptos"}</CardDescription>
+                <CardDescription>{lineItems.length ? `${lineItems.length} concepto${lineItems.length === 1 ? "" : "s"}` : "Aún no hay conceptos"}</CardDescription>
               </CardHeader>
               <CardContent>
                 {lineItems.length === 0 ? (

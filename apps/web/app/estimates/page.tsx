@@ -240,7 +240,7 @@ export default function EstimatesPage() {
     <div>
       <PageHeader
         title="Cotizaciones"
-        description={`${estimates.length} estimate${estimates.length !== 1 ? "s" : ""} · ${estimates.filter((e) => e.accepted).length} accepted`}
+        description={`${estimates.length} cotizaci${estimates.length !== 1 ? "ones" : "ón"} · ${estimates.filter((e) => e.accepted).length} aceptada${estimates.filter((e) => e.accepted).length !== 1 ? "s" : ""}`}
         actions={
           <Button onClick={openCreate} size="sm">
             ⊕ Crear cotización
