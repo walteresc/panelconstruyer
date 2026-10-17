@@ -1,3 +1,4 @@
+import { whatsappContactMessage, whatsappUrl } from "@ofp/shared";
 import { sendEmail } from "./mailer.js";
 
 // Aviso al dueño cuando entra una solicitud desde la web pública.
@@ -32,30 +33,20 @@ function truncate(text: string, max: number): string {
   return clean.length > max ? `${clean.slice(0, max - 1).trimEnd()}…` : clean;
 }
 
-/** Primer mensaje para el cliente: cita su pedido en lugar de solo el código. */
+/** Primer mensaje para el cliente (mismo texto que el botón «Copiar mensaje» del panel). */
 export function whatsappMessage(alert: LeadAlert): string {
-  const quote = (alert.summary ?? "").replace(/\s+/g, " ").trim();
-  const short = quote.length > 160 ? `${quote.slice(0, 157).trimEnd()}…` : quote;
-  const intro = `Hola ${alert.customerName}, te escribimos de *Construyer*.`;
-  const closing = "¿Te parece si coordinamos los detalles?";
-  if (!short) return `${intro}\n\nRecibimos tu solicitud ${alert.reference}.\n\n${closing}`;
-  // Formato de WhatsApp: *negrita*, líneas separadas y viñetas para que se lea de un vistazo.
-  const service = alert.category ? alert.category.charAt(0).toUpperCase() + alert.category.slice(1) : null;
-  const items = [
-    service ? `• *Servicio:* ${service}` : null,
-    alert.district ? `• *Zona:* ${alert.district}` : null,
-    `• *Detalle:* «${short}»`,
-  ].filter((line): line is string => line !== null);
-  const heading = service ? "Recibimos tu solicitud:" : "Recibimos tu mensaje:";
-  return `${intro}\n\n${heading}\n${items.join("\n")}\n\n${closing}`;
+  return whatsappContactMessage({
+    customerName: alert.customerName,
+    category: alert.category,
+    district: alert.district,
+    summary: alert.summary,
+    reference: alert.reference,
+  });
 }
 
 /** Enlace wa.me para escribirle al cliente; acepta celulares peruanos de 9 dígitos o con código de país. */
 export function whatsappLink(alert: LeadAlert): string | null {
-  let digits = (alert.phone ?? "").replace(/\D/g, "");
-  if (digits.length === 9 && digits.startsWith("9")) digits = `51${digits}`;
-  if (digits.length < 10) return null;
-  return `https://wa.me/${digits}?text=${encodeURIComponent(whatsappMessage(alert))}`;
+  return whatsappUrl(alert.phone, whatsappMessage(alert));
 }
 
 /** Escapa los caracteres con significado en Markdown para que el texto del cliente no rompa el formato. */

@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/page-header";
 import { JobStatusBadge, InvoiceStatusBadge } from "@/components/status-badge";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
+import { CustomerContact } from "@/components/customer-contact";
 
 interface Appointment {
   id: string;
@@ -179,7 +180,7 @@ export default async function JobDetailPage({
                 <CardContent className="space-y-3">
                   <Link href={`/customers/${customer.id}`} className="font-semibold text-fg-link">{customer.name}</Link>
                   {customer.email && <p className="text-xs text-fg-muted">{customer.email}</p>}
-                  {customer.phone && <p className="text-xs text-fg-muted">{customer.phone}</p>}
+                  <CustomerContact customerName={customer.name} phone={customer.phone} description={job.description} jobTitle={job.title} />
                   <p className="border-t border-border pt-3 text-xs text-fg-dim">Cliente desde {new Date(customer.createdAt).toLocaleDateString("es-PE")}</p>
                 </CardContent>
               </Card>
