@@ -189,6 +189,21 @@ export default function SchedulePage() {
       return next;
     });
   };
+  // Atajos de la barra: se resaltan cuando lo que se está viendo coincide con ellos.
+  const nowDate = new Date();
+  const tomorrowDate = new Date(nowDate);
+  tomorrowDate.setDate(nowDate.getDate() + 1);
+  const weekStartKey = (value: Date) => {
+    const start = new Date(value);
+    start.setDate(value.getDate() - value.getDay());
+    return dateKey(start);
+  };
+  const focusKey = dateKey(focusDate);
+  const isTodayActive = view === "day" && focusKey === dateKey(nowDate);
+  const isTomorrowActive = view === "day" && focusKey === dateKey(tomorrowDate);
+  const isThisWeekActive = view === "week" && weekStartKey(focusDate) === weekStartKey(nowDate);
+  const activeShortcut = "border-accent bg-accent text-white hover:bg-accent";
+
   const dateLabel = focusDate.toLocaleDateString("es-PE", {
     ...(view === "month" ? { month: "long" as const, year: "numeric" as const } : { weekday: "long" as const, month: "long" as const, day: "numeric" as const }),
   });
@@ -317,10 +332,20 @@ export default function SchedulePage() {
             </div>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <Button variant="secondary" size="sm" onClick={() => moveDate(-1)} aria-label="Anterior">← Anterior</Button>
-              <Button variant="secondary" size="sm" onClick={() => { setView("day"); setFocusDate(new Date()); }}>Hoy</Button>
               <Button
                 variant="secondary"
                 size="sm"
+                aria-pressed={isTodayActive}
+                className={isTodayActive ? activeShortcut : undefined}
+                onClick={() => { setView("day"); setFocusDate(new Date()); }}
+              >
+                Hoy
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                aria-pressed={isTomorrowActive}
+                className={isTomorrowActive ? activeShortcut : undefined}
                 onClick={() => {
                   const tomorrow = new Date();
                   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -330,7 +355,15 @@ export default function SchedulePage() {
               >
                 Mañana
               </Button>
-              <Button variant="secondary" size="sm" onClick={() => { setView("week"); setFocusDate(new Date()); }}>Esta semana</Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                aria-pressed={isThisWeekActive}
+                className={isThisWeekActive ? activeShortcut : undefined}
+                onClick={() => { setView("week"); setFocusDate(new Date()); }}
+              >
+                Esta semana
+              </Button>
               <Button variant="secondary" size="sm" onClick={() => moveDate(1)} aria-label="Siguiente">Siguiente →</Button>
               <Input
                 type="date"
