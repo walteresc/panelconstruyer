@@ -273,8 +273,8 @@ export default function SchedulePage() {
       ) : (
         <>
           {/* ── View toggle + search ── */}
-          <div className="mb-4 flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center">
-            <div className="flex w-fit overflow-hidden rounded-lg border border-border" role="tablist" aria-label="Vista de agenda">
+          <div className="mb-4 flex min-w-0 flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
+            <div className="flex w-fit shrink-0 overflow-hidden rounded-lg border border-border" role="tablist" aria-label="Vista de agenda">
               <button
                 type="button"
                 role="tab"
@@ -317,8 +317,30 @@ export default function SchedulePage() {
             </div>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <Button variant="secondary" size="sm" onClick={() => moveDate(-1)} aria-label="Anterior">← Anterior</Button>
-              <Button variant="secondary" size="sm" onClick={() => setFocusDate(new Date())}>Hoy</Button>
+              <Button variant="secondary" size="sm" onClick={() => { setView("day"); setFocusDate(new Date()); }}>Hoy</Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  const tomorrow = new Date();
+                  tomorrow.setDate(tomorrow.getDate() + 1);
+                  setView("day");
+                  setFocusDate(tomorrow);
+                }}
+              >
+                Mañana
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => { setView("week"); setFocusDate(new Date()); }}>Esta semana</Button>
               <Button variant="secondary" size="sm" onClick={() => moveDate(1)} aria-label="Siguiente">Siguiente →</Button>
+              <Input
+                type="date"
+                aria-label="Ir a una fecha"
+                value={dateKey(focusDate)}
+                onChange={(event) => {
+                  if (event.target.value) setFocusDate(dateFromKey(event.target.value));
+                }}
+                className="h-8 w-auto min-w-0 px-2 text-xs"
+              />
               <p className="min-w-0 text-sm font-semibold text-fg" aria-live="polite">{dateLabel}</p>
             </div>
             <Input

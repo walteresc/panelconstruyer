@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { UserDTO } from "@ofp/shared";
 import { api } from "@/lib/api";
@@ -16,28 +16,43 @@ const DURATIONS = [
   { value: "240", label: "4 horas" },
 ];
 
-/** Fecha elegida por el cliente (si la hay) o mañana, a las 9:00, en el formato de <input type="datetime-local">. */
-function defaultStart(requestedDate?: string): string {
-  const date = new Date();
-  date.setDate(date.getDate() + 1);
-  if (requestedDate && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate)) {
-    const [y, m, d] = requestedDate.split("-").map(Number);
-    if (new Date(y, m - 1, d, 23, 59) > new Date()) date.setFullYear(y, m - 1, d);
-  }
-  date.setHours(9, 0, 0, 0);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+const QUICK_TIMES = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
+
+const pad = (n: number) => String(n).padStart(2, "0");
+const toKey = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+
+function addDays(base: Date, days: number): Date {
+  const next = new Date(base);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+/** Atajos de fecha: Hoy, Mañana y los 4 días siguientes con su nombre (ej. «sáb 17»). */
+function quickDates(today: Date): Array<{ key: string; label: string }> {
+  const weekday = new Intl.DateTimeFormat("es-PE", { weekday: "short", day: "numeric" });
+  return [0, 1, 2, 3, 4, 5].map((offset) => {
+    const date = addDays(today, offset);
+    const label = offset === 0 ? "Hoy" : offset === 1 ? "Mañana" : weekday.format(date).replace(".", "");
+    return { key: toKey(date), label };
+  });
 }
 
 export function ScheduleJob({ jobId, requestedDate }: { jobId: string; requestedDate?: string }) {
   const router = useRouter();
+  const today = useMemo(() => new Date(), []);
+  const todayKey = toKey(today);
   const [open, setOpen] = useState(false);
-  const [startsAt, setStartsAt] = useState(() => defaultStart(requestedDate));
+  // Fecha que pidió el cliente (si es futura) o mañana; hora por defecto 9:00.
+  const [date, setDate] = useState(() =>
+    requestedDate && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate) && requestedDate >= todayKey ? requestedDate : toKey(addDays(today, 1)),
+  );
+  const [time, setTime] = useState("09:00");
   const [duration, setDuration] = useState("60");
   const [technicianId, setTechnicianId] = useState("");
   const [technicians, setTechnicians] = useState<UserDTO[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const shortcuts = useMemo(() => quickDates(today), [today]);
 
   useEffect(() => {
     if (!open || technicians.length > 0) return;
@@ -49,14 +64,22 @@ export function ScheduleJob({ jobId, requestedDate }: { jobId: string; requested
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
-    if (!startsAt) {
+    if (!date || !time) {
       setError("Elige la fecha y la hora de inicio.");
+      return;
+    }
+    const start = new Date(`${date}T${time}`);
+    if (Number.isNaN(start.getTime())) {
+      setError("La fecha u hora no es válida.");
+      return;
+    }
+    if (start.getTime() < Date.now() - 60_000) {
+      setError("Esa hora ya pasó. Elige una fecha y hora futuras.");
       return;
     }
     setSaving(true);
     setError(null);
     try {
-      const start = new Date(startsAt);
       const end = new Date(start.getTime() + Number(duration) * 60_000);
       await api.createAppointment({
         jobId,
@@ -75,18 +98,61 @@ export function ScheduleJob({ jobId, requestedDate }: { jobId: string; requested
 
   if (!open) {
     return (
-      <Button variant="secondary" size="sm" className="w-full" onClick={() => setOpen(true)}>
+      <Button size="sm" className="w-full" onClick={() => setOpen(true)}>
         Programar este trabajo
       </Button>
     );
   }
 
+  const chip = (active: boolean) =>
+    `rounded-full border px-3 py-1 text-xs font-medium transition-colors cursor-pointer ${
+      active ? "border-accent bg-accent-muted text-accent" : "border-border bg-surface-200 text-fg-muted hover:text-fg"
+    }`;
+
   return (
-    <form onSubmit={submit} className="space-y-3">
+    <form onSubmit={submit} className="space-y-4">
       <div>
-        <label htmlFor="sj-start" className="mb-1.5 block text-xs font-semibold text-fg-muted">Fecha y hora de inicio</label>
-        <Input id="sj-start" type="datetime-local" value={startsAt} onChange={(event) => setStartsAt(event.target.value)} required />
+        <p className="mb-1.5 text-xs font-semibold text-fg-muted">Día</p>
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Atajos de fecha">
+          {shortcuts.map((shortcut) => (
+            <button key={shortcut.key} type="button" onClick={() => setDate(shortcut.key)} className={chip(date === shortcut.key)}>
+              {shortcut.label}
+            </button>
+          ))}
+        </div>
+        <Input
+          id="sj-date"
+          type="date"
+          aria-label="Otra fecha"
+          min={todayKey}
+          value={date}
+          onChange={(event) => setDate(event.target.value)}
+          required
+          className="mt-2"
+        />
       </div>
+
+      <div>
+        <p className="mb-1.5 text-xs font-semibold text-fg-muted">Hora de inicio</p>
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Atajos de hora">
+          {QUICK_TIMES.map((value) => (
+            <button key={value} type="button" onClick={() => setTime(value)} className={chip(time === value)}>
+              {value}
+            </button>
+          ))}
+        </div>
+        <Input
+          id="sj-time"
+          type="time"
+          aria-label="Otra hora"
+          step={900}
+          value={time}
+          onChange={(event) => setTime(event.target.value)}
+          required
+          className="mt-2"
+        />
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label htmlFor="sj-duration" className="mb-1.5 block text-xs font-semibold text-fg-muted">Duración</label>
@@ -116,6 +182,7 @@ export function ScheduleJob({ jobId, requestedDate }: { jobId: string; requested
           </select>
         </div>
       </div>
+
       {error && <p role="alert" className="rounded-lg border border-red/30 bg-red/5 px-3 py-2 text-xs text-red">{error}</p>}
       <div className="flex gap-2">
         <Button type="submit" size="sm" disabled={saving}>{saving ? "Programando…" : "Programar"}</Button>
