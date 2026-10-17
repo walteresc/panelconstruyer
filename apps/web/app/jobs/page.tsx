@@ -185,7 +185,7 @@ export default function JobsPage() {
         title="Trabajos"
         description={
           jobs.length > 0
-            ? `${filteredSorted.length} of ${jobs.length} total`
+            ? `${filteredSorted.length} de ${jobs.length} en total`
             : undefined
         }
         actions={
@@ -279,7 +279,9 @@ export default function JobsPage() {
                   paginated.map((j) => (
                     <TableRow key={j.id}>
                       <TableCell className="font-medium text-fg">
-                        {j.title}
+                        <Link href={`/jobs/${j.id}`} className="text-fg no-underline hover:text-accent hover:underline">
+                          {j.title}
+                        </Link>
                       </TableCell>
                       <TableCell>
                         <JobStatusBadge status={j.status} />

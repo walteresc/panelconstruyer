@@ -17,7 +17,7 @@ export function Pagination({ skip, take, total, onSkipChange }: PaginationProps)
     <div className="flex items-center justify-between pt-4 pb-2">
       {total !== undefined ? (
         <p className="text-xs text-fg-dim">
-          Mostrando {from}&ndash;{to} of {total}
+          Mostrando {from}&ndash;{to} de {total}
         </p>
       ) : (
         <div />

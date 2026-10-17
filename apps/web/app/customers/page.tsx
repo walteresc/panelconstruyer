@@ -216,7 +216,7 @@ export default function CustomersPage() {
         title="Clientes"
         description={
           customers.length > 0
-            ? `${filteredSorted.length} of ${customers.length} total`
+            ? `${filteredSorted.length} de ${customers.length} en total`
             : undefined
         }
         actions={

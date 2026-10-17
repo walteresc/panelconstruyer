@@ -231,7 +231,7 @@ export default async function PortalPage({
                           </span>
                         </div>
                         <p className="mt-2 text-xs text-fg-muted">
-                          {plan.visitsCompleted} of {plan.visitsIncluded} visitas usadas
+                          {plan.visitsCompleted} de {plan.visitsIncluded} visitas usadas
                           {plan.renewsAt ? ` · renews ${new Date(plan.renewsAt).toLocaleDateString("es-PE")}` : ""}
                         </p>
                         {plan.nextVisit ? (

@@ -252,7 +252,7 @@ export default function InvoicesPage() {
         title="Facturas"
         description={
           invoices.length > 0
-            ? `${filteredSorted.length} of ${invoices.length} total · ${formatMoney(outstanding)} outstanding`
+            ? `${filteredSorted.length} de ${invoices.length} en total · ${formatMoney(outstanding)} por cobrar`
             : undefined
         }
         actions={
