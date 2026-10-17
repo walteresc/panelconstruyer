@@ -23,12 +23,22 @@ export interface LeadAlert {
   photos?: number;
 }
 
+/** Enlace wa.me para escribirle al cliente; acepta celulares peruanos de 9 dígitos o con código de país. */
+export function whatsappLink(alert: LeadAlert): string | null {
+  let digits = (alert.phone ?? "").replace(/\D/g, "");
+  if (digits.length === 9 && digits.startsWith("9")) digits = `51${digits}`;
+  if (digits.length < 10) return null;
+  const text = `Hola ${alert.customerName}, te escribimos de Construyer por tu solicitud ${alert.reference}.`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
 export function buildLeadAlertText(alert: LeadAlert, panelUrl: string | undefined, includeContact = false): string {
   const lines = [
     `Nueva solicitud ${alert.reference}`,
     `${alert.title} — ${alert.customerName}`,
     alert.when ? `Cuándo: ${alert.when}` : null,
     includeContact && alert.phone ? `Tel: ${alert.phone}` : null,
+    includeContact && whatsappLink(alert) ? `Responder: ${whatsappLink(alert)}` : null,
     panelUrl ? `Ver: ${panelUrl.replace(/\/$/, "")}/jobs/${alert.jobId}` : null,
   ];
   return lines.filter((line): line is string => line !== null).join("\n");
@@ -42,6 +52,7 @@ export function buildLeadEmailText(alert: LeadAlert, panelUrl: string | undefine
     `Cliente: ${alert.customerName}`,
     alert.phone ? `Teléfono: ${alert.phone}` : null,
     alert.email ? `Correo: ${alert.email}` : null,
+    whatsappLink(alert) ? `Responder por WhatsApp: ${whatsappLink(alert)}` : null,
     alert.when ? `Cuándo: ${alert.when}` : null,
     alert.photos ? `Fotos adjuntas: ${alert.photos}` : null,
     "",
@@ -90,7 +101,12 @@ export async function sendLeadAlert(alert: LeadAlert, env: NodeJS.ProcessEnv = p
   }
 
   if (env.NTFY_URL) {
-    tasks.push(post(env.NTFY_URL, { method: "POST", headers: { Title: "Nueva solicitud" }, body: text }));
+    // Al tocar el aviso se abre el trabajo en el panel; con el interruptor activo, un botón abre WhatsApp con el cliente.
+    const headers: Record<string, string> = { Title: "Nueva solicitud" };
+    if (env.PUBLIC_WEB_URL) headers.Click = `${env.PUBLIC_WEB_URL.replace(/\/$/, "")}/jobs/${alert.jobId}`;
+    const wa = env.LEAD_ALERT_INCLUDE_CONTACT === "true" ? whatsappLink(alert) : null;
+    if (wa) headers.Actions = `view, Responder por WhatsApp, ${wa}, clear=true`;
+    tasks.push(post(env.NTFY_URL, { method: "POST", headers, body: text }));
   }
 
   const emailTo = env.LEAD_ALERT_EMAIL_TO?.trim();
