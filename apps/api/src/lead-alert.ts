@@ -32,13 +32,13 @@ export function whatsappLink(alert: LeadAlert): string | null {
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
 }
 
-export function buildLeadAlertText(alert: LeadAlert, panelUrl: string | undefined, includeContact = false): string {
+export function buildLeadAlertText(alert: LeadAlert, panelUrl: string | undefined, includeContact = false, replyLink = true): string {
   const lines = [
     `Nueva solicitud ${alert.reference}`,
     `${alert.title} — ${alert.customerName}`,
     alert.when ? `Cuándo: ${alert.when}` : null,
     includeContact && alert.phone ? `Tel: ${alert.phone}` : null,
-    includeContact && whatsappLink(alert) ? `Responder: ${whatsappLink(alert)}` : null,
+    includeContact && replyLink && whatsappLink(alert) ? `Responder: ${whatsappLink(alert)}` : null,
     panelUrl ? `Ver: ${panelUrl.replace(/\/$/, "")}/jobs/${alert.jobId}` : null,
   ];
   return lines.filter((line): line is string => line !== null).join("\n");
@@ -106,7 +106,9 @@ export async function sendLeadAlert(alert: LeadAlert, env: NodeJS.ProcessEnv = p
     if (env.PUBLIC_WEB_URL) headers.Click = `${env.PUBLIC_WEB_URL.replace(/\/$/, "")}/jobs/${alert.jobId}`;
     const wa = env.LEAD_ALERT_INCLUDE_CONTACT === "true" ? whatsappLink(alert) : null;
     if (wa) headers.Actions = `view, Responder por WhatsApp, ${wa}, clear=true`;
-    tasks.push(post(env.NTFY_URL, { method: "POST", headers, body: text }));
+    // Con el botón de WhatsApp el enlace largo sobra en el texto.
+    const ntfyText = wa ? buildLeadAlertText(alert, env.PUBLIC_WEB_URL, true, false) : text;
+    tasks.push(post(env.NTFY_URL, { method: "POST", headers, body: ntfyText }));
   }
 
   const emailTo = env.LEAD_ALERT_EMAIL_TO?.trim();

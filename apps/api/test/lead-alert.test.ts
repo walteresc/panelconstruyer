@@ -48,3 +48,10 @@ test("el aviso trae el enlace de respuesta solo con el interruptor activo", () =
   assert.match(buildLeadAlertText(alert, undefined, true), /Responder: https:\/\/wa\.me\/51987654321/);
   assert.doesNotMatch(buildLeadAlertText(alert, undefined, false), /wa\.me/);
 });
+
+test("el aviso puede omitir el enlace de respuesta (ntfy ya trae el botón)", () => {
+  const alert = { reference: "C-1", jobId: "j", title: "t", customerName: "Ana", phone: "987654321" };
+  const text = buildLeadAlertText(alert, undefined, true, false);
+  assert.match(text, /Tel: 987654321/);
+  assert.doesNotMatch(text, /wa\.me/);
+});
