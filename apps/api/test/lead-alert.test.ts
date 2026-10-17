@@ -60,11 +60,21 @@ test("el mensaje de WhatsApp cita lo que escribió el cliente, sin depender del 
   const base = { reference: "C-1", jobId: "j", title: "t", customerName: "Ana", category: "pintura", district: "La Punta", summary: "Pintar\nhabitación   completa" };
   assert.equal(
     whatsappMessage(base),
-    "Hola Ana, te escribimos de Construyer. Recibimos tu solicitud de pintura en La Punta: «Pintar habitación completa». ¿Te parece si coordinamos los detalles?",
+    [
+      "Hola Ana, te escribimos de *Construyer*.",
+      "",
+      "Recibimos tu solicitud:",
+      "• *Servicio:* Pintura",
+      "• *Zona:* La Punta",
+      "• *Detalle:* «Pintar habitación completa»",
+      "",
+      "¿Te parece si coordinamos los detalles?",
+    ].join("\n"),
   );
   assert.match(whatsappMessage({ ...base, summary: "x".repeat(300) }), /x{157}…»/);
-  assert.match(whatsappMessage({ reference: "C-1", jobId: "j", title: "t", customerName: "Ana", summary: "Consulta" }), /Recibimos tu mensaje: «Consulta»/);
-  assert.match(whatsappMessage({ reference: "C-9", jobId: "j", title: "t", customerName: "Ana" }), /\(C-9\)/);
+  const contacto = whatsappMessage({ reference: "C-1", jobId: "j", title: "t", customerName: "Ana", summary: "Consulta" });
+  assert.ok(contacto.includes("Recibimos tu mensaje:\n• *Detalle:* «Consulta»"));
+  assert.ok(whatsappMessage({ reference: "C-9", jobId: "j", title: "t", customerName: "Ana" }).includes("Recibimos tu solicitud C-9."));
 });
 
 test("el aviso muestra lo que escribió el cliente, resumido", () => {

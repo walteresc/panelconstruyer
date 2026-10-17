@@ -40,6 +40,7 @@ const WHEN_LABELS: Record<string, string> = {
 const quoteRequestBody = z
   .object({
     category: z.string().trim().min(1).max(80),
+    categoryLabel: z.string().trim().max(80).optional(),
     description: z.string().trim().min(1).max(5_000),
     district: z.string().trim().min(1).max(120),
     address: z.string().trim().max(300).optional().default(""),
@@ -154,10 +155,11 @@ export async function publicRoutes(app: FastifyInstance) {
           const parsed = quoteRequestBody.safeParse(raw);
           if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() });
           const q = parsed.data;
+          const service = q.categoryLabel || q.category;
 
           const when = q.when === "date" ? `Fecha elegida: ${q.date}` : WHEN_LABELS[q.when];
           const description = [
-            `Categoría: ${q.category}`,
+            `Categoría: ${service}`,
             `Distrito: ${q.district}`,
             q.address ? `Dirección o referencia: ${q.address}` : null,
             `Cuándo lo necesita: ${when}`,
@@ -185,7 +187,7 @@ export async function publicRoutes(app: FastifyInstance) {
                 orgId,
                 customerId: customer.id,
                 propertyId,
-                title: `${q.category} · ${q.district}`.slice(0, 250),
+                title: `${service} · ${q.district}`.slice(0, 250),
                 description,
                 status: "lead",
               })
@@ -197,13 +199,13 @@ export async function publicRoutes(app: FastifyInstance) {
           alertData = {
             reference,
             jobId: created.id,
-            title: `${q.category} · ${q.district}`,
+            title: `${service} · ${q.district}`,
             customerName: q.name,
             when: q.when === "date" ? q.date : WHEN_LABELS[q.when],
             phone: q.phone,
             email: q.email || undefined,
             details: description,
-            category: q.category,
+            category: service,
             district: q.district,
             summary: q.description,
           };

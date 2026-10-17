@@ -36,10 +36,18 @@ function truncate(text: string, max: number): string {
 export function whatsappMessage(alert: LeadAlert): string {
   const quote = (alert.summary ?? "").replace(/\s+/g, " ").trim();
   const short = quote.length > 160 ? `${quote.slice(0, 157).trimEnd()}…` : quote;
-  const what = alert.category && alert.district ? `tu solicitud de ${alert.category} en ${alert.district}` : "tu mensaje";
-  const intro = `Hola ${alert.customerName}, te escribimos de Construyer.`;
-  if (!short) return `${intro} Recibimos ${what} (${alert.reference}). ¿Coordinamos los detalles?`;
-  return `${intro} Recibimos ${what}: «${short}». ¿Te parece si coordinamos los detalles?`;
+  const intro = `Hola ${alert.customerName}, te escribimos de *Construyer*.`;
+  const closing = "¿Te parece si coordinamos los detalles?";
+  if (!short) return `${intro}\n\nRecibimos tu solicitud ${alert.reference}.\n\n${closing}`;
+  // Formato de WhatsApp: *negrita*, líneas separadas y viñetas para que se lea de un vistazo.
+  const service = alert.category ? alert.category.charAt(0).toUpperCase() + alert.category.slice(1) : null;
+  const items = [
+    service ? `• *Servicio:* ${service}` : null,
+    alert.district ? `• *Zona:* ${alert.district}` : null,
+    `• *Detalle:* «${short}»`,
+  ].filter((line): line is string => line !== null);
+  const heading = service ? "Recibimos tu solicitud:" : "Recibimos tu mensaje:";
+  return `${intro}\n\n${heading}\n${items.join("\n")}\n\n${closing}`;
 }
 
 /** Enlace wa.me para escribirle al cliente; acepta celulares peruanos de 9 dígitos o con código de país. */
