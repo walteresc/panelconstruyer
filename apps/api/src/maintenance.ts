@@ -23,7 +23,12 @@ export function isMaintenanceExempt(method: string, pathname: string): boolean {
 }
 
 export class FileMaintenanceReader implements MaintenanceReader {
-  constructor(readonly path: string) {}
+  // Sin «parameter properties»: el worker carga este archivo con --experimental-strip-types, que no las admite.
+  readonly path: string;
+
+  constructor(path: string) {
+    this.path = path;
+  }
 
   read(): MaintenanceState {
     try {
@@ -53,7 +58,11 @@ export function maintenanceReaderFromEnvironment(): MaintenanceReader {
 export class WorkerDrainTracker {
   #activeJobs = 0;
 
-  constructor(readonly maintenance: MaintenanceReader) {}
+  readonly maintenance: MaintenanceReader;
+
+  constructor(maintenance: MaintenanceReader) {
+    this.maintenance = maintenance;
+  }
 
   begin(): (() => void) | undefined {
     if (this.maintenance.read().active) return undefined;

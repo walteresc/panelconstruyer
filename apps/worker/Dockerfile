@@ -7,10 +7,12 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml pnpm-lock.expected.sha256 .
 COPY scripts/verify-lockfile.mjs ./scripts/verify-lockfile.mjs
 COPY apps ./apps
 COPY packages ./packages
+COPY patches ./patches
 
 RUN pnpm install:verified
 
 ENV NODE_ENV=production
 USER node
 
-CMD ["node", "--experimental-strip-types", "apps/worker/src/index.ts"]
+# tsx (y no --experimental-strip-types): el código compartido importa módulos .ts con especificadores ".js".
+CMD ["sh", "-c", "cd apps/worker && exec ./node_modules/.bin/tsx src/index.ts"]

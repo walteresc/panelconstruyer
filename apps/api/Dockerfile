@@ -7,6 +7,7 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml pnpm-lock.expected.sha256 .
 COPY scripts/verify-lockfile.mjs ./scripts/verify-lockfile.mjs
 COPY apps ./apps
 COPY packages ./packages
+COPY patches ./patches
 
 RUN pnpm install:verified \
   && pnpm --filter @ofp/api build \

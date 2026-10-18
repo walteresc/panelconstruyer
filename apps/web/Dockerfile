@@ -7,13 +7,16 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml pnpm-lock.expected.sha256 .
 COPY scripts/verify-lockfile.mjs ./scripts/verify-lockfile.mjs
 COPY apps ./apps
 COPY packages ./packages
+COPY patches ./patches
 
 ARG NEXT_PUBLIC_API_URL=http://localhost:3001
 ARG NEXT_PUBLIC_SOURCE_URL=
 ARG CONSTRUYER_SITE_URL=https://construyer.com
+ARG OFP_API_INTERNAL_URL=
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_SOURCE_URL=$NEXT_PUBLIC_SOURCE_URL
 ENV CONSTRUYER_SITE_URL=$CONSTRUYER_SITE_URL
+ENV OFP_API_INTERNAL_URL=$OFP_API_INTERNAL_URL
 
 RUN pnpm install:verified \
   && pnpm --filter @ofp/web build \
