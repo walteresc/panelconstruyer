@@ -26,6 +26,8 @@ export interface LeadAlert {
   summary?: string;
   category?: string;
   district?: string;
+  /** Empresa o administración (solicitudes del modo empresa). */
+  company?: string;
 }
 
 function truncate(text: string, max: number): string {
@@ -61,6 +63,7 @@ export function buildLeadAlertMarkdown(alert: LeadAlert, includeContact = false)
     alert.category ? item("Servicio", alert.category) : item("Tipo", alert.title),
     item("Zona", alert.district),
     item("Cliente", alert.customerName),
+    item("Empresa", alert.company),
     item("Pidió", alert.summary ? `«${truncate(alert.summary, 220)}»` : null),
     item("Cuándo", alert.when),
     includeContact ? item("Teléfono", alert.phone) : null,
@@ -88,6 +91,7 @@ export function buildLeadEmailText(alert: LeadAlert, panelUrl: string | undefine
     "",
     `Servicio: ${alert.title}`,
     `Cliente: ${alert.customerName}`,
+    alert.company ? `Empresa: ${alert.company}` : null,
     alert.phone ? `Teléfono: ${alert.phone}` : null,
     alert.email ? `Correo: ${alert.email}` : null,
     whatsappLink(alert) ? `Responder por WhatsApp: ${whatsappLink(alert)}` : null,

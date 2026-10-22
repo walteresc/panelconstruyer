@@ -41,6 +41,9 @@ const quoteRequestBody = z
   .object({
     category: z.string().trim().min(1).max(80),
     categoryLabel: z.string().trim().max(80).optional(),
+    // Solo cuando la solicitud llega desde /empresas (modo empresa del cotizador).
+    company: z.string().trim().max(120).optional(),
+    propertyType: z.string().trim().max(60).optional(),
     description: z.string().trim().min(1).max(5_000),
     district: z.string().trim().min(1).max(120),
     address: z.string().trim().max(300).optional().default(""),
@@ -162,6 +165,8 @@ export async function publicRoutes(app: FastifyInstance) {
             `Categoría: ${service}`,
             `Distrito: ${q.district}`,
             q.address ? `Dirección o referencia: ${q.address}` : null,
+            q.company ? `Empresa: ${q.company}` : null,
+            q.propertyType ? `Tipo de inmueble: ${q.propertyType}` : null,
             `Cuándo lo necesita: ${when}`,
             "",
             q.description,
@@ -207,6 +212,7 @@ export async function publicRoutes(app: FastifyInstance) {
             details: description,
             category: service,
             district: q.district,
+            company: q.company || undefined,
             summary: q.description,
           };
         } else if (part.type === "file") {

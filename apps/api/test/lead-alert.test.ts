@@ -95,3 +95,10 @@ test("el aviso de ntfy usa Markdown: títulos en negrita, un dato por línea y t
   );
   assert.doesNotMatch(buildLeadAlertMarkdown({ reference: "C-1", jobId: "j", title: "t", customerName: "Ana", phone: "987654321" }, false), /Teléfono/);
 });
+
+test("las solicitudes del modo empresa muestran la empresa en el aviso y en el correo", () => {
+  const alert = { reference: "C-1", jobId: "j", title: "t", customerName: "Ana", company: "Edificio Los Álamos", category: "Otro", district: "Surco" };
+  assert.match(buildLeadAlertMarkdown(alert), /- \*\*Empresa:\*\* Edificio Los Álamos/);
+  assert.match(buildLeadEmailText(alert, undefined), /Empresa: Edificio Los Álamos/);
+  assert.doesNotMatch(buildLeadAlertMarkdown({ ...alert, company: undefined }), /Empresa/);
+});
