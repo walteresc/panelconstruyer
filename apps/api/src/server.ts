@@ -15,6 +15,7 @@ import { reviewRoutes } from "./routes/reviews.js";
 import { reportRoutes } from "./routes/reports.js";
 import { recurringRoutes } from "./routes/recurring.js";
 import { publicRoutes } from "./routes/public.js";
+import { specialistApplicationRoutes } from "./routes/specialist-applications.js";
 import { portalRoutes } from "./routes/portal.js";
 import { messageRoutes } from "./routes/messages.js";
 import { documentRoutes } from "./routes/documents.js";
@@ -123,6 +124,7 @@ export function buildServer(
   app.register(photoRoutes, { prefix: "/api/photos" });
   app.register(catalogRoutes, { prefix: "/api/catalog" });
   app.register(publicRoutes, { prefix: "/api/public" });
+  app.register(specialistApplicationRoutes, { prefix: "/api/specialist-applications" });
   app.register(portalRoutes, { prefix: "/api/portal" });
   app.register(messageRoutes, { prefix: "/api" });
   app.register(documentRoutes, { prefix: "/api" });

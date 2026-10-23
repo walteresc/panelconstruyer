@@ -18,11 +18,14 @@ const OFFICE_WRITE_PREFIXES = [
   "/api/service-plans",
   "/api/recurring",
   "/api/reviews",
+  "/api/specialist-applications",
 ];
 
 export function requiredRolesForRequest(method: string, rawUrl: string): UserRole[] | null {
   const path = rawUrl.split("?")[0] ?? rawUrl;
   if (path === "/api/operations" || path.startsWith("/api/operations/")) return ["owner"];
+  // Postulaciones: datos personales de especialistas, solo para la oficina (también para leer).
+  if (path === "/api/specialist-applications" || path.startsWith("/api/specialist-applications/")) return ["owner", "dispatcher"];
   if (["GET", "HEAD", "OPTIONS"].includes(method.toUpperCase())) return null;
 
   if (OWNER_ONLY_WRITE_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) {

@@ -2,10 +2,11 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import multipart from "@fastify/multipart";
 import { z } from "zod";
 import { and, asc, eq } from "drizzle-orm";
-import { db, orgs, customers, jobs, properties } from "@ofp/db";
+import { db, orgs, customers, jobs, properties, specialistApplications } from "@ofp/db";
 import { createFixedWindowRateLimit, requestIpKey } from "../rate-limit.js";
 import { getOrgLogo, savePhoto } from "../uploads.js";
-import { sendLeadAlert, type LeadAlert } from "../lead-alert.js";
+import { sendApplicationAlert, sendLeadAlert, type LeadAlert } from "../lead-alert.js";
+import { affiliateBody } from "./specialist-applications.js";
 
 const bookBody = z.object({
   name: z.string().trim().min(1).max(200),
@@ -238,6 +239,36 @@ export async function publicRoutes(app: FastifyInstance) {
     if (!jobId) return reply.code(400).send({ error: "falta el campo payload" });
     if (alertData) void sendLeadAlert({ ...alertData, photos: saved });
     return reply.code(201).send({ reference, photos: saved });
+  });
+
+  // Postulación de un especialista (/trabaja-con-nosotros). Se guarda en el sistema interno; nunca se publica.
+  app.post("/affiliates", { preHandler: publicFormRateLimit }, async (req, reply) => {
+    const parsed = affiliateBody.safeParse(req.body);
+    if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() });
+    const orgId = await resolvePublicOrgId();
+    if (!orgId) return reply.code(503).send({ error: "el sistema aún no está configurado" });
+
+    const a = parsed.data;
+    const [row] = await db
+      .insert(specialistApplications)
+      .values({
+        orgId,
+        applicantType: a.applicantType,
+        companyName: a.companyName || null,
+        name: a.name,
+        phone: a.phone,
+        specialties: a.specialties,
+        primarySpecialty: a.primarySpecialty,
+        availability: a.availability,
+        districts: a.districts,
+        years: a.years,
+        mobility: a.mobility,
+        tools: a.tools || null,
+        experience: a.experience,
+      })
+      .returning({ id: specialistApplications.id });
+    void sendApplicationAlert({ ...a, companyName: a.companyName || undefined, tools: a.tools || undefined });
+    return reply.code(201).send({ ok: true, reference: "P-" + row.id.slice(0, 8).toUpperCase() });
   });
 
   app.post("/contact", { preHandler: publicFormRateLimit }, async (req, reply) => {

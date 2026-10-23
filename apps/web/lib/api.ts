@@ -417,6 +417,29 @@ export interface PortalSessionDTO {
   }>;
 }
 
+export type SpecialistApplicationStatus = "new" | "review" | "validated" | "discarded";
+
+export interface SpecialistApplication {
+  id: string;
+  status: SpecialistApplicationStatus;
+  applicantType: string;
+  companyName: string | null;
+  name: string;
+  phone: string;
+  specialties: string[];
+  primarySpecialty: string;
+  availability: string;
+  districts: string;
+  years: string;
+  mobility: string;
+  tools: string | null;
+  experience: string;
+  document: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const api = {
   health: () => request<{ ok: boolean }>("/api/health"),
 
@@ -545,6 +568,10 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body ?? {}),
     }),
+
+  specialistApplications: () => request<{ applications: SpecialistApplication[] }>("/api/specialist-applications"),
+  patchSpecialistApplication: (id: string, body: { status?: SpecialistApplicationStatus; notes?: string; document?: string }) =>
+    request<SpecialistApplication>("/api/specialist-applications/" + id, { method: "PATCH", body: JSON.stringify(body) }),
 
   reviews: () => request<ReviewList>("/api/reviews"),
   patchReview: (id: string, body: { reply?: string }) =>

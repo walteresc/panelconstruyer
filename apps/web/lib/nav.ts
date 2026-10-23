@@ -29,6 +29,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { href: "/closeout", label: "Cierre de trabajos", icon: "✓" },
       { href: "/pipeline", label: "Embudo", icon: "⊟" },
       { href: "/customers", label: "Clientes y equipos", icon: "⊕" },
+      { href: "/applications", label: "Postulaciones", icon: "⚑" },
       { href: "/estimates", label: "Cotizaciones", icon: "◷" },
       { href: "/invoices", label: "Facturas y pagos", icon: "◎" },
       { href: "/service-plans", label: "Planes de mantenimiento", icon: "◌" },

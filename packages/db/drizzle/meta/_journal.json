@@ -134,6 +134,13 @@
       "when": 1787419000000,
       "tag": "0018_document_pricing",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1787420000000,
+      "tag": "0019_specialist_applications",
+      "breakpoints": true
     }
   ]
 }

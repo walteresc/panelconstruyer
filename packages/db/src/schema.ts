@@ -332,6 +332,37 @@ export const reviews = pgTable("reviews", {
   createdAt: ts(),
 });
 
+// Postulaciones de especialistas desde la web pública (/trabaja-con-nosotros). Son datos internos: nunca se publican.
+// El documento (DNI, CE o RUC) no se pide al postular; se registra en la validación posterior.
+export const specialistApplications = pgTable(
+  "specialist_applications",
+  {
+    id: id(),
+    orgId: orgId(),
+    /** new | review | validated | discarded */
+    status: text("status").default("new").notNull(),
+    /** independiente | cuadrilla | empresa */
+    applicantType: text("applicant_type").notNull(),
+    companyName: text("company_name"),
+    name: text("name").notNull(),
+    phone: text("phone").notNull(),
+    specialties: jsonb("specialties").$type<string[]>().default(sql`'[]'::jsonb`).notNull(),
+    primarySpecialty: text("primary_specialty").notNull(),
+    availability: text("availability").notNull(),
+    districts: text("districts").notNull(),
+    years: text("years").notNull(),
+    mobility: text("mobility").notNull(),
+    tools: text("tools"),
+    experience: text("experience").notNull(),
+    /** Documento verificado en la etapa de validación (no viene del formulario). */
+    document: text("document"),
+    notes: text("notes"),
+    updatedAt: updatedAt(),
+    createdAt: ts(),
+  },
+  (t) => ({ orgStatusIdx: index("specialist_applications_org_status_idx").on(t.orgId, t.status, t.createdAt) }),
+);
+
 export const activities = pgTable(
   "activities",
   {

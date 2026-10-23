@@ -104,6 +104,80 @@ export function buildLeadEmailText(alert: LeadAlert, panelUrl: string | undefine
   return lines.filter((line): line is string => line !== null).join("\n");
 }
 
+export interface ApplicationAlert {
+  applicantType: string;
+  companyName?: string;
+  name: string;
+  phone: string;
+  specialties: string[];
+  primarySpecialty: string;
+  availability: string;
+  districts: string;
+  years: string;
+  mobility: string;
+  tools?: string;
+  experience: string;
+}
+
+/** Aviso de ntfy: sin teléfono (los datos completos van en el correo y en el panel). */
+export function buildApplicationAlertText(a: ApplicationAlert): string {
+  const others = a.specialties.filter((s) => s !== a.primarySpecialty);
+  const lines = [
+    "Tipo: " + a.applicantType + (a.companyName ? " — " + a.companyName : ""),
+    "Especialidad principal: " + a.primarySpecialty,
+    others.length > 0 ? "Otras: " + others.join(", ") : null,
+    "Zonas: " + truncate(a.districts, 120),
+    "Experiencia: " + a.years + " años · " + a.availability,
+  ];
+  return lines.filter((l): l is string => l !== null).join("\n");
+}
+
+export function buildApplicationEmailText(a: ApplicationAlert, panelUrl: string | undefined): string {
+  const lines = [
+    "Nueva postulación de especialista",
+    "",
+    "Postulante: " + a.name + " (" + a.applicantType + ")",
+    a.companyName ? "Empresa o cuadrilla: " + a.companyName : null,
+    "Teléfono: " + a.phone,
+    "Especialidad principal: " + a.primarySpecialty,
+    "Especialidades: " + a.specialties.join(", "),
+    "Disponibilidad: " + a.availability,
+    "Zonas: " + a.districts,
+    "Años de experiencia: " + a.years,
+    "Movilidad: " + a.mobility,
+    a.tools ? "Herramientas: " + a.tools : null,
+    "",
+    a.experience,
+    panelUrl ? "\nVer en el panel: " + panelUrl.replace(/\/$/, "") + "/applications" : null,
+  ];
+  return lines.filter((l): l is string => l !== null).join("\n");
+}
+
+/** Aviso interno al recibir una postulación (ntfy y correo). "Dispara y olvida": nunca rompe el envío. */
+export async function sendApplicationAlert(a: ApplicationAlert, env: NodeJS.ProcessEnv = process.env): Promise<void> {
+  const tasks: Array<Promise<void>> = [];
+  if (env.NTFY_URL) {
+    const panel = env.PUBLIC_WEB_URL ? env.PUBLIC_WEB_URL.replace(/\/$/, "") + "/applications" : null;
+    const headers: Record<string, string> = { Title: "Nueva postulación de especialista" };
+    if (panel) headers.Click = panel;
+    tasks.push(post(env.NTFY_URL, { method: "POST", headers, body: buildApplicationAlertText(a) }));
+  }
+  const emailTo = env.LEAD_ALERT_EMAIL_TO?.trim();
+  if (emailTo) {
+    tasks.push(
+      sendEmail({
+        to: emailTo,
+        subject: "Nueva postulación — " + a.primarySpecialty + " (" + a.applicantType + ")",
+        text: buildApplicationEmailText(a, env.PUBLIC_WEB_URL),
+      }).then(() => undefined),
+    );
+  }
+  const results = await Promise.allSettled(tasks);
+  for (const r of results) {
+    if (r.status === "rejected") console.error("[application-alert] " + (r.reason as Error).message);
+  }
+}
+
 async function post(url: string, init: RequestInit): Promise<void> {
   const res = await fetch(url, { ...init, signal: AbortSignal.timeout(8_000) });
   if (!res.ok) throw new Error(`${new URL(url).host} respondió ${res.status}`);
